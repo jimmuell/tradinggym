@@ -401,19 +401,19 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   }, [onPriceUpdate]);
 
   // Play interval
+  const replayIndexRef = useRef(0);
+  replayIndexRef.current = replayIndex;
+
   useEffect(() => {
     if (isPlaying && replayMode) {
       const speed = timeframe === '1m' ? 100 : timeframe === '5m' ? 200 : 400;
       playIntervalRef.current = window.setInterval(() => {
-        setReplayIndex((prev) => {
-          const next = prev + 1;
-          if (next > allDataRef.current.length) {
-            setIsPlaying(false);
-            return prev;
-          }
-          updateReplayTo(next);
-          return next;
-        });
+        const next = replayIndexRef.current + 1;
+        if (next > allDataRef.current.length) {
+          setIsPlaying(false);
+          return;
+        }
+        updateReplayTo(next);
       }, speed);
     } else {
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
