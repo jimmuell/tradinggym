@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { SLTPConfig } from '@/components/chart/TradeOrderPanel';
 import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
 import RightToolbar from '@/components/chart/RightToolbar';
@@ -12,7 +13,7 @@ export default function Index() {
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
   const [lastPrice, setLastPrice] = useState(6500);
-  const buyHandlerRef = useRef<(() => void) | null>(null);
+  const buyHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
@@ -39,7 +40,7 @@ export default function Index() {
           <TradeOrderPanel
             onClose={() => setTradeOpen(false)}
             lastPrice={lastPrice}
-            onBuy={() => buyHandlerRef.current?.()}
+            onBuy={(config) => buyHandlerRef.current?.(config)}
           />
         )}
       </div>

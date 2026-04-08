@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { X, Settings2, MoreHorizontal, ChevronDown, ChevronUp, HelpCircle, ArrowUpDown } from 'lucide-react';
 
+export interface SLTPConfig {
+  slEnabled: boolean;
+  tpEnabled: boolean;
+  slTicks: number;
+  tpTicks: number;
+}
+
 interface TradeOrderPanelProps {
   onClose: () => void;
   lastPrice: number;
-  onBuy: () => void;
+  onBuy: (config: SLTPConfig) => void;
 }
 
 export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrderPanelProps) {
@@ -12,14 +19,17 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrde
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop'>('Market');
   const [units, setUnits] = useState(3);
   const [exitsOpen, setExitsOpen] = useState(true);
-  const [tpEnabled, setTpEnabled] = useState(false);
-  const [slEnabled, setSlEnabled] = useState(false);
+  const [tpEnabled, setTpEnabled] = useState(true);
+  const [slEnabled, setSlEnabled] = useState(true);
+  const [tpTicks, setTpTicks] = useState(75);
+  const [slTicks, setSlTicks] = useState(25);
 
   const sellPrice = lastPrice;
   const buyPrice = lastPrice + 0.25;
   const spread = 0.25;
-  const tpPrice = (lastPrice + 19.50).toFixed(2);
-  const slPrice = (lastPrice - 5.50).toFixed(2);
+  const tickSize = 0.25;
+  const tpPrice = (lastPrice + tpTicks * tickSize).toFixed(2);
+  const slPrice = (lastPrice - slTicks * tickSize).toFixed(2);
   const tickValue = 3.75;
   const tradeValue = (lastPrice * units * 5).toFixed(2);
   const margin = (units * 68.21).toFixed(2);
@@ -138,11 +148,17 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrde
                   type="text"
                   value={tpPrice}
                   readOnly
-                  className="flex-1 bg-transparent text-[#787b86] text-sm px-3 py-2 outline-none"
+                  className={`flex-1 bg-transparent text-sm px-3 py-2 outline-none ${tpEnabled ? 'text-[#d1d4dc]' : 'text-[#787b86]'}`}
                 />
                 <button className="px-2 text-[#787b86]"><ArrowUpDown size={14} /></button>
-                <div className="border-l border-[#363a45] px-3 py-2 text-sm text-[#787b86]">
-                  75 ticks <ChevronDown size={10} className="inline" />
+                <div className="border-l border-[#363a45] px-3 py-2 text-sm text-[#787b86] flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={tpTicks}
+                    onChange={(e) => setTpTicks(Number(e.target.value))}
+                    className="w-8 bg-transparent text-[#d1d4dc] outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
             </div>
@@ -163,11 +179,17 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrde
                   type="text"
                   value={slPrice}
                   readOnly
-                  className="flex-1 bg-transparent text-[#787b86] text-sm px-3 py-2 outline-none"
+                  className={`flex-1 bg-transparent text-sm px-3 py-2 outline-none ${slEnabled ? 'text-[#d1d4dc]' : 'text-[#787b86]'}`}
                 />
                 <button className="px-2 text-[#787b86]"><ArrowUpDown size={14} /></button>
-                <div className="border-l border-[#363a45] px-3 py-2 text-sm text-[#787b86]">
-                  25 ticks <ChevronDown size={10} className="inline" />
+                <div className="border-l border-[#363a45] px-3 py-2 text-sm text-[#787b86] flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={slTicks}
+                    onChange={(e) => setSlTicks(Number(e.target.value))}
+                    className="w-8 bg-transparent text-[#d1d4dc] outline-none text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
             </div>
@@ -201,7 +223,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrde
 
       {/* Buy button */}
       <div className="mx-3 mt-4 mb-4">
-        <button onClick={onBuy} className="w-full bg-[#2962ff] hover:bg-[#1e53e5] text-white font-semibold py-3 rounded-lg text-base">
+        <button onClick={() => onBuy({ slEnabled, tpEnabled, slTicks, tpTicks })} className="w-full bg-[#2962ff] hover:bg-[#1e53e5] text-white font-semibold py-3 rounded-lg text-base">
           Buy
           <div className="text-[11px] font-normal opacity-80">{units} MESM2026 MARKET</div>
         </button>

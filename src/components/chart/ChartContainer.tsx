@@ -17,6 +17,7 @@ import {
 import { loadTimeframeData, getSMAData, getEMAData, Timeframe } from '@/lib/chartData';
 import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import ReplayControls from './ReplayControls';
+import { SLTPConfig } from './TradeOrderPanel';
 
 interface Position {
   id: string;
@@ -26,10 +27,10 @@ interface Position {
   quantity: number;
   priceLine: IPriceLine;
   marker: SeriesMarker<Time>;
-  slLine: IPriceLine;
-  tpLine: IPriceLine;
-  slPrice: number;
-  tpPrice: number;
+  slLine: IPriceLine | null;
+  tpLine: IPriceLine | null;
+  slPrice: number | null;
+  tpPrice: number | null;
 }
 
 interface ChartContainerProps {
@@ -37,7 +38,7 @@ interface ChartContainerProps {
   replayMode: boolean;
   onExitReplay: () => void;
   onPriceUpdate: (price: number) => void;
-  onRegisterBuyHandler?: (handler: (() => void) | null) => void;
+  onRegisterBuyHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -336,7 +337,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   };
 
   // Place a position (buy or sell) — uses v5.1 createSeriesMarkers + createPriceLine
-  const placePosition = useCallback((side: 'long' | 'short') => {
+  const placePosition = useCallback((side: 'long' | 'short', sltpConfig?: SLTPConfig) => {
     const data = allDataRef.current;
     if (!data.length || !candleSeriesRef.current) return;
     const currentData = replayMode ? data.slice(0, replayIndex) : data;
@@ -371,30 +372,41 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       title: `${side === 'long' ? 'Long Entry' : 'Short Entry'} ${1}`,
     });
 
-    // SL/TP price lines
+    // SL/TP price lines - use config if provided, else use overlay refs
     const tickSize = 0.25;
-    const slOffset = slTicksRef.current * tickSize;
-    const tpOffset = tpTicksRef.current * tickSize;
+    const useSlTicks = sltpConfig ? sltpConfig.slTicks : slTicksRef.current;
+    const useTpTicks = sltpConfig ? sltpConfig.tpTicks : tpTicksRef.current;
+    const slEnabled = sltpConfig ? sltpConfig.slEnabled : true;
+    const tpEnabled = sltpConfig ? sltpConfig.tpEnabled : true;
+    const slOffset = useSlTicks * tickSize;
+    const tpOffset = useTpTicks * tickSize;
     const slPrice = side === 'long' ? entryPrice - slOffset : entryPrice + slOffset;
     const tpPrice = side === 'long' ? entryPrice + tpOffset : entryPrice - tpOffset;
 
-    const slLine = candleSeriesRef.current.createPriceLine({
-      price: slPrice,
-      color: '#ef5350',
-      lineWidth: 1,
-      lineStyle: 2,
-      axisLabelVisible: true,
-      title: 'SL',
-    });
+    let slLine: IPriceLine | null = null;
+    let tpLine: IPriceLine | null = null;
 
-    const tpLine = candleSeriesRef.current.createPriceLine({
-      price: tpPrice,
-      color: '#26a69a',
-      lineWidth: 1,
-      lineStyle: 2,
-      axisLabelVisible: true,
-      title: 'TP',
-    });
+    if (slEnabled) {
+      slLine = candleSeriesRef.current.createPriceLine({
+        price: slPrice,
+        color: '#ef5350',
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: 'SL',
+      });
+    }
+
+    if (tpEnabled) {
+      tpLine = candleSeriesRef.current.createPriceLine({
+        price: tpPrice,
+        color: '#26a69a',
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: 'TP',
+      });
+    }
 
     const pos: Position = {
       id: Date.now().toString(),
@@ -406,14 +418,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       marker,
       slLine,
       tpLine,
-      slPrice,
-      tpPrice,
+      slPrice: slEnabled ? slPrice : null,
+      tpPrice: tpEnabled ? tpPrice : null,
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
 
   useEffect(() => {
-    onRegisterBuyHandler?.(() => placePosition('long'));
+    onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
 
     return () => {
       onRegisterBuyHandler?.(null);
@@ -427,8 +439,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (pos && candleSeriesRef.current) {
         // Remove the specific price line by stored reference (NEVER iterate all)
         candleSeriesRef.current.removePriceLine(pos.priceLine);
-        candleSeriesRef.current.removePriceLine(pos.slLine);
-        candleSeriesRef.current.removePriceLine(pos.tpLine);
+        if (pos.slLine) candleSeriesRef.current.removePriceLine(pos.slLine);
+        if (pos.tpLine) candleSeriesRef.current.removePriceLine(pos.tpLine);
 
         // Remove marker from accumulated array and refresh
         markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
