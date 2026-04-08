@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import {
   Search, Plus, ChevronDown, BarChart3, Bell, Rewind,
   Undo, Redo, Ruler, Square, PenTool, Eye, Settings,
   Layout, Camera, Bookmark
 } from 'lucide-react';
 import { Timeframe } from '@/lib/chartData';
+import ChartSettingsModal from './ChartSettingsModal';
 
 const timeframes: Timeframe[] = ['1m', '5m', '30m', '1h', '1D'];
 
@@ -16,7 +18,11 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onReplayClick, replayMode }: TopBarProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
+    <>
+    <ChartSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     <div className="flex items-center h-[38px] bg-[#1e222d] text-[#d1d4dc] text-xs px-2 gap-1 border-b border-[#2a2e39]">
       <span className="font-semibold text-white text-sm mr-1">ES</span>
       <button className="text-[#787b86] hover:text-white p-1"><Search size={14} /></button>
@@ -59,7 +65,7 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><PenTool size={14} /></button>
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Camera size={14} /></button>
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Eye size={14} /></button>
-        <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Settings size={14} /></button>
+        <button onClick={() => setSettingsOpen(true)} className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Settings size={14} /></button>
         <div className="w-px h-5 bg-[#2a2e39] mx-1" />
         <span className="text-[#787b86] text-[11px]">Day Trading</span>
         <ChevronDown size={10} className="text-[#787b86]" />
@@ -68,5 +74,6 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <button className="px-3 py-1.5 rounded bg-[#2962ff] text-white font-medium hover:bg-[#1e53e5]">Publish</button>
       </div>
     </div>
+    </>
   );
 }
