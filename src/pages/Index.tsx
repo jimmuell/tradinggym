@@ -20,10 +20,10 @@ export default function Index() {
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
-      <TopBar ohlcv={lastCandle} />
+      <TopBar />
       <div className="flex flex-1 overflow-hidden">
         <LeftToolbar />
-        <ChartContainer />
+        <ChartContainer ohlcv={lastCandle} />
         <RightToolbar />
       </div>
       <BottomBar />
