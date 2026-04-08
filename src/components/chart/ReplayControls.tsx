@@ -1,4 +1,4 @@
-import { Play, Pause, SkipBack, SkipForward, X } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, RotateCcw } from 'lucide-react';
 
 interface ReplayControlsProps {
   isPlaying: boolean;
@@ -6,17 +6,21 @@ interface ReplayControlsProps {
   onPause: () => void;
   onStepBack: () => void;
   onStepForward: () => void;
+  onReset: () => void;
   onExit: () => void;
   currentBar: number;
   totalBars: number;
 }
 
 export default function ReplayControls({
-  isPlaying, onPlay, onPause, onStepBack, onStepForward, onExit,
+  isPlaying, onPlay, onPause, onStepBack, onStepForward, onReset, onExit,
   currentBar, totalBars,
 }: ReplayControlsProps) {
   return (
     <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-[#2a2e39] rounded-lg px-2 py-1 shadow-lg border border-[#363a45]">
+      <button onClick={onReset} disabled={currentBar === 0} className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#363a45] ${currentBar === 0 ? 'text-[#4a4e59] cursor-not-allowed' : 'text-[#d1d4dc]'}`} title="Reset to start">
+        <RotateCcw size={14} />
+      </button>
       <button onClick={onStepBack} disabled={currentBar === 0} className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#363a45] ${currentBar === 0 ? 'text-[#4a4e59] cursor-not-allowed' : 'text-[#d1d4dc]'}`}>
         <SkipBack size={14} />
       </button>
