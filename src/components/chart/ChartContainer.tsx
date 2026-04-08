@@ -303,8 +303,77 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     timeScale.setVisibleLogicalRange({ from: range.from + shift, to: range.to + shift });
   };
 
+  // Place a position (buy or sell)
+  const placePosition = useCallback((side: 'long' | 'short') => {
+    const data = allDataRef.current;
+    if (!data.length || !candleSeriesRef.current) return;
+    const currentData = replayMode ? data.slice(0, replayIndex) : data;
+    const lastBar = currentData[currentData.length - 1];
+    if (!lastBar) return;
+
+    const entryPrice = side === 'long' ? ohlcv.close - 0.25 : ohlcv.close - 0.50;
+    const pos: Position = {
+      id: Date.now().toString(),
+      side,
+      entryPrice,
+      entryTime: lastBar.time,
+      quantity: 1,
+    };
+    setPositions((prev) => [...prev, pos]);
+  }, [ohlcv.close, replayMode, replayIndex]);
+
+  // Close a position
+  const closePosition = useCallback((id: string) => {
+    setPositions((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  // Update markers and price lines when positions change
+  useEffect(() => {
+    if (!candleSeriesRef.current) return;
+
+    // Clear old price lines
+    priceLinesRef.current.forEach((pl) => {
+      try { candleSeriesRef.current?.removePriceLine(pl); } catch {}
+    });
+    priceLinesRef.current = [];
+
+    // Set markers on candle series
+    const markers: SeriesMarker<Time>[] = positions.map((pos) => ({
+      time: pos.entryTime,
+      position: pos.side === 'long' ? 'belowBar' as const : 'aboveBar' as const,
+      color: pos.side === 'long' ? '#2962ff' : '#f23645',
+      shape: pos.side === 'long' ? 'arrowUp' as const : 'arrowDown' as const,
+      text: `${pos.side === 'long' ? 'BUY' : 'SELL'} @ ${pos.entryPrice.toFixed(2)}`,
+    }));
+    // Sort markers by time (required by lightweight-charts)
+    markers.sort((a, b) => {
+      if (typeof a.time === 'number' && typeof b.time === 'number') return a.time - b.time;
+      return String(a.time) < String(b.time) ? -1 : 1;
+    });
+    candleSeriesRef.current.setMarkers(markers);
+
+    // Add price lines for each position
+    positions.forEach((pos) => {
+      const priceLine = candleSeriesRef.current!.createPriceLine({
+        price: pos.entryPrice,
+        color: pos.side === 'long' ? '#2962ff' : '#f23645',
+        lineWidth: 1,
+        lineStyle: 2, // dashed
+        axisLabelVisible: true,
+        title: `${pos.side === 'long' ? 'BUY' : 'SELL'} ${pos.quantity}`,
+      });
+      priceLinesRef.current.push(priceLine);
+    });
+  }, [positions]);
+
   const change = ohlcv.close - ohlcv.open;
   const changePct = ohlcv.open ? (change / ohlcv.open) * 100 : 0;
+
+  // Calculate P&L for each position
+  const getPnL = (pos: Position) => {
+    const diff = pos.side === 'long' ? ohlcv.close - pos.entryPrice : pos.entryPrice - ohlcv.close;
+    return diff * pos.quantity * 5; // MES = $5 per point
+  };
 
   return (
     <div className="relative flex-1 min-w-0 bg-white">
@@ -340,20 +409,57 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           <span>Vol{ohlcv.volume}</span>
         </div>
         <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
-          <div className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3">
+          <div
+            onClick={() => placePosition('short')}
+            className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
+          >
             <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
             <span className="text-[10px] font-medium leading-tight opacity-90">SELL</span>
           </div>
           <div className="flex flex-col items-center justify-center text-[12px] text-[#787b86] leading-tight px-2 py-1.5 bg-[#f0f3fa] border border-[#d1d4dc] rounded-[6px] min-w-[36px]">
-            <span>0.25</span><span>3</span>
+            <span>0.25</span><span>{positions.length}</span>
           </div>
-          <div className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3">
+          <div
+            onClick={() => placePosition('long')}
+            className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
+          >
             <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
             <span className="text-[10px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
-        <div className="text-[12px] text-[#787b86] mt-1">▼ 7</div>
+        <div className="text-[12px] text-[#787b86] mt-1">▼ {positions.length}</div>
       </div>
+
+      {/* Active positions overlay */}
+      {positions.length > 0 && (
+        <div className="absolute top-1 right-[70px] z-20 flex flex-col gap-1 pointer-events-auto">
+          {positions.map((pos) => {
+            const pnl = getPnL(pos);
+            const isProfit = pnl >= 0;
+            return (
+              <div
+                key={pos.id}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-[6px] text-white text-[12px] shadow-md ${
+                  pos.side === 'long' ? 'bg-[#2962ff]' : 'bg-[#f23645]'
+                }`}
+              >
+                <span className="font-semibold">{pos.side === 'long' ? '▲ BUY' : '▼ SELL'}</span>
+                <span className="opacity-80">@ {pos.entryPrice.toFixed(2)}</span>
+                <span className={`font-bold ${isProfit ? 'text-[#a5f3c4]' : 'text-[#fecaca]'}`}>
+                  {isProfit ? '+' : ''}{pnl.toFixed(2)} USD
+                </span>
+                <button
+                  onClick={() => closePosition(pos.id)}
+                  className="ml-1 hover:bg-white/20 rounded p-0.5"
+                  title="Close position"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <CurrencyDropdown />
 
