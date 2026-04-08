@@ -418,14 +418,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       marker,
       slLine,
       tpLine,
-      slPrice,
-      tpPrice,
+      slPrice: slEnabled ? slPrice : null,
+      tpPrice: tpEnabled ? tpPrice : null,
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
 
   useEffect(() => {
-    onRegisterBuyHandler?.(() => placePosition('long'));
+    onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
 
     return () => {
       onRegisterBuyHandler?.(null);
@@ -439,8 +439,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (pos && candleSeriesRef.current) {
         // Remove the specific price line by stored reference (NEVER iterate all)
         candleSeriesRef.current.removePriceLine(pos.priceLine);
-        candleSeriesRef.current.removePriceLine(pos.slLine);
-        candleSeriesRef.current.removePriceLine(pos.tpLine);
+        if (pos.slLine) candleSeriesRef.current.removePriceLine(pos.slLine);
+        if (pos.tpLine) candleSeriesRef.current.removePriceLine(pos.tpLine);
 
         // Remove marker from accumulated array and refresh
         markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
