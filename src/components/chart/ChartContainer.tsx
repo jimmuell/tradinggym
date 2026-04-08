@@ -537,6 +537,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
               >
                 <span className="font-semibold">{pos.side === 'long' ? '▲ BUY' : '▼ SELL'}</span>
                 <span className="opacity-80">@ {pos.entryPrice.toFixed(2)}</span>
+                <span className="text-[#ef5350]">SL {pos.slPrice.toFixed(2)}</span>
+                <span className="text-[#26a69a]">TP {pos.tpPrice.toFixed(2)}</span>
                 <span className={`font-bold ${isProfit ? 'text-[#a5f3c4]' : 'text-[#fecaca]'}`}>
                   {isProfit ? '+' : ''}{pnl.toFixed(2)} USD
                 </span>
