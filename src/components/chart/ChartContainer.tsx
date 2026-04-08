@@ -39,6 +39,7 @@ interface ChartContainerProps {
   onExitReplay: () => void;
   onPriceUpdate: (price: number) => void;
   onRegisterBuyHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
+  onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -73,7 +74,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onSLTPDrag }: ChartContainerProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
