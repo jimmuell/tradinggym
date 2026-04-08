@@ -401,6 +401,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       onPriceUpdate(last.close);
     }
     chartRef.current?.timeScale().scrollToPosition(2, false);
+
+    // Check SL/TP hits on the new bar
+    if (last) {
+      checkSLTPHits(last.high, last.low);
+    }
   }, [onPriceUpdate]);
 
   // Play interval
