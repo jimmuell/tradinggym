@@ -514,7 +514,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const placePosition = useCallback((side: 'long' | 'short', sltpConfig?: SLTPConfig) => {
     const data = allDataRef.current;
     if (!data.length || !candleSeriesRef.current) return;
-    const currentData = replayMode ? data.slice(0, replayIndex) : data;
+    const currentData = replayModeRef.current ? data.slice(0, replayIndexRef.current) : data;
     const lastBar = currentData[currentData.length - 1];
     if (!lastBar) return;
 
@@ -596,7 +596,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       tpPrice: tpEnabled ? tpPrice : null,
     };
     setPositions((prev) => [...prev, pos]);
-  }, [replayMode, replayIndex]);
+  }, []);
 
   useEffect(() => {
     onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
