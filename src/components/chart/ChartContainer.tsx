@@ -117,6 +117,25 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       }
     };
 
+    // Crosshair move handler for OHLCV hover
+    chart.subscribeCrosshairMove((param) => {
+      if (!param || !param.time || !param.seriesData) {
+        // Reset to last bar data when not hovering
+        const data = allDataRef.current;
+        const currentIdx = replayMode ? undefined : data.length;
+        const slice = replayMode ? data.slice(0, replayIndex) : data;
+        const last = slice[slice.length - 1];
+        if (last) {
+          setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+        }
+        return;
+      }
+      const candle = param.seriesData.get(candleSeries) as CandlestickData<Time> | undefined;
+      if (candle) {
+        setOhlcv({ open: candle.open, high: candle.high, low: candle.low, close: candle.close, volume: '—' });
+      }
+    });
+
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(chartContainerRef.current);
 
