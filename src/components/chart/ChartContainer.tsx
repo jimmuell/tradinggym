@@ -258,6 +258,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           onPause={() => setIsPlaying(false)}
           onStepBack={() => updateReplayTo(replayIndex - 1)}
           onStepForward={() => updateReplayTo(replayIndex + 1)}
+          onReset={() => updateReplayTo(0)}
           onExit={() => { setIsPlaying(false); onExitReplay(); }}
           currentBar={replayIndex}
           totalBars={allDataRef.current.length}
