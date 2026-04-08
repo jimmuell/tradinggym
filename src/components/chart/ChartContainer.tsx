@@ -453,7 +453,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     const lastBar = currentData[currentData.length - 1];
     if (!lastBar) return;
 
-    const entryPrice = side === 'long' ? ohlcv.close - 0.25 : ohlcv.close - 0.50;
+    const entryPrice = lastBar.close;
 
     // Create marker
     const marker: SeriesMarker<Time> = {
@@ -531,7 +531,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       tpPrice: tpEnabled ? tpPrice : null,
     };
     setPositions((prev) => [...prev, pos]);
-  }, [ohlcv.close, replayMode, replayIndex]);
+  }, [replayMode, replayIndex]);
 
   useEffect(() => {
     onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
