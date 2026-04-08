@@ -186,7 +186,16 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   const updateReplayTo = useCallback((newIdx: number) => {
     const data = allDataRef.current;
-    if (newIdx < 1 || newIdx > data.length || !candleSeriesRef.current) return;
+    if (newIdx < 0 || newIdx > data.length || !candleSeriesRef.current) return;
+    if (newIdx === 0) {
+      setReplayIndex(0);
+      setIsPlaying(false);
+      candleSeriesRef.current.setData([]);
+      smaSeriesRef.current?.setData([]);
+      emaSeriesRef.current?.setData([]);
+      setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
+      return;
+    }
     setReplayIndex(newIdx);
     const slice = data.slice(0, newIdx);
     candleSeriesRef.current.setData(slice);
