@@ -220,7 +220,7 @@ export default function ChartContainer({ ohlcv }: ChartContainerProps) {
         TV
       </div>
       {/* Zoom/scroll controls */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+      <div className="absolute bottom-[50px] left-1/2 -translate-x-1/2 flex items-center gap-1.5">
         <button onClick={() => handleZoom('out')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
           <Minus size={16} />
         </button>
