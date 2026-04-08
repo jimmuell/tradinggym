@@ -17,7 +17,7 @@ export default function ReplayControls({
 }: ReplayControlsProps) {
   return (
     <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-[#2a2e39] rounded-lg px-2 py-1 shadow-lg border border-[#363a45]">
-      <button onClick={onStepBack} className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#363a45] text-[#d1d4dc]">
+      <button onClick={onStepBack} disabled={currentBar === 0} className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#363a45] ${currentBar === 0 ? 'text-[#4a4e59] cursor-not-allowed' : 'text-[#d1d4dc]'}`}>
         <SkipBack size={14} />
       </button>
       {isPlaying ? (
