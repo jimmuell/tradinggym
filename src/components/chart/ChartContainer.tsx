@@ -371,6 +371,31 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       title: `${side === 'long' ? 'Long Entry' : 'Short Entry'} ${1}`,
     });
 
+    // SL/TP price lines
+    const tickSize = 0.25;
+    const slOffset = slTicksRef.current * tickSize;
+    const tpOffset = tpTicksRef.current * tickSize;
+    const slPrice = side === 'long' ? entryPrice - slOffset : entryPrice + slOffset;
+    const tpPrice = side === 'long' ? entryPrice + tpOffset : entryPrice - tpOffset;
+
+    const slLine = candleSeriesRef.current.createPriceLine({
+      price: slPrice,
+      color: '#ef5350',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'SL',
+    });
+
+    const tpLine = candleSeriesRef.current.createPriceLine({
+      price: tpPrice,
+      color: '#26a69a',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'TP',
+    });
+
     const pos: Position = {
       id: Date.now().toString(),
       side,
@@ -379,6 +404,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       quantity: 1,
       priceLine,
       marker,
+      slLine,
+      tpLine,
+      slPrice,
+      tpPrice,
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
