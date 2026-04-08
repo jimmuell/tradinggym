@@ -14,6 +14,8 @@ export default function Index() {
   const [replayMode, setReplayMode] = useState(false);
   const [lastPrice, setLastPrice] = useState(6500);
   const buyHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
+  const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
+  const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
@@ -34,13 +36,19 @@ export default function Index() {
           onRegisterBuyHandler={(handler) => {
             buyHandlerRef.current = handler;
           }}
+          onSLTPDrag={(type, ticks) => {
+            if (type === 'sl') setDraggedSlTicks(ticks);
+            else setDraggedTpTicks(ticks);
+          }}
         />
         <RightToolbar />
         {tradeOpen && (
           <TradeOrderPanel
             onClose={() => setTradeOpen(false)}
             lastPrice={lastPrice}
-            onBuy={(config) => buyHandlerRef.current?.(config)}
+            onBuy={(config) => { buyHandlerRef.current?.(config); }}
+            externalSlTicks={draggedSlTicks}
+            externalTpTicks={draggedTpTicks}
           />
         )}
       </div>
