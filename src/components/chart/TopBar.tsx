@@ -4,7 +4,11 @@ import {
   Layout, Camera, Bookmark
 } from 'lucide-react';
 
-export default function TopBar() {
+interface TopBarProps {
+  onTradeClick: () => void;
+}
+
+export default function TopBar({ onTradeClick }: TopBarProps) {
   return (
     <div className="flex items-center h-[38px] bg-[#1e222d] text-[#d1d4dc] text-xs px-2 gap-1 border-b border-[#2a2e39]">
       <span className="font-semibold text-white text-sm mr-1">MESM2026</span>
@@ -43,7 +47,12 @@ export default function TopBar() {
         <span className="text-[#787b86] text-[11px]">Day Trading</span>
         <ChevronDown size={10} className="text-[#787b86]" />
         <div className="w-px h-5 bg-[#2a2e39] mx-1" />
-        <button className="px-3 py-1 rounded hover:bg-[#2a2e39] text-[#d1d4dc]">Trade</button>
+        <button
+          onClick={onTradeClick}
+          className="px-3 py-1 rounded hover:bg-[#2a2e39] text-[#d1d4dc]"
+        >
+          Trade
+        </button>
         <button className="px-3 py-1.5 rounded bg-[#2962ff] text-white font-medium hover:bg-[#1e53e5]">Publish</button>
       </div>
     </div>
