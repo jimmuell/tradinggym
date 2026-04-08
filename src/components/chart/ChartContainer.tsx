@@ -98,6 +98,21 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const markersArrayRef = useRef<SeriesMarker<Time>[]>([]);
 
+  // Drag state for SL/TP lines
+  const dragRef = useRef<{
+    posId: string;
+    type: 'sl' | 'tp';
+    line: IPriceLine;
+    startY: number;
+    startPrice: number;
+    entryPrice: number;
+    side: 'long' | 'short';
+  } | null>(null);
+  const onSLTPDragRef = useRef(onSLTPDrag);
+  onSLTPDragRef.current = onSLTPDrag;
+  const positionsRef = useRef<Position[]>([]);
+  positionsRef.current = positions;
+
   // Create chart once
   useEffect(() => {
     if (!chartContainerRef.current) return;
