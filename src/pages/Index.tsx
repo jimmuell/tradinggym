@@ -1,35 +1,38 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
 import RightToolbar from '@/components/chart/RightToolbar';
 import BottomBar from '@/components/chart/BottomBar';
 import ChartContainer from '@/components/chart/ChartContainer';
 import TradeOrderPanel from '@/components/chart/TradeOrderPanel';
-import { candlestickData } from '@/lib/chartData';
+import { Timeframe } from '@/lib/chartData';
 
 export default function Index() {
   const [tradeOpen, setTradeOpen] = useState(false);
-
-  const lastCandle = useMemo(() => {
-    const c = candlestickData[candlestickData.length - 1];
-    return {
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-      volume: '4.53K',
-    };
-  }, []);
+  const [timeframe, setTimeframe] = useState<Timeframe>('1m');
+  const [replayMode, setReplayMode] = useState(false);
+  const [lastPrice, setLastPrice] = useState(6500);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
-      <TopBar onTradeClick={() => setTradeOpen(!tradeOpen)} />
+      <TopBar
+        onTradeClick={() => setTradeOpen(!tradeOpen)}
+        timeframe={timeframe}
+        onTimeframeChange={setTimeframe}
+        onReplayClick={() => setReplayMode(!replayMode)}
+        replayMode={replayMode}
+      />
       <div className="flex flex-1 overflow-hidden">
         <LeftToolbar />
-        <ChartContainer ohlcv={lastCandle} />
+        <ChartContainer
+          timeframe={timeframe}
+          replayMode={replayMode}
+          onExitReplay={() => setReplayMode(false)}
+          onPriceUpdate={setLastPrice}
+        />
         <RightToolbar />
         {tradeOpen && (
-          <TradeOrderPanel onClose={() => setTradeOpen(false)} lastPrice={lastCandle.close} />
+          <TradeOrderPanel onClose={() => setTradeOpen(false)} lastPrice={lastPrice} />
         )}
       </div>
       <BottomBar />
