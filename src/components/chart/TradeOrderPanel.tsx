@@ -4,9 +4,10 @@ import { X, Settings2, MoreHorizontal, ChevronDown, ChevronUp, HelpCircle, Arrow
 interface TradeOrderPanelProps {
   onClose: () => void;
   lastPrice: number;
+  onBuy: () => void;
 }
 
-export default function TradeOrderPanel({ onClose, lastPrice }: TradeOrderPanelProps) {
+export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrderPanelProps) {
   const [activeTab, setActiveTab] = useState<'Order' | 'DOM'>('Order');
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop'>('Market');
   const [units, setUnits] = useState(3);
@@ -200,7 +201,7 @@ export default function TradeOrderPanel({ onClose, lastPrice }: TradeOrderPanelP
 
       {/* Buy button */}
       <div className="mx-3 mt-4 mb-4">
-        <button className="w-full bg-[#2962ff] hover:bg-[#1e53e5] text-white font-semibold py-3 rounded-lg text-base">
+        <button onClick={onBuy} className="w-full bg-[#2962ff] hover:bg-[#1e53e5] text-white font-semibold py-3 rounded-lg text-base">
           Buy
           <div className="text-[11px] font-normal opacity-80">{units} MESM2026 MARKET</div>
         </button>

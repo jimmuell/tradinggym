@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
 import RightToolbar from '@/components/chart/RightToolbar';
@@ -12,6 +12,7 @@ export default function Index() {
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
   const [lastPrice, setLastPrice] = useState(6500);
+  const buyHandlerRef = useRef<(() => void) | null>(null);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
@@ -29,10 +30,17 @@ export default function Index() {
           replayMode={replayMode}
           onExitReplay={() => setReplayMode(false)}
           onPriceUpdate={setLastPrice}
+          onRegisterBuyHandler={(handler) => {
+            buyHandlerRef.current = handler;
+          }}
         />
         <RightToolbar />
         {tradeOpen && (
-          <TradeOrderPanel onClose={() => setTradeOpen(false)} lastPrice={lastPrice} />
+          <TradeOrderPanel
+            onClose={() => setTradeOpen(false)}
+            lastPrice={lastPrice}
+            onBuy={() => buyHandlerRef.current?.()}
+          />
         )}
       </div>
       <BottomBar />

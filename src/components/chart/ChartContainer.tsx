@@ -33,6 +33,7 @@ interface ChartContainerProps {
   replayMode: boolean;
   onExitReplay: () => void;
   onPriceUpdate: (price: number) => void;
+  onRegisterBuyHandler?: (handler: (() => void) | null) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -67,7 +68,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler }: ChartContainerProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -373,6 +374,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
+
+  useEffect(() => {
+    onRegisterBuyHandler?.(() => placePosition('long'));
+
+    return () => {
+      onRegisterBuyHandler?.(null);
+    };
+  }, [onRegisterBuyHandler, placePosition]);
 
   // Close a position — removes stored priceLine ref and marker
   const closePosition = useCallback((id: string) => {
