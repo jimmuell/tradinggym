@@ -18,7 +18,11 @@ interface TopBarProps {
 }
 
 export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onReplayClick, replayMode }: TopBarProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
+    <>
+    <ChartSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     <div className="flex items-center h-[38px] bg-[#1e222d] text-[#d1d4dc] text-xs px-2 gap-1 border-b border-[#2a2e39]">
       <span className="font-semibold text-white text-sm mr-1">ES</span>
       <button className="text-[#787b86] hover:text-white p-1"><Search size={14} /></button>
