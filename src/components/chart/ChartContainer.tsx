@@ -468,10 +468,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
   const replayModeRef = useRef(false);
-  replayModeRef.current = replayMode;
+  const isReplaySessionActive = replayMode || replayIndex > 0;
+  replayModeRef.current = isReplaySessionActive;
 
   useEffect(() => {
-    if (isPlaying && replayMode) {
+    if (isPlaying && isReplaySessionActive) {
       const speed = timeframe === '1m' ? 100 : timeframe === '5m' ? 200 : 400;
       playIntervalRef.current = window.setInterval(() => {
         const next = replayIndexRef.current + 1;
@@ -487,7 +488,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     return () => {
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
     };
-  }, [isPlaying, replayMode, timeframe, updateReplayTo]);
+  }, [isPlaying, isReplaySessionActive, timeframe, updateReplayTo]);
 
   const handleZoom = (direction: 'in' | 'out') => {
     if (!chartRef.current) return;
@@ -640,7 +641,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       <div ref={chartContainerRef} className="absolute inset-0" />
 
       {/* Replay controls */}
-      {replayMode && (
+      {isReplaySessionActive && (
         <ReplayControls
           isPlaying={isPlaying}
           onPlay={() => setIsPlaying(true)}
@@ -648,7 +649,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           onStepBack={() => updateReplayTo(replayIndex - 1)}
           onStepForward={() => updateReplayTo(replayIndex + 1)}
           onReset={() => updateReplayTo(0)}
-          onExit={() => { setIsPlaying(false); onExitReplay(); }}
+          onExit={() => { setIsPlaying(false); setReplayIndex(0); onExitReplay(); }}
           currentBar={replayIndex}
           totalBars={allDataRef.current.length}
         />
