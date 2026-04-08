@@ -464,9 +464,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     }
   }, [onPriceUpdate]);
 
-  // Play interval
+  // Refs for replay state to avoid stale closures
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
+  const replayModeRef = useRef(false);
+  replayModeRef.current = replayMode;
 
   useEffect(() => {
     if (isPlaying && replayMode) {
