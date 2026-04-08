@@ -132,11 +132,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       allDataRef.current = data;
 
       if (replayMode) {
-        setReplayIndex(50);
-        const slice = data.slice(0, 50);
-        candleSeriesRef.current.setData(slice);
-        smaSeriesRef.current?.setData(getSMAData(slice, 20));
-        emaSeriesRef.current?.setData(getEMAData(slice, 50));
+        setReplayIndex(0);
+        candleSeriesRef.current.setData([]);
+        smaSeriesRef.current?.setData([]);
+        emaSeriesRef.current?.setData([]);
       } else {
         candleSeriesRef.current.setData(data);
         smaSeriesRef.current?.setData(getSMAData(data, 20));
@@ -145,10 +144,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       chartRef.current?.timeScale().fitContent();
 
-      const last = replayMode ? data[Math.min(49, data.length - 1)] : data[data.length - 1];
-      if (last) {
-        setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
-        onPriceUpdate(last.close);
+      if (!replayMode) {
+        const last = data[data.length - 1];
+        if (last) {
+          setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+          onPriceUpdate(last.close);
+        }
+      } else {
+        setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
       }
     });
     return () => { cancelled = true; };
@@ -160,14 +163,12 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (!data.length || !candleSeriesRef.current) return;
 
     if (replayMode) {
-      const idx = Math.min(50, data.length);
-      setReplayIndex(idx);
+      setReplayIndex(0);
       setIsPlaying(false);
-      const slice = data.slice(0, idx);
-      candleSeriesRef.current.setData(slice);
-      smaSeriesRef.current?.setData(getSMAData(slice, 20));
-      emaSeriesRef.current?.setData(getEMAData(slice, 50));
-      chartRef.current?.timeScale().fitContent();
+      candleSeriesRef.current.setData([]);
+      smaSeriesRef.current?.setData([]);
+      emaSeriesRef.current?.setData([]);
+      setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
     } else {
       setIsPlaying(false);
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
