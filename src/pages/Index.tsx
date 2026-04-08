@@ -14,6 +14,7 @@ export default function Index() {
   const [replayMode, setReplayMode] = useState(false);
   const [lastPrice, setLastPrice] = useState(6500);
   const buyHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
+  const sellHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
   const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
   const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
 
@@ -36,6 +37,9 @@ export default function Index() {
           onRegisterBuyHandler={(handler) => {
             buyHandlerRef.current = handler;
           }}
+          onRegisterSellHandler={(handler) => {
+            sellHandlerRef.current = handler;
+          }}
           onSLTPDrag={(type, ticks) => {
             if (type === 'sl') setDraggedSlTicks(ticks);
             else setDraggedTpTicks(ticks);
@@ -47,6 +51,7 @@ export default function Index() {
             onClose={() => setTradeOpen(false)}
             lastPrice={lastPrice}
             onBuy={(config) => { buyHandlerRef.current?.(config); }}
+            onSell={(config) => { sellHandlerRef.current?.(config); }}
             externalSlTicks={draggedSlTicks}
             externalTpTicks={draggedTpTicks}
           />

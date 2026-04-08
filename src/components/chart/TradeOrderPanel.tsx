@@ -12,12 +12,14 @@ interface TradeOrderPanelProps {
   onClose: () => void;
   lastPrice: number;
   onBuy: (config: SLTPConfig) => void;
+  onSell: (config: SLTPConfig) => void;
   externalSlTicks?: number | null;
   externalTpTicks?: number | null;
 }
 
-export default function TradeOrderPanel({ onClose, lastPrice, onBuy, externalSlTicks, externalTpTicks }: TradeOrderPanelProps) {
+export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, externalSlTicks, externalTpTicks }: TradeOrderPanelProps) {
   const [activeTab, setActiveTab] = useState<'Order' | 'DOM'>('Order');
+  const [tradeSide, setTradeSide] = useState<'buy' | 'sell'>('buy');
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop'>('Market');
   const [units, setUnits] = useState(3);
   const [exitsOpen, setExitsOpen] = useState(true);
@@ -80,15 +82,21 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, externalSlT
       </div>
 
       {/* Sell / Buy bar */}
-      <div className="flex mx-3 mt-3 rounded overflow-hidden">
-        <div className="flex-1 bg-[#ef5350] py-2 px-3">
+      <div className="flex mx-3 mt-3 rounded overflow-hidden cursor-pointer">
+        <div
+          onClick={() => setTradeSide('sell')}
+          className={`flex-1 py-2 px-3 transition-opacity ${tradeSide === 'sell' ? 'bg-[#ef5350]' : 'bg-[#ef5350]/40'}`}
+        >
           <div className="text-[10px] text-white/80">Sell</div>
           <div className="text-white font-bold text-lg">{sellPrice.toFixed(2)}</div>
         </div>
         <div className="flex items-center bg-[#363a45] px-2">
           <span className="text-[10px] text-[#d1d4dc]">{spread.toFixed(2)}</span>
         </div>
-        <div className="flex-1 bg-[#2962ff] py-2 px-3 text-right">
+        <div
+          onClick={() => setTradeSide('buy')}
+          className={`flex-1 py-2 px-3 text-right transition-opacity ${tradeSide === 'buy' ? 'bg-[#2962ff]' : 'bg-[#2962ff]/40'}`}
+        >
           <div className="text-[10px] text-white/80">Buy</div>
           <div className="text-white font-bold text-lg">{buyPrice.toFixed(2)}</div>
         </div>
@@ -233,8 +241,16 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, externalSlT
 
       {/* Buy button */}
       <div className="mx-3 mt-4 mb-4">
-        <button onClick={() => onBuy({ slEnabled, tpEnabled, slTicks, tpTicks })} className="w-full bg-[#2962ff] hover:bg-[#1e53e5] text-white font-semibold py-3 rounded-lg text-base">
-          Buy
+        <button
+          onClick={() => {
+            const config = { slEnabled, tpEnabled, slTicks, tpTicks };
+            tradeSide === 'buy' ? onBuy(config) : onSell(config);
+          }}
+          className={`w-full font-semibold py-3 rounded-lg text-base text-white ${
+            tradeSide === 'buy' ? 'bg-[#2962ff] hover:bg-[#1e53e5]' : 'bg-[#ef5350] hover:bg-[#d42f3d]'
+          }`}
+        >
+          {tradeSide === 'buy' ? 'Buy' : 'Sell'}
           <div className="text-[11px] font-normal opacity-80">{units} MESM2026 MARKET</div>
         </button>
       </div>
