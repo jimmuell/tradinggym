@@ -27,10 +27,10 @@ export default function Index() {
       <div className="flex flex-1 overflow-hidden">
         <LeftToolbar />
         <ChartContainer ohlcv={lastCandle} />
+        <RightToolbar />
         {tradeOpen && (
           <TradeOrderPanel onClose={() => setTradeOpen(false)} lastPrice={lastCandle.close} />
         )}
-        <RightToolbar />
       </div>
       <BottomBar />
     </div>
