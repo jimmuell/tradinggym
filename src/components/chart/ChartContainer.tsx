@@ -26,6 +26,10 @@ interface Position {
   quantity: number;
   priceLine: IPriceLine;
   marker: SeriesMarker<Time>;
+  slLine: IPriceLine;
+  tpLine: IPriceLine;
+  slPrice: number;
+  tpPrice: number;
 }
 
 interface ChartContainerProps {
@@ -83,6 +87,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
   const [positions, setPositions] = useState<Position[]>([]);
+  const [slTicks, setSlTicks] = useState(10);
+  const [tpTicks, setTpTicks] = useState(20);
+  const slTicksRef = useRef(10);
+  const tpTicksRef = useRef(20);
 
   // Markers plugin ref — accumulates markers via createSeriesMarkers
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
@@ -363,6 +371,31 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       title: `${side === 'long' ? 'Long Entry' : 'Short Entry'} ${1}`,
     });
 
+    // SL/TP price lines
+    const tickSize = 0.25;
+    const slOffset = slTicksRef.current * tickSize;
+    const tpOffset = tpTicksRef.current * tickSize;
+    const slPrice = side === 'long' ? entryPrice - slOffset : entryPrice + slOffset;
+    const tpPrice = side === 'long' ? entryPrice + tpOffset : entryPrice - tpOffset;
+
+    const slLine = candleSeriesRef.current.createPriceLine({
+      price: slPrice,
+      color: '#ef5350',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'SL',
+    });
+
+    const tpLine = candleSeriesRef.current.createPriceLine({
+      price: tpPrice,
+      color: '#26a69a',
+      lineWidth: 1,
+      lineStyle: 2,
+      axisLabelVisible: true,
+      title: 'TP',
+    });
+
     const pos: Position = {
       id: Date.now().toString(),
       side,
@@ -371,6 +404,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       quantity: 1,
       priceLine,
       marker,
+      slLine,
+      tpLine,
+      slPrice,
+      tpPrice,
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
@@ -390,6 +427,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (pos && candleSeriesRef.current) {
         // Remove the specific price line by stored reference (NEVER iterate all)
         candleSeriesRef.current.removePriceLine(pos.priceLine);
+        candleSeriesRef.current.removePriceLine(pos.slLine);
+        candleSeriesRef.current.removePriceLine(pos.tpLine);
 
         // Remove marker from accumulated array and refresh
         markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
@@ -460,6 +499,26 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
+        <div className="flex items-center gap-2 mt-1.5 pointer-events-auto">
+          <label className="text-[11px] text-[#787b86] flex items-center gap-1">
+            SL (ticks)
+            <input
+              type="number"
+              value={slTicks}
+              onChange={(e) => { const v = Number(e.target.value); setSlTicks(v); slTicksRef.current = v; }}
+              className="w-12 bg-[#131722] border border-[#363a45] rounded px-1 py-0.5 text-[11px] text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </label>
+          <label className="text-[11px] text-[#787b86] flex items-center gap-1">
+            TP (ticks)
+            <input
+              type="number"
+              value={tpTicks}
+              onChange={(e) => { const v = Number(e.target.value); setTpTicks(v); tpTicksRef.current = v; }}
+              className="w-12 bg-[#131722] border border-[#363a45] rounded px-1 py-0.5 text-[11px] text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+          </label>
+        </div>
         <div className="text-[12px] text-[#787b86] mt-1">▼ {positions.length}</div>
       </div>
 
@@ -478,6 +537,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
               >
                 <span className="font-semibold">{pos.side === 'long' ? '▲ BUY' : '▼ SELL'}</span>
                 <span className="opacity-80">@ {pos.entryPrice.toFixed(2)}</span>
+                <span className="text-[#ef5350]">SL {pos.slPrice.toFixed(2)}</span>
+                <span className="text-[#26a69a]">TP {pos.tpPrice.toFixed(2)}</span>
                 <span className={`font-bold ${isProfit ? 'text-[#a5f3c4]' : 'text-[#fecaca]'}`}>
                   {isProfit ? '+' : ''}{pnl.toFixed(2)} USD
                 </span>
