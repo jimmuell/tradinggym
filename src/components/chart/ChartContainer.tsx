@@ -329,17 +329,17 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           </span>
           <span>Vol{ohlcv.volume}</span>
         </div>
-        <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
-          <div className="flex flex-col items-center bg-[#ef5350] text-white text-[14px] font-bold px-3 py-1 rounded-sm min-w-[80px]">
-            <span>{(ohlcv.close - 0.50).toFixed(2)}</span>
-            <span className="text-[11px] font-normal opacity-90">SELL</span>
+        <div className="flex items-center gap-0 mt-1.5 pointer-events-auto">
+          <div className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-l-[4px] min-w-[90px] py-1.5 px-3 border border-[#f23645]">
+            <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
+            <span className="text-[11px] font-medium leading-tight opacity-90">SELL</span>
           </div>
-          <div className="flex flex-col items-center text-[11px] text-[#787b86] leading-tight px-1">
+          <div className="flex flex-col items-center justify-center text-[12px] text-[#787b86] leading-tight px-2 py-1.5 bg-[#f0f3fa] border-y border-[#d1d4dc] min-w-[36px]">
             <span>0.25</span><span>3</span>
           </div>
-          <div className="flex flex-col items-center bg-[#2962ff] text-white text-[14px] font-bold px-3 py-1 rounded-sm min-w-[80px]">
-            <span>{(ohlcv.close - 0.25).toFixed(2)}</span>
-            <span className="text-[11px] font-normal opacity-90">BUY</span>
+          <div className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-r-[4px] min-w-[90px] py-1.5 px-3 border border-[#2962ff]">
+            <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
+            <span className="text-[11px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
         <div className="text-[12px] text-[#787b86] mt-1">▼ 7</div>
