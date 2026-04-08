@@ -226,6 +226,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
+    chartRef.current?.timeScale().scrollToPosition(2, true);
   }, [onPriceUpdate]);
 
   // Play interval
