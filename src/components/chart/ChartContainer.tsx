@@ -65,6 +65,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const savedRangeRef = useRef<{ from: number; to: number } | null>(null);
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
+  const [positions, setPositions] = useState<Position[]>([]);
+  const priceLinesRef = useRef<IPriceLine[]>([]);
 
   // Create chart once
   useEffect(() => {
