@@ -439,11 +439,24 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (newIdx === 0) {
       setReplayIndex(0);
       setIsPlaying(false);
-      candleSeriesRef.current.setData([]);
-      smaSeriesRef.current?.setData([]);
-      emaSeriesRef.current?.setData([]);
-      setReplayEmptyView();
-      setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
+      if (replayMode) {
+        candleSeriesRef.current.setData([]);
+        smaSeriesRef.current?.setData([]);
+        emaSeriesRef.current?.setData([]);
+        setReplayEmptyView();
+        setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
+      } else {
+        candleSeriesRef.current.setData(data);
+        smaSeriesRef.current?.setData(getSMAData(data, 20));
+        emaSeriesRef.current?.setData(getEMAData(data, 50));
+        const len = data.length;
+        chartRef.current?.timeScale().setVisibleLogicalRange({ from: len - 100, to: len + 5 });
+        const last = data[data.length - 1];
+        if (last) {
+          setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+          onPriceUpdate(last.close);
+        }
+      }
       return;
     }
     setReplayIndex(newIdx);
