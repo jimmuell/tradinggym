@@ -51,9 +51,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
 
   const allDataRef = useRef<CandlestickData<Time>[]>([]);
-  const [replayIndex, setReplayIndex] = useState(50);
+  const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playIntervalRef = useRef<number | null>(null);
+  const savedRangeRef = useRef<{ from: number; to: number } | null>(null);
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
 
@@ -79,6 +80,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         borderColor: '#e1ecf2',
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: 10,
+        minBarSpacing: 2,
       },
       crosshair: {
         mode: 0,
@@ -124,8 +127,19 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
   }, []);
 
+  // Save range before timeframe change
+  const saveCurrentRange = useCallback(() => {
+    const range = chartRef.current?.timeScale().getVisibleLogicalRange();
+    if (range) savedRangeRef.current = { from: range.from, to: range.to };
+  }, []);
+
+  const setReplayEmptyView = useCallback(() => {
+    chartRef.current?.timeScale().setVisibleLogicalRange({ from: -5, to: 100 });
+  }, []);
+
   // Load data when timeframe changes
   useEffect(() => {
+    saveCurrentRange();
     let cancelled = false;
     loadTimeframeData(timeframe).then((data) => {
       if (cancelled || !candleSeriesRef.current) return;
@@ -136,22 +150,25 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         candleSeriesRef.current.setData([]);
         smaSeriesRef.current?.setData([]);
         emaSeriesRef.current?.setData([]);
+        setReplayEmptyView();
+        setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
       } else {
         candleSeriesRef.current.setData(data);
         smaSeriesRef.current?.setData(getSMAData(data, 20));
         emaSeriesRef.current?.setData(getEMAData(data, 50));
-      }
 
-      chartRef.current?.timeScale().fitContent();
+        if (savedRangeRef.current) {
+          chartRef.current?.timeScale().setVisibleLogicalRange(savedRangeRef.current);
+        } else {
+          const len = data.length;
+          chartRef.current?.timeScale().setVisibleLogicalRange({ from: len - 100, to: len + 5 });
+        }
 
-      if (!replayMode) {
         const last = data[data.length - 1];
         if (last) {
           setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
           onPriceUpdate(last.close);
         }
-      } else {
-        setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
       }
     });
     return () => { cancelled = true; };
@@ -168,6 +185,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       candleSeriesRef.current.setData([]);
       smaSeriesRef.current?.setData([]);
       emaSeriesRef.current?.setData([]);
+      setReplayEmptyView();
       setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
     } else {
       setIsPlaying(false);
@@ -175,7 +193,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       candleSeriesRef.current.setData(data);
       smaSeriesRef.current?.setData(getSMAData(data, 20));
       emaSeriesRef.current?.setData(getEMAData(data, 50));
-      chartRef.current?.timeScale().fitContent();
+      const len = data.length;
+      chartRef.current?.timeScale().setVisibleLogicalRange({ from: len - 100, to: len + 5 });
       const last = data[data.length - 1];
       if (last) {
         setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
@@ -193,6 +212,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       candleSeriesRef.current.setData([]);
       smaSeriesRef.current?.setData([]);
       emaSeriesRef.current?.setData([]);
+      setReplayEmptyView();
       setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
       return;
     }
@@ -206,6 +226,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
+    chartRef.current?.timeScale().scrollToPosition(2, true);
   }, [onPriceUpdate]);
 
   // Play interval
