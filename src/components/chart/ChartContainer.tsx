@@ -180,10 +180,10 @@ export default function ChartContainer({ ohlcv }: ChartContainerProps) {
         <div className="text-[10px] text-[#787b86] mt-0.5">▼ 7</div>
       </div>
 
-      {/* USD currency dropdown — positioned at top-right of chart, left of price axis */}
-      <div className="absolute top-0 z-10 flex items-center border border-[#d1d4dc] bg-white px-3 py-1 text-[12px] text-[#131722] cursor-pointer hover:bg-[#f0f3fa]" style={{ right: 56 }}>
+      {/* USD currency dropdown — on top of the price axis */}
+      <div className="absolute top-0 right-0 z-10 flex items-center border border-[#d1d4dc] bg-white px-3 py-1 text-[12px] text-[#131722] cursor-pointer hover:bg-[#f0f3fa]" style={{ width: 55 }}>
         <span>USD</span>
-        <svg className="ml-1.5" width="8" height="5" viewBox="0 0 8 5" fill="#787b86"><path d="M0 0l4 5 4-5z"/></svg>
+        <svg className="ml-auto" width="8" height="5" viewBox="0 0 8 5" fill="#787b86"><path d="M0 0l4 5 4-5z"/></svg>
       </div>
 
       {/* TradingView logo watermark */}
