@@ -206,6 +206,98 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
   }, []);
 
+  // Drag handlers for SL/TP price lines
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container) return;
+
+    const DRAG_THRESHOLD_PX = 8;
+    const TICK_SIZE = 0.25;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const series = candleSeriesRef.current;
+      if (!series) return;
+      const curPositions = positionsRef.current;
+      if (!curPositions.length) return;
+
+      const rect = container.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+
+      let closest: { posId: string; type: 'sl' | 'tp'; line: IPriceLine; dist: number; entryPrice: number; side: 'long' | 'short'; price: number } | null = null;
+
+      for (const pos of curPositions) {
+        for (const lineType of ['sl', 'tp'] as const) {
+          const line = lineType === 'sl' ? pos.slLine : pos.tpLine;
+          const linePrice = lineType === 'sl' ? pos.slPrice : pos.tpPrice;
+          if (!line || linePrice == null) continue;
+          const coord = series.priceToCoordinate(linePrice);
+          if (coord == null) continue;
+          const dist = Math.abs(y - coord);
+          if (dist < DRAG_THRESHOLD_PX && (!closest || dist < closest.dist)) {
+            closest = { posId: pos.id, type: lineType, line, dist, entryPrice: pos.entryPrice, side: pos.side, price: linePrice };
+          }
+        }
+      }
+
+      if (closest) {
+        e.preventDefault();
+        e.stopPropagation();
+        container.style.cursor = 'ns-resize';
+        dragRef.current = {
+          posId: closest.posId,
+          type: closest.type,
+          line: closest.line,
+          startY: y,
+          startPrice: closest.price,
+          entryPrice: closest.entryPrice,
+          side: closest.side,
+        };
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const drag = dragRef.current;
+      const series = candleSeriesRef.current;
+      if (!drag || !series) return;
+
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+
+      const newPrice = series.coordinateToPrice(y);
+      if (newPrice == null) return;
+
+      const snapped = Math.round(newPrice / TICK_SIZE) * TICK_SIZE;
+      drag.line.applyOptions({ price: snapped });
+
+      const ticks = Math.abs(Math.round((snapped - drag.entryPrice) / TICK_SIZE));
+      onSLTPDragRef.current?.(drag.type, ticks);
+
+      setPositions(prev => prev.map(p => {
+        if (p.id !== drag.posId) return p;
+        if (drag.type === 'sl') return { ...p, slPrice: snapped };
+        return { ...p, tpPrice: snapped };
+      }));
+    };
+
+    const handleMouseUp = () => {
+      if (dragRef.current) {
+        container.style.cursor = '';
+        dragRef.current = null;
+      }
+    };
+
+    container.addEventListener('mousedown', handleMouseDown, true);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      container.removeEventListener('mousedown', handleMouseDown, true);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   // Save range before timeframe change
   const saveCurrentRange = useCallback(() => {
     const range = chartRef.current?.timeScale().getVisibleLogicalRange();
