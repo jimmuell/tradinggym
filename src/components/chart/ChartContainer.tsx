@@ -80,6 +80,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         borderColor: '#e1ecf2',
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: 10,
+        minBarSpacing: 2,
       },
       crosshair: {
         mode: 0,
