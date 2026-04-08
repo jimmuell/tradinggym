@@ -51,9 +51,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
 
   const allDataRef = useRef<CandlestickData<Time>[]>([]);
-  const [replayIndex, setReplayIndex] = useState(50);
+  const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playIntervalRef = useRef<number | null>(null);
+  const savedRangeRef = useRef<{ from: number; to: number } | null>(null);
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
 
