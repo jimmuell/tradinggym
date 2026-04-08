@@ -401,7 +401,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   return (
     <div className="relative flex-1 min-w-0 bg-white">
-      <div ref={chartContainerRef} className="w-full h-full" />
+      <div ref={chartContainerRef} className="absolute inset-0" />
 
       {/* Replay controls */}
       {replayMode && (
