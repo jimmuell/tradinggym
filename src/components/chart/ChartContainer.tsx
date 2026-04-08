@@ -26,6 +26,10 @@ interface Position {
   quantity: number;
   priceLine: IPriceLine;
   marker: SeriesMarker<Time>;
+  slLine: IPriceLine;
+  tpLine: IPriceLine;
+  slPrice: number;
+  tpPrice: number;
 }
 
 interface ChartContainerProps {
