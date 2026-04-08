@@ -317,31 +317,32 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       {/* OHLCV overlay */}
       <div className="absolute top-1 left-1 z-10 pointer-events-none">
-        <div className="flex items-center gap-1 text-[11px] text-[#787b86] flex-wrap">
+        <div className="flex items-center gap-2 text-[14px] text-[#787b86] flex-wrap">
           <span>🇺🇸</span>
-          <span>E-mini S&P 500 Futures · {timeframe} · CME</span>
-          <span className="ml-1">O<span className="text-[#131722] ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
-          <span>H<span className="text-[#131722] ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
-          <span>L<span className="text-[#131722] ml-0.5">{ohlcv.low.toFixed(2)}</span></span>
-          <span>C<span className="text-[#131722] ml-0.5">{ohlcv.close.toFixed(2)}</span></span>
+          <span className="font-medium">Micro E-mini S&P 500 Index Futures (Jun 2026) · {timeframe} · CME</span>
+          <span className="ml-1">O<span className="text-[#131722] font-medium ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
+          <span>H<span className="text-[#131722] font-medium ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
+          <span>L<span className="text-[#131722] font-medium ml-0.5">{ohlcv.low.toFixed(2)}</span></span>
+          <span>C<span className="text-[#131722] font-medium ml-0.5">{ohlcv.close.toFixed(2)}</span></span>
           <span className={change >= 0 ? 'text-[#26a69a]' : 'text-[#ef5350]'}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePct.toFixed(2)}%)
           </span>
+          <span>Vol{ohlcv.volume}</span>
         </div>
-        <div className="flex items-center gap-1 mt-1 pointer-events-auto">
-          <div className="flex items-center bg-[#ef5350] text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+        <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
+          <div className="flex flex-col items-center bg-[#ef5350] text-white text-[14px] font-bold px-3 py-1 rounded-sm min-w-[80px]">
             <span>{(ohlcv.close - 0.50).toFixed(2)}</span>
-            <span className="ml-1 text-[9px] opacity-80">SELL</span>
+            <span className="text-[11px] font-normal opacity-90">SELL</span>
           </div>
-          <div className="flex flex-col items-center text-[9px] text-[#787b86] leading-tight">
+          <div className="flex flex-col items-center text-[11px] text-[#787b86] leading-tight px-1">
             <span>0.25</span><span>3</span>
           </div>
-          <div className="flex items-center bg-[#26a69a] text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
+          <div className="flex flex-col items-center bg-[#2962ff] text-white text-[14px] font-bold px-3 py-1 rounded-sm min-w-[80px]">
             <span>{(ohlcv.close - 0.25).toFixed(2)}</span>
-            <span className="ml-1 text-[9px] opacity-80">BUY</span>
+            <span className="text-[11px] font-normal opacity-90">BUY</span>
           </div>
         </div>
-        <div className="text-[10px] text-[#787b86] mt-0.5">▼ 7</div>
+        <div className="text-[12px] text-[#787b86] mt-1">▼ 7</div>
       </div>
 
       <CurrencyDropdown />
