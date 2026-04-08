@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import {
   Search, Plus, ChevronDown, BarChart3, Bell, Rewind,
   Undo, Redo, Ruler, Square, PenTool, Eye, Settings,
   Layout, Camera, Bookmark
 } from 'lucide-react';
 import { Timeframe } from '@/lib/chartData';
+import ChartSettingsModal from './ChartSettingsModal';
 
 const timeframes: Timeframe[] = ['1m', '5m', '30m', '1h', '1D'];
 
