@@ -1,5 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { createChart, IChartApi, ISeriesApi, ColorType, CandlestickData, Time, SeriesMarker, IPriceLine } from 'lightweight-charts';
+import {
+  createChart,
+  CandlestickSeries,
+  LineSeries,
+  createSeriesMarkers,
+  LineStyle,
+  ColorType,
+  CandlestickData,
+  Time,
+  SeriesMarker,
+  IPriceLine,
+  IChartApi,
+  ISeriesApi,
+  ISeriesMarkersPluginApi,
+} from 'lightweight-charts';
 import { loadTimeframeData, getSMAData, getEMAData, Timeframe } from '@/lib/chartData';
 import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import ReplayControls from './ReplayControls';
@@ -10,6 +24,8 @@ interface Position {
   entryPrice: number;
   entryTime: Time;
   quantity: number;
+  priceLine: IPriceLine;
+  marker: SeriesMarker<Time>;
 }
 
 interface ChartContainerProps {
@@ -66,7 +82,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
   const [positions, setPositions] = useState<Position[]>([]);
-  const priceLinesRef = useRef<IPriceLine[]>([]);
+
+  // Markers plugin ref — accumulates markers via createSeriesMarkers
+  const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+  const markersArrayRef = useRef<SeriesMarker<Time>[]>([]);
 
   // Create chart once
   useEffect(() => {
@@ -102,7 +121,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
     chartRef.current = chart;
 
-    const candleSeries = chart.addCandlestickSeries({
+    // v5.1: use chart.addSeries(CandlestickSeries, options)
+    const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#26a69a',
       downColor: '#ef5350',
       borderDownColor: '#ef5350',
@@ -112,11 +132,16 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     });
     candleSeriesRef.current = candleSeries;
 
-    const sma = chart.addLineSeries({ color: '#4caf50', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+    // v5.1: use chart.addSeries(LineSeries, options)
+    const sma = chart.addSeries(LineSeries, { color: '#4caf50', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
     smaSeriesRef.current = sma;
 
-    const ema = chart.addLineSeries({ color: '#2196f3', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+    const ema = chart.addSeries(LineSeries, { color: '#2196f3', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
     emaSeriesRef.current = ema;
+
+    // v5.1: initialize markers plugin with createSeriesMarkers
+    markersPluginRef.current = createSeriesMarkers(candleSeries, []);
+    markersArrayRef.current = [];
 
     const handleResize = () => {
       if (chartContainerRef.current) {
@@ -130,9 +155,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     // Crosshair move handler for OHLCV hover
     chart.subscribeCrosshairMove((param) => {
       if (!param || !param.time || !param.seriesData) {
-        // Reset to last bar data when not hovering
         const data = allDataRef.current;
-        const currentIdx = replayMode ? undefined : data.length;
         const slice = replayMode ? data.slice(0, replayIndex) : data;
         const last = slice[slice.length - 1];
         if (last) {
@@ -153,6 +176,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       resizeObserver.disconnect();
       chart.remove();
       chartRef.current = null;
+      markersPluginRef.current = null;
     };
   }, []);
 
@@ -255,7 +279,6 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
-    // Keep latest candle on the right edge, older candles grow leftward
     chartRef.current?.timeScale().scrollToPosition(2, false);
   }, [onPriceUpdate]);
 
@@ -303,7 +326,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     timeScale.setVisibleLogicalRange({ from: range.from + shift, to: range.to + shift });
   };
 
-  // Place a position (buy or sell)
+  // Place a position (buy or sell) — uses v5.1 createSeriesMarkers + createPriceLine
   const placePosition = useCallback((side: 'long' | 'short') => {
     const data = allDataRef.current;
     if (!data.length || !candleSeriesRef.current) return;
@@ -312,59 +335,60 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (!lastBar) return;
 
     const entryPrice = side === 'long' ? ohlcv.close - 0.25 : ohlcv.close - 0.50;
+
+    // Create marker
+    const marker: SeriesMarker<Time> = {
+      time: lastBar.time,
+      position: side === 'long' ? 'belowBar' : 'aboveBar',
+      color: side === 'long' ? '#2962ff' : '#f23645',
+      shape: side === 'long' ? 'arrowUp' : 'arrowDown',
+      text: `${side === 'long' ? 'BUY' : 'SELL'} @ ${entryPrice.toFixed(2)}`,
+    };
+
+    // Accumulate markers (never replace)
+    markersArrayRef.current = [...markersArrayRef.current, marker].sort((a, b) => {
+      if (typeof a.time === 'number' && typeof b.time === 'number') return a.time - b.time;
+      return String(a.time) < String(b.time) ? -1 : 1;
+    });
+    markersPluginRef.current?.setMarkers(markersArrayRef.current);
+
+    // Create price line using v5.1 API
+    const priceLine = candleSeriesRef.current.createPriceLine({
+      price: entryPrice,
+      color: side === 'long' ? '#2962ff' : '#f23645',
+      lineWidth: 1,
+      lineStyle: LineStyle.Dashed,
+      axisLabelVisible: true,
+      title: `${side === 'long' ? 'Long Entry' : 'Short Entry'} ${1}`,
+    });
+
     const pos: Position = {
       id: Date.now().toString(),
       side,
       entryPrice,
       entryTime: lastBar.time,
       quantity: 1,
+      priceLine,
+      marker,
     };
     setPositions((prev) => [...prev, pos]);
   }, [ohlcv.close, replayMode, replayIndex]);
 
-  // Close a position
+  // Close a position — removes stored priceLine ref and marker
   const closePosition = useCallback((id: string) => {
-    setPositions((prev) => prev.filter((p) => p.id !== id));
+    setPositions((prev) => {
+      const pos = prev.find((p) => p.id === id);
+      if (pos && candleSeriesRef.current) {
+        // Remove the specific price line by stored reference (NEVER iterate all)
+        candleSeriesRef.current.removePriceLine(pos.priceLine);
+
+        // Remove marker from accumulated array and refresh
+        markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
+        markersPluginRef.current?.setMarkers(markersArrayRef.current);
+      }
+      return prev.filter((p) => p.id !== id);
+    });
   }, []);
-
-  // Update markers and price lines when positions change
-  useEffect(() => {
-    if (!candleSeriesRef.current) return;
-
-    // Clear old price lines
-    priceLinesRef.current.forEach((pl) => {
-      try { candleSeriesRef.current?.removePriceLine(pl); } catch {}
-    });
-    priceLinesRef.current = [];
-
-    // Set markers on candle series
-    const markers: SeriesMarker<Time>[] = positions.map((pos) => ({
-      time: pos.entryTime,
-      position: pos.side === 'long' ? 'belowBar' as const : 'aboveBar' as const,
-      color: pos.side === 'long' ? '#2962ff' : '#f23645',
-      shape: pos.side === 'long' ? 'arrowUp' as const : 'arrowDown' as const,
-      text: `${pos.side === 'long' ? 'BUY' : 'SELL'} @ ${pos.entryPrice.toFixed(2)}`,
-    }));
-    // Sort markers by time (required by lightweight-charts)
-    markers.sort((a, b) => {
-      if (typeof a.time === 'number' && typeof b.time === 'number') return a.time - b.time;
-      return String(a.time) < String(b.time) ? -1 : 1;
-    });
-    candleSeriesRef.current.setMarkers(markers);
-
-    // Add price lines for each position
-    positions.forEach((pos) => {
-      const priceLine = candleSeriesRef.current!.createPriceLine({
-        price: pos.entryPrice,
-        color: pos.side === 'long' ? '#2962ff' : '#f23645',
-        lineWidth: 1,
-        lineStyle: 2, // dashed
-        axisLabelVisible: true,
-        title: `${pos.side === 'long' ? 'BUY' : 'SELL'} ${pos.quantity}`,
-      });
-      priceLinesRef.current.push(priceLine);
-    });
-  }, [positions]);
 
   const change = ohlcv.close - ohlcv.open;
   const changePct = ohlcv.open ? (change / ohlcv.open) * 100 : 0;
@@ -413,8 +437,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             onClick={() => placePosition('short')}
             className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
           >
-            <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
-            <span className="text-[10px] font-medium leading-tight opacity-90">SELL</span>
+            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
+            <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
           </div>
           <div className="flex flex-col items-center justify-center text-[12px] text-[#787b86] leading-tight px-2 py-1.5 bg-[#f0f3fa] border border-[#d1d4dc] rounded-[6px] min-w-[36px]">
             <span>0.25</span><span>{positions.length}</span>
@@ -423,8 +447,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             onClick={() => placePosition('long')}
             className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
           >
-            <span className="text-[15px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
-            <span className="text-[10px] font-medium leading-tight opacity-90">BUY</span>
+            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
+            <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
         <div className="text-[12px] text-[#787b86] mt-1">▼ {positions.length}</div>
