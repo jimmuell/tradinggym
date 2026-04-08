@@ -1,16 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useMemo } from 'react';
+import TopBar from '@/components/chart/TopBar';
+import LeftToolbar from '@/components/chart/LeftToolbar';
+import RightToolbar from '@/components/chart/RightToolbar';
+import BottomBar from '@/components/chart/BottomBar';
+import ChartContainer from '@/components/chart/ChartContainer';
+import { candlestickData } from '@/lib/chartData';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+export default function Index() {
+  const lastCandle = useMemo(() => {
+    const c = candlestickData[candlestickData.length - 1];
+    return {
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: '4.53K',
+    };
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-[#131722]">
+      <TopBar ohlcv={lastCandle} />
+      <div className="flex flex-1 overflow-hidden">
+        <LeftToolbar />
+        <ChartContainer />
+        <RightToolbar />
+      </div>
+      <BottomBar />
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
