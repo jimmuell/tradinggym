@@ -25,7 +25,7 @@ export default function TradeOrderPanel({ onClose, lastPrice }: TradeOrderPanelP
   const totalMargin = '2,208.75';
 
   return (
-    <div className="w-[340px] bg-[#1e222d] border-l border-[#2a2e39] flex flex-col h-full overflow-y-auto text-[#d1d4dc]">
+    <div className="w-[340px] flex-shrink-0 bg-[#1e222d] border-l border-[#2a2e39] flex flex-col h-full overflow-y-auto text-[#d1d4dc]">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2e39]">
         <div className="flex items-center gap-2">
