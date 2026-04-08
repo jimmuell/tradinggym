@@ -427,6 +427,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (pos && candleSeriesRef.current) {
         // Remove the specific price line by stored reference (NEVER iterate all)
         candleSeriesRef.current.removePriceLine(pos.priceLine);
+        candleSeriesRef.current.removePriceLine(pos.slLine);
+        candleSeriesRef.current.removePriceLine(pos.tpLine);
 
         // Remove marker from accumulated array and refresh
         markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
