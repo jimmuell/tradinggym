@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Settings2, MoreHorizontal, ChevronDown, ChevronUp, HelpCircle, ArrowUpDown } from 'lucide-react';
 
 export interface SLTPConfig {
@@ -12,9 +12,11 @@ interface TradeOrderPanelProps {
   onClose: () => void;
   lastPrice: number;
   onBuy: (config: SLTPConfig) => void;
+  externalSlTicks?: number | null;
+  externalTpTicks?: number | null;
 }
 
-export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrderPanelProps) {
+export default function TradeOrderPanel({ onClose, lastPrice, onBuy, externalSlTicks, externalTpTicks }: TradeOrderPanelProps) {
   const [activeTab, setActiveTab] = useState<'Order' | 'DOM'>('Order');
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop'>('Market');
   const [units, setUnits] = useState(3);
@@ -23,6 +25,14 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy }: TradeOrde
   const [slEnabled, setSlEnabled] = useState(true);
   const [tpTicks, setTpTicks] = useState(75);
   const [slTicks, setSlTicks] = useState(25);
+
+  // Sync from external drag updates
+  useEffect(() => {
+    if (externalSlTicks != null) setSlTicks(externalSlTicks);
+  }, [externalSlTicks]);
+  useEffect(() => {
+    if (externalTpTicks != null) setTpTicks(externalTpTicks);
+  }, [externalTpTicks]);
 
   const sellPrice = lastPrice;
   const buyPrice = lastPrice + 0.25;
