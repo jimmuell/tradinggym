@@ -87,6 +87,10 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
   const [positions, setPositions] = useState<Position[]>([]);
+  const [slTicks, setSlTicks] = useState(10);
+  const [tpTicks, setTpTicks] = useState(20);
+  const slTicksRef = useRef(10);
+  const tpTicksRef = useRef(20);
 
   // Markers plugin ref — accumulates markers via createSeriesMarkers
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
