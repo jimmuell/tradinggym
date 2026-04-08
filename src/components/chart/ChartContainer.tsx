@@ -464,9 +464,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     }
   }, [onPriceUpdate]);
 
-  // Play interval
+  // Refs for replay state to avoid stale closures
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
+  const replayModeRef = useRef(false);
+  replayModeRef.current = replayMode;
 
   useEffect(() => {
     if (isPlaying && replayMode) {
@@ -512,7 +514,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const placePosition = useCallback((side: 'long' | 'short', sltpConfig?: SLTPConfig) => {
     const data = allDataRef.current;
     if (!data.length || !candleSeriesRef.current) return;
-    const currentData = replayMode ? data.slice(0, replayIndex) : data;
+    const currentData = replayModeRef.current ? data.slice(0, replayIndexRef.current) : data;
     const lastBar = currentData[currentData.length - 1];
     if (!lastBar) return;
 
@@ -594,7 +596,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       tpPrice: tpEnabled ? tpPrice : null,
     };
     setPositions((prev) => [...prev, pos]);
-  }, [replayMode, replayIndex]);
+  }, []);
 
   useEffect(() => {
     onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
