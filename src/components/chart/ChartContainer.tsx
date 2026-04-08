@@ -1,10 +1,42 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createChart, IChartApi, ColorType } from 'lightweight-charts';
 import { candlestickData, getSMAData, getEMAData, getBuySellSignals } from '@/lib/chartData';
 import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 
 interface ChartContainerProps {
   ohlcv: { open: number; high: number; low: number; close: number; volume: string };
+}
+
+const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
+
+function CurrencyDropdown() {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState('USD');
+
+  return (
+    <div className="absolute top-0 right-0 z-20" style={{ width: 62 }}>
+      <div
+        onClick={() => setOpen(!open)}
+        className="flex items-center justify-between bg-white border border-[#d1d4dc] px-2 py-1 text-[12px] text-[#131722] cursor-pointer hover:bg-[#f0f3fa]"
+      >
+        <span>{selected}</span>
+        <svg width="8" height="5" viewBox="0 0 8 5" fill="#787b86"><path d="M0 0l4 5 4-5z"/></svg>
+      </div>
+      {open && (
+        <div className="bg-white border border-[#d1d4dc] border-t-0 shadow-md max-h-[200px] overflow-y-auto">
+          {currencies.map((c) => (
+            <div
+              key={c}
+              onClick={() => { setSelected(c); setOpen(false); }}
+              className={`px-2 py-1 text-[12px] cursor-pointer hover:bg-[#e8f0fe] ${c === selected ? 'bg-[#e8f0fe] font-semibold' : 'text-[#131722]'}`}
+            >
+              {c}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ChartContainer({ ohlcv }: ChartContainerProps) {
@@ -181,10 +213,7 @@ export default function ChartContainer({ ohlcv }: ChartContainerProps) {
       </div>
 
       {/* USD currency dropdown — on top of the price axis */}
-      <div className="absolute top-0 right-0 z-10 flex items-center border border-[#d1d4dc] bg-white px-3 py-1 text-[12px] text-[#131722] cursor-pointer hover:bg-[#f0f3fa]" style={{ width: 55 }}>
-        <span>USD</span>
-        <svg className="ml-auto" width="8" height="5" viewBox="0 0 8 5" fill="#787b86"><path d="M0 0l4 5 4-5z"/></svg>
-      </div>
+      <CurrencyDropdown />
 
       {/* TradingView logo watermark */}
       <div className="absolute bottom-12 left-4 text-[#e0e3eb] text-2xl font-bold select-none pointer-events-none">
