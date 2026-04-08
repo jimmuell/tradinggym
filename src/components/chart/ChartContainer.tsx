@@ -39,6 +39,7 @@ interface ChartContainerProps {
   onExitReplay: () => void;
   onPriceUpdate: (price: number) => void;
   onRegisterBuyHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
+  onRegisterSellHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
 }
 
@@ -74,7 +75,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onSLTPDrag }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag }: ChartContainerProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -534,11 +535,13 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   useEffect(() => {
     onRegisterBuyHandler?.((config: SLTPConfig) => placePosition('long', config));
-
-    return () => {
-      onRegisterBuyHandler?.(null);
-    };
+    return () => { onRegisterBuyHandler?.(null); };
   }, [onRegisterBuyHandler, placePosition]);
+
+  useEffect(() => {
+    onRegisterSellHandler?.((config: SLTPConfig) => placePosition('short', config));
+    return () => { onRegisterSellHandler?.(null); };
+  }, [onRegisterSellHandler, placePosition]);
 
   // Close a position — removes stored priceLine ref and marker
   const closePosition = useCallback((id: string) => {
