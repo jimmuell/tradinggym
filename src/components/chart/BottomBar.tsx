@@ -21,7 +21,7 @@ export default function BottomBar() {
             {tf}
           </button>
         ))}
-        <button className="px-1.5 py-0.5 rounded hover:bg-[#2a2e39]">📅</button>
+        <button onClick={() => setDateModalOpen(true)} className="px-1.5 py-0.5 rounded hover:bg-[#2a2e39]">📅</button>
       </div>
       <div className="flex-1" />
       <div className="flex items-center gap-2">
@@ -40,5 +40,6 @@ export default function BottomBar() {
       <button className="p-1 hover:text-[#d1d4dc]"><ChevronUp size={14} /></button>
       <button className="p-1 hover:text-[#d1d4dc]"><Maximize2 size={14} /></button>
     </div>
+    </>
   );
 }
