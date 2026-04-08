@@ -18,6 +18,7 @@ import { loadTimeframeData, getSMAData, getEMAData, Timeframe } from '@/lib/char
 import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
+import TradeResultModal, { TradeResult } from './TradeResultModal';
 
 interface Position {
   id: string;
@@ -90,6 +91,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
   const [positions, setPositions] = useState<Position[]>([]);
+  const [tradeResult, setTradeResult] = useState<TradeResult | null>(null);
   const [slTicks, setSlTicks] = useState(10);
   const [tpTicks, setTpTicks] = useState(20);
   const slTicksRef = useRef(10);
@@ -375,6 +377,62 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     }
   }, [replayMode]);
 
+  // Check if any position's SL or TP was hit by the bar's high/low
+  const checkSLTPHits = useCallback((barHigh: number, barLow: number) => {
+    const curPositions = positionsRef.current;
+    for (const pos of curPositions) {
+      let hitType: 'sl' | 'tp' | null = null;
+      let exitPrice = 0;
+
+      if (pos.side === 'long') {
+        // Long: SL hit if low <= slPrice, TP hit if high >= tpPrice
+        if (pos.slPrice != null && barLow <= pos.slPrice) {
+          hitType = 'sl';
+          exitPrice = pos.slPrice;
+        } else if (pos.tpPrice != null && barHigh >= pos.tpPrice) {
+          hitType = 'tp';
+          exitPrice = pos.tpPrice;
+        }
+      } else {
+        // Short: SL hit if high >= slPrice, TP hit if low <= tpPrice
+        if (pos.slPrice != null && barHigh >= pos.slPrice) {
+          hitType = 'sl';
+          exitPrice = pos.slPrice;
+        } else if (pos.tpPrice != null && barLow <= pos.tpPrice) {
+          hitType = 'tp';
+          exitPrice = pos.tpPrice;
+        }
+      }
+
+      if (hitType) {
+        const diff = pos.side === 'long' ? exitPrice - pos.entryPrice : pos.entryPrice - exitPrice;
+        const pnl = diff * pos.quantity * 5;
+
+        // Close the position
+        if (candleSeriesRef.current) {
+          candleSeriesRef.current.removePriceLine(pos.priceLine);
+          if (pos.slLine) candleSeriesRef.current.removePriceLine(pos.slLine);
+          if (pos.tpLine) candleSeriesRef.current.removePriceLine(pos.tpLine);
+          markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
+          markersPluginRef.current?.setMarkers(markersArrayRef.current);
+        }
+
+        setPositions((prev) => prev.filter((p) => p.id !== pos.id));
+        setIsPlaying(false);
+
+        setTradeResult({
+          side: pos.side,
+          entryPrice: pos.entryPrice,
+          exitPrice,
+          pnl,
+          result: hitType === 'tp' ? 'win' : 'loss',
+          reason: hitType,
+        });
+        break; // Handle one hit per bar
+      }
+    }
+  }, []);
+
   const updateReplayTo = useCallback((newIdx: number) => {
     const data = allDataRef.current;
     if (newIdx < 0 || newIdx > data.length || !candleSeriesRef.current) return;
@@ -399,6 +457,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       onPriceUpdate(last.close);
     }
     chartRef.current?.timeScale().scrollToPosition(2, false);
+
+    // Check SL/TP hits on the new bar
+    if (last) {
+      checkSLTPHits(last.high, last.low);
+    }
   }, [onPriceUpdate]);
 
   // Play interval
@@ -691,6 +754,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         <button onClick={() => handleScroll('right')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><ChevronRight size={16} /></button>
         <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><RotateCcw size={16} /></button>
       </div>
+
+      {/* Trade result modal */}
+      {tradeResult && (
+        <TradeResultModal
+          result={tradeResult}
+          onClose={() => setTradeResult(null)}
+        />
+      )}
     </div>
   );
 }
