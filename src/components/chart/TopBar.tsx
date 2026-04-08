@@ -65,7 +65,7 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><PenTool size={14} /></button>
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Camera size={14} /></button>
         <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Eye size={14} /></button>
-        <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Settings size={14} /></button>
+        <button onClick={() => setSettingsOpen(true)} className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Settings size={14} /></button>
         <div className="w-px h-5 bg-[#2a2e39] mx-1" />
         <span className="text-[#787b86] text-[11px]">Day Trading</span>
         <ChevronDown size={10} className="text-[#787b86]" />
@@ -74,5 +74,6 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <button className="px-3 py-1.5 rounded bg-[#2962ff] text-white font-medium hover:bg-[#1e53e5]">Publish</button>
       </div>
     </div>
+    </>
   );
 }
