@@ -165,7 +165,7 @@ export default function ChartContainer({ ohlcv }: ChartContainerProps) {
   const changePct = (change / ohlcv.open) * 100;
 
   return (
-    <div className="relative flex-1 bg-white">
+    <div className="relative flex-1 min-w-0 bg-white">
       <div ref={chartContainerRef} className="w-full h-full" />
 
       {/* Chart overlay: OHLCV + Bid/Ask (top-left, on chart) */}
