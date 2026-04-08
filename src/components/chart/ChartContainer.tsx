@@ -18,6 +18,7 @@ import { loadTimeframeData, getSMAData, getEMAData, Timeframe } from '@/lib/char
 import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
+import TradeResultModal, { TradeResult } from './TradeResultModal';
 
 interface Position {
   id: string;
