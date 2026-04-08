@@ -1,6 +1,7 @@
 import {
   Search, Plus, ChevronDown, BarChart3, Bell, Rewind,
-  Undo, Redo, Ruler, Square, PenTool, Eye, Settings
+  Undo, Redo, Ruler, Square, PenTool, Eye, Settings,
+  Layout, Camera, Bookmark
 } from 'lucide-react';
 
 interface TopBarProps {
@@ -24,6 +25,7 @@ export default function TopBar({ ohlcv }: TopBarProps) {
         <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39]">
           <BarChart3 size={14} /> Indicators <ChevronDown size={10} />
         </button>
+        <div className="w-px h-5 bg-[#2a2e39] mx-1" />
         <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39]">
           <Bell size={14} /> Alert
         </button>
@@ -34,33 +36,26 @@ export default function TopBar({ ohlcv }: TopBarProps) {
         <button className="text-[#787b86] hover:text-white p-1"><Undo size={14} /></button>
         <button className="text-[#787b86] hover:text-white p-1"><Redo size={14} /></button>
         <div className="flex-1" />
-        <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39] text-[#787b86]">
-            <Ruler size={14} />
-          </button>
-          <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39] text-[#787b86]">
-            <Square size={14} />
-          </button>
-          <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39] text-[#787b86]">
-            <PenTool size={14} />
-          </button>
-          <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39] text-[#787b86]">
-            <Eye size={14} />
-          </button>
-          <div className="w-px h-5 bg-[#2a2e39]" />
-          <span className="text-[#787b86]">Day Trading</span>
+        <div className="flex items-center gap-0.5">
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Bookmark size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Layout size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Square size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Ruler size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><PenTool size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Camera size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Eye size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86]"><Settings size={14} /></button>
+          <div className="w-px h-5 bg-[#2a2e39] mx-1" />
+          <span className="text-[#787b86] text-[11px]">Day Trading</span>
           <ChevronDown size={10} className="text-[#787b86]" />
-          <div className="w-px h-5 bg-[#2a2e39]" />
-          <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39] text-[#787b86]">
-            <Settings size={14} />
-          </button>
+          <div className="w-px h-5 bg-[#2a2e39] mx-1" />
           <button className="px-3 py-1 rounded hover:bg-[#2a2e39] text-[#d1d4dc]">Trade</button>
           <button className="px-3 py-1.5 rounded bg-[#2962ff] text-white font-medium hover:bg-[#1e53e5]">Publish</button>
         </div>
       </div>
       {/* Row 2: OHLCV + Bid/Ask */}
       <div className="flex items-center h-[28px] px-2 gap-2">
-        <span className="text-[#787b86]">📈</span>
+        <span className="text-[11px]">🇺🇸</span>
         <span className="text-[11px] text-[#787b86]">Micro E-mini S&P 500 Index Futures (Jun 2026) · 5 · CME</span>
         <span className="text-[11px] ml-2">
           O<span className="text-[#d1d4dc] ml-0.5">{ohlcv.open.toFixed(2)}</span>
@@ -77,7 +72,10 @@ export default function TopBar({ ohlcv }: TopBarProps) {
             <span>{(ohlcv.close - 0.50).toFixed(2)}</span>
             <span className="ml-1 text-[9px] opacity-80">SELL</span>
           </div>
-          <span className="text-[10px] text-[#787b86]">0.25<br/>3</span>
+          <div className="flex flex-col items-center text-[9px] text-[#787b86] leading-tight">
+            <span>0.25</span>
+            <span>3</span>
+          </div>
           <div className="flex items-center bg-[#26a69a] text-white text-[11px] font-bold px-2 py-0.5 rounded-sm">
             <span>{(ohlcv.close - 0.25).toFixed(2)}</span>
             <span className="ml-1 text-[9px] opacity-80">BUY</span>
@@ -85,6 +83,10 @@ export default function TopBar({ ohlcv }: TopBarProps) {
         </div>
         <div className="flex-1" />
         <span className="text-[11px] text-[#787b86]">USD</span>
+      </div>
+      {/* Row 3: Indicator label */}
+      <div className="flex items-center h-[18px] px-2">
+        <span className="text-[10px] text-[#787b86]">▼ 7</span>
       </div>
     </div>
   );
