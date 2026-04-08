@@ -754,6 +754,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         <button onClick={() => handleScroll('right')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><ChevronRight size={16} /></button>
         <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><RotateCcw size={16} /></button>
       </div>
+
+      {/* Trade result modal */}
+      {tradeResult && (
+        <TradeResultModal
+          result={tradeResult}
+          onClose={() => setTradeResult(null)}
+        />
+      )}
     </div>
   );
 }
