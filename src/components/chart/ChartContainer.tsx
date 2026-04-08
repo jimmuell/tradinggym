@@ -219,23 +219,23 @@ export default function ChartContainer({ ohlcv }: ChartContainerProps) {
       <div className="absolute bottom-12 left-4 text-[#e0e3eb] text-2xl font-bold select-none pointer-events-none">
         TV
       </div>
-      {/* Zoom controls */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1">
-        <button onClick={() => handleZoom('out')} className="w-7 h-7 flex items-center justify-center rounded bg-[#363a45] hover:bg-[#4a4e59] text-[#d1d4dc]">
-          <Minus size={14} />
+      {/* Zoom/scroll controls */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+        <button onClick={() => handleZoom('out')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
+          <Minus size={16} />
         </button>
-        <button onClick={() => handleZoom('in')} className="w-7 h-7 flex items-center justify-center rounded bg-[#363a45] hover:bg-[#4a4e59] text-[#d1d4dc]">
-          <Plus size={14} />
+        <button onClick={() => handleZoom('in')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
+          <Plus size={16} />
         </button>
-        <div className="w-1" />
-        <button onClick={() => handleScroll('left')} className="w-7 h-7 flex items-center justify-center rounded bg-[#363a45] hover:bg-[#4a4e59] text-[#d1d4dc]">
-          <ChevronLeft size={14} />
+        <div className="w-1.5" />
+        <button onClick={() => handleScroll('left')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
+          <ChevronLeft size={16} />
         </button>
-        <button onClick={() => handleScroll('right')} className="w-7 h-7 flex items-center justify-center rounded bg-[#363a45] hover:bg-[#4a4e59] text-[#d1d4dc]">
-          <ChevronRight size={14} />
+        <button onClick={() => handleScroll('right')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
+          <ChevronRight size={16} />
         </button>
-        <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-7 h-7 flex items-center justify-center rounded bg-[#363a45] hover:bg-[#4a4e59] text-[#d1d4dc]">
-          <RotateCcw size={14} />
+        <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md">
+          <RotateCcw size={16} />
         </button>
       </div>
     </div>
