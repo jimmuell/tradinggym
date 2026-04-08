@@ -226,9 +226,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
-    // Keep candles growing left-to-right: show from bar 0 with padding
-    const visibleBars = Math.max(100, newIdx + 20);
-    chartRef.current?.timeScale().setVisibleLogicalRange({ from: -5, to: visibleBars });
+    // Keep latest candle on the right edge, older candles grow leftward
+    chartRef.current?.timeScale().scrollToPosition(2, false);
   }, [onPriceUpdate]);
 
   // Play interval
