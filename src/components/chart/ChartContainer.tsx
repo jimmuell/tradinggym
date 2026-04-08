@@ -377,6 +377,62 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     }
   }, [replayMode]);
 
+  // Check if any position's SL or TP was hit by the bar's high/low
+  const checkSLTPHits = useCallback((barHigh: number, barLow: number) => {
+    const curPositions = positionsRef.current;
+    for (const pos of curPositions) {
+      let hitType: 'sl' | 'tp' | null = null;
+      let exitPrice = 0;
+
+      if (pos.side === 'long') {
+        // Long: SL hit if low <= slPrice, TP hit if high >= tpPrice
+        if (pos.slPrice != null && barLow <= pos.slPrice) {
+          hitType = 'sl';
+          exitPrice = pos.slPrice;
+        } else if (pos.tpPrice != null && barHigh >= pos.tpPrice) {
+          hitType = 'tp';
+          exitPrice = pos.tpPrice;
+        }
+      } else {
+        // Short: SL hit if high >= slPrice, TP hit if low <= tpPrice
+        if (pos.slPrice != null && barHigh >= pos.slPrice) {
+          hitType = 'sl';
+          exitPrice = pos.slPrice;
+        } else if (pos.tpPrice != null && barLow <= pos.tpPrice) {
+          hitType = 'tp';
+          exitPrice = pos.tpPrice;
+        }
+      }
+
+      if (hitType) {
+        const diff = pos.side === 'long' ? exitPrice - pos.entryPrice : pos.entryPrice - exitPrice;
+        const pnl = diff * pos.quantity * 5;
+
+        // Close the position
+        if (candleSeriesRef.current) {
+          candleSeriesRef.current.removePriceLine(pos.priceLine);
+          if (pos.slLine) candleSeriesRef.current.removePriceLine(pos.slLine);
+          if (pos.tpLine) candleSeriesRef.current.removePriceLine(pos.tpLine);
+          markersArrayRef.current = markersArrayRef.current.filter((m) => m !== pos.marker);
+          markersPluginRef.current?.setMarkers(markersArrayRef.current);
+        }
+
+        setPositions((prev) => prev.filter((p) => p.id !== pos.id));
+        setIsPlaying(false);
+
+        setTradeResult({
+          side: pos.side,
+          entryPrice: pos.entryPrice,
+          exitPrice,
+          pnl,
+          result: hitType === 'tp' ? 'win' : 'loss',
+          reason: hitType,
+        });
+        break; // Handle one hit per bar
+      }
+    }
+  }, []);
+
   const updateReplayTo = useCallback((newIdx: number) => {
     const data = allDataRef.current;
     if (newIdx < 0 || newIdx > data.length || !candleSeriesRef.current) return;
