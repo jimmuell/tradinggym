@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { createChart, IChartApi, ISeriesApi, ColorType, CandlestickData, Time } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, ColorType, CandlestickData, Time, SeriesMarker, IPriceLine } from 'lightweight-charts';
 import { loadTimeframeData, getSMAData, getEMAData, Timeframe } from '@/lib/chartData';
-import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-react';
 import ReplayControls from './ReplayControls';
+
+interface Position {
+  id: string;
+  side: 'long' | 'short';
+  entryPrice: number;
+  entryTime: Time;
+  quantity: number;
+}
 
 interface ChartContainerProps {
   timeframe: Timeframe;
