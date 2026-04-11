@@ -721,6 +721,29 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     <div className="relative flex-1 min-w-0 bg-white">
       <div ref={chartContainerRef} className="absolute inset-0" />
 
+      {/* Replay positioning overlay — vertical line + ghost */}
+      {replayPositioning && replayLineX != null && (
+        <>
+          {/* Vertical blue line */}
+          <div
+            className="absolute top-0 bottom-0 w-[2px] bg-[#2962ff] z-20 pointer-events-none"
+            style={{ left: replayLineX }}
+          />
+          {/* Ghost overlay to the right of the line */}
+          <div
+            className="absolute top-0 bottom-0 right-0 bg-white/60 z-10 pointer-events-none"
+            style={{ left: replayLineX + 2 }}
+          />
+        </>
+      )}
+
+      {/* Replay positioning instruction */}
+      {replayPositioning && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-[#2a2e39] text-[#d1d4dc] text-[13px] px-4 py-2 rounded-lg shadow-lg border border-[#363a45] pointer-events-none">
+          Click on the chart to set replay start position · Press <span className="text-[#2962ff] font-medium">Esc</span> to cancel
+        </div>
+      )}
+
       {/* Replay controls */}
       {isReplaySessionActive && (
         <ReplayControls
