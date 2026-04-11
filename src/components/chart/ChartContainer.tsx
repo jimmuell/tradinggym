@@ -671,7 +671,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       {/* OHLCV overlay */}
       <div className="absolute top-1 left-1 z-10 pointer-events-none">
         <div className="flex items-center gap-2 text-[14px] text-[#787b86] flex-wrap">
-          <img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover border border-[#d1d4dc]/30 shadow-sm ml-1" />
+          <img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover border border-[#d1d4dc]/30 shadow-sm ml-3" />
           <span className="font-medium">Micro E-mini S&P 500 Index Futures (Jun 2026) · {timeframe} · CME</span>
           <span className="ml-1">O<span className="text-[#131722] font-medium ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
           <span>H<span className="text-[#131722] font-medium ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
