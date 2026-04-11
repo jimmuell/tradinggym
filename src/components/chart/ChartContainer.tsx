@@ -545,7 +545,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
         onPriceUpdate(last.close);
       }
-      chart.timeScale().scrollToPosition(2, false);
+
+      // Calculate right margin in bars to achieve ~215px gap from price axis
+      const barSpacing = chart.timeScale().options().barSpacing || 10;
+      const rightOffsetBars = Math.round(215 / barSpacing);
+      chart.timeScale().scrollToPosition(rightOffsetBars, true);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
