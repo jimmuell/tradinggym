@@ -9,6 +9,17 @@ import ChartSettingsModal from './ChartSettingsModal';
 
 const timeframes: Timeframe[] = ['1m', '5m', '30m', '1h', '1D'];
 
+const CandlestickIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    <rect x="3" y="4" width="3" height="8" fill="#26a69a" stroke="#26a69a" strokeWidth="0.5"/>
+    <line x1="4.5" y1="1" x2="4.5" y2="4" stroke="#26a69a" strokeWidth="1"/>
+    <line x1="4.5" y1="12" x2="4.5" y2="15" stroke="#26a69a" strokeWidth="1"/>
+    <rect x="10" y="5" width="3" height="6" fill="#ef5350" stroke="#ef5350" strokeWidth="0.5"/>
+    <line x1="11.5" y1="2" x2="11.5" y2="5" stroke="#ef5350" strokeWidth="1"/>
+    <line x1="11.5" y1="11" x2="11.5" y2="14" stroke="#ef5350" strokeWidth="1"/>
+  </svg>
+);
+
 interface TopBarProps {
   onTradeClick: () => void;
   timeframe: Timeframe;
@@ -24,7 +35,7 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
     <>
     <ChartSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     <div className="flex items-center h-[38px] bg-[#1e222d] text-[#d1d4dc] text-xs px-2 gap-1 border-b border-[#2a2e39]">
-      <span className="font-semibold text-white text-sm mr-1">ES</span>
+      <span className="font-semibold text-white text-sm mr-1 px-2 py-0.5 border border-[#2a2e39] rounded">ES</span>
       <button className="text-[#787b86] hover:text-white p-1"><Search size={14} /></button>
       <button className="text-[#787b86] hover:text-white p-1"><Plus size={14} /></button>
       <div className="flex items-center gap-0.5 ml-2">
@@ -40,6 +51,9 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <button className="text-[#787b86] hover:text-white p-1"><ChevronDown size={12} /></button>
       </div>
       <div className="w-px h-5 bg-[#2a2e39] mx-1" />
+      <button className="p-1 rounded hover:bg-[#2a2e39] text-[#787b86] hover:text-[#d1d4dc]">
+        <CandlestickIcon />
+      </button>
       <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-[#2a2e39]">
         <BarChart3 size={14} /> Indicators <ChevronDown size={10} />
       </button>
