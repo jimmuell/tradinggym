@@ -505,6 +505,72 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
   }, [isPlaying, isReplaySessionActive, timeframe, updateReplayTo]);
 
+  // Replay positioning: mouse tracking + click to confirm
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!replayPositioning || !container || !chartRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      setReplayLineX(x);
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      const chart = chartRef.current;
+      const data = allDataRef.current;
+      if (!chart || !data.length || !candleSeriesRef.current) return;
+
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const logical = chart.timeScale().coordinateToLogical(x);
+      if (logical == null) return;
+
+      // Clamp to valid bar index
+      const barIndex = Math.max(1, Math.min(Math.round(logical), data.length));
+
+      // Transition to normal replay from this position
+      setReplayPositioning(false);
+      setReplayLineX(null);
+
+      // Set data up to the selected bar
+      const slice = data.slice(0, barIndex);
+      candleSeriesRef.current.setData(slice);
+      smaSeriesRef.current?.setData(getSMAData(slice, 20));
+      emaSeriesRef.current?.setData(getEMAData(slice, 50));
+      setReplayIndex(barIndex);
+
+      const last = slice[slice.length - 1];
+      if (last) {
+        setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+        onPriceUpdate(last.close);
+      }
+      chart.timeScale().scrollToPosition(2, false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setReplayPositioning(false);
+        setReplayLineX(null);
+        onExitReplay();
+      }
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('click', handleClick);
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Change cursor during positioning
+    container.style.cursor = 'crosshair';
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('click', handleClick);
+      window.removeEventListener('keydown', handleKeyDown);
+      container.style.cursor = '';
+    };
+  }, [replayPositioning, onPriceUpdate, onExitReplay]);
+
   const handleZoom = (direction: 'in' | 'out') => {
     if (!chartRef.current) return;
     const timeScale = chartRef.current.timeScale();
