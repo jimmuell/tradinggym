@@ -483,7 +483,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
   const replayModeRef = useRef(false);
-  const isReplaySessionActive = replayMode || replayIndex > 0;
+  const isReplaySessionActive = (replayMode && !replayPositioning) || replayIndex > 0;
   replayModeRef.current = isReplaySessionActive;
 
   useEffect(() => {
