@@ -87,6 +87,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playIntervalRef = useRef<number | null>(null);
+  const [replayPositioning, setReplayPositioning] = useState(false);
+  const [replayLineX, setReplayLineX] = useState<number | null>(null);
   const savedRangeRef = useRef<{ from: number; to: number } | null>(null);
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
@@ -319,7 +321,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (cancelled || !candleSeriesRef.current) return;
       allDataRef.current = data;
 
-      if (replayMode) {
+      if (replayMode && !replayPositioning) {
         setReplayIndex(0);
         candleSeriesRef.current.setData([]);
         smaSeriesRef.current?.setData([]);
@@ -354,14 +356,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (!data.length || !candleSeriesRef.current) return;
 
     if (replayMode) {
+      // Enter positioning phase — keep all data visible, show vertical bar
+      setReplayPositioning(true);
       setReplayIndex(0);
       setIsPlaying(false);
-      candleSeriesRef.current.setData([]);
-      smaSeriesRef.current?.setData([]);
-      emaSeriesRef.current?.setData([]);
-      setReplayEmptyView();
-      setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
+      setReplayLineX(null);
     } else {
+      setReplayPositioning(false);
+      setReplayLineX(null);
       setIsPlaying(false);
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
       candleSeriesRef.current.setData(data);
@@ -481,7 +483,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
   const replayModeRef = useRef(false);
-  const isReplaySessionActive = replayMode || replayIndex > 0;
+  const isReplaySessionActive = (replayMode && !replayPositioning) || replayIndex > 0;
   replayModeRef.current = isReplaySessionActive;
 
   useEffect(() => {
@@ -502,6 +504,72 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
     };
   }, [isPlaying, isReplaySessionActive, timeframe, updateReplayTo]);
+
+  // Replay positioning: mouse tracking + click to confirm
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!replayPositioning || !container || !chartRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      setReplayLineX(x);
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      const chart = chartRef.current;
+      const data = allDataRef.current;
+      if (!chart || !data.length || !candleSeriesRef.current) return;
+
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const logical = chart.timeScale().coordinateToLogical(x);
+      if (logical == null) return;
+
+      // Clamp to valid bar index
+      const barIndex = Math.max(1, Math.min(Math.round(logical), data.length));
+
+      // Transition to normal replay from this position
+      setReplayPositioning(false);
+      setReplayLineX(null);
+
+      // Set data up to the selected bar
+      const slice = data.slice(0, barIndex);
+      candleSeriesRef.current.setData(slice);
+      smaSeriesRef.current?.setData(getSMAData(slice, 20));
+      emaSeriesRef.current?.setData(getEMAData(slice, 50));
+      setReplayIndex(barIndex);
+
+      const last = slice[slice.length - 1];
+      if (last) {
+        setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+        onPriceUpdate(last.close);
+      }
+      chart.timeScale().scrollToPosition(2, false);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setReplayPositioning(false);
+        setReplayLineX(null);
+        onExitReplay();
+      }
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('click', handleClick);
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Change cursor during positioning
+    container.style.cursor = 'crosshair';
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('click', handleClick);
+      window.removeEventListener('keydown', handleKeyDown);
+      container.style.cursor = '';
+    };
+  }, [replayPositioning, onPriceUpdate, onExitReplay]);
 
   const handleZoom = (direction: 'in' | 'out') => {
     if (!chartRef.current) return;
@@ -652,6 +720,29 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   return (
     <div className="relative flex-1 min-w-0 bg-white">
       <div ref={chartContainerRef} className="absolute inset-0" />
+
+      {/* Replay positioning overlay — vertical line + ghost */}
+      {replayPositioning && replayLineX != null && (
+        <>
+          {/* Vertical blue line */}
+          <div
+            className="absolute top-0 bottom-0 w-[2px] bg-[#2962ff] z-20 pointer-events-none"
+            style={{ left: replayLineX }}
+          />
+          {/* Ghost overlay to the right of the line */}
+          <div
+            className="absolute top-0 bottom-0 right-0 bg-white/60 z-10 pointer-events-none"
+            style={{ left: replayLineX + 2 }}
+          />
+        </>
+      )}
+
+      {/* Replay positioning instruction */}
+      {replayPositioning && (
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-[#2a2e39] text-[#d1d4dc] text-[13px] px-4 py-2 rounded-lg shadow-lg border border-[#363a45] pointer-events-none">
+          Click on the chart to set replay start position · Press <span className="text-[#2962ff] font-medium">Esc</span> to cancel
+        </div>
+      )}
 
       {/* Replay controls */}
       {isReplaySessionActive && (
