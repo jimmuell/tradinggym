@@ -22,14 +22,14 @@ const tools = [
 
 export default function LeftToolbar() {
   return (
-    <div className="flex flex-col items-center w-[38px] bg-[#1e222d] border-r border-[#2a2e39] py-1 gap-0.5">
+    <div className="flex flex-col items-center w-[44px] bg-[#1e222d] border-r border-[#2a2e39] py-1 gap-0.5">
       {tools.map(({ icon: Icon, label }, i) => (
         <button
           key={i}
           title={label}
           className="p-1.5 rounded hover:bg-[#2a2e39] text-[#787b86] hover:text-[#d1d4dc]"
         >
-          <Icon size={16} />
+          <Icon size={18} />
         </button>
       ))}
     </div>

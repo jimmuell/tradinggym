@@ -133,6 +133,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       rightPriceScale: {
         borderColor: '#e1ecf2',
         scaleMargins: { top: 0.1, bottom: 0.05 },
+        width: 55,
       },
       timeScale: {
         borderColor: '#e1ecf2',
@@ -140,6 +141,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         secondsVisible: false,
         barSpacing: 10,
         minBarSpacing: 2,
+        height: 26,
       },
       crosshair: {
         mode: 0,

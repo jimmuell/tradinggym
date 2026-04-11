@@ -10,7 +10,7 @@ export default function BottomBar() {
   return (
     <>
     <DateRangeModal open={dateModalOpen} onClose={() => setDateModalOpen(false)} />
-    <div className="flex items-center h-[32px] bg-[#1e222d] border-t border-[#2a2e39] px-2 text-[11px] text-[#787b86]">
+    <div className="flex items-center h-[26px] bg-[#1e222d] border-t border-[#2a2e39] px-2 text-[10px] text-[#787b86]">
       <button className="p-1 hover:text-[#d1d4dc]"><Star size={14} /></button>
       <div className="flex items-center gap-0.5 ml-2">
         {timeframes.map((tf) => (
