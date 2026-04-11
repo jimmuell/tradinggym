@@ -194,6 +194,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
                   ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
+              <div className="text-[11px] text-[#26a69a] mt-1 text-right">+${tpDollar} USD</div>
             </div>
 
             {/* Stop loss */}
@@ -228,6 +229,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
                   ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
+              <div className="text-[11px] text-[#ef5350] mt-1 text-right">-${slDollar} USD</div>
             </div>
           </div>
         )}
@@ -249,7 +251,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
         </div>
         <div className="flex items-center justify-between text-[12px]">
           <span className="text-[#787b86]">Tick value</span>
-          <span className="text-[#d1d4dc]">{tickValue.toFixed(2)} <span className="text-[#787b86]">USD</span></span>
+          <span className="text-[#d1d4dc]">{tickValue.toFixed(2)} × {units} = {totalTickValue.toFixed(2)} <span className="text-[#787b86]">USD</span></span>
         </div>
         <div className="flex items-center justify-between text-[12px]">
           <span className="text-[#787b86]">Trade value</span>
