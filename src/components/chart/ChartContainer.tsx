@@ -529,6 +529,9 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       // Clamp to valid bar index
       const barIndex = Math.max(1, Math.min(Math.round(logical), data.length));
 
+      // Save the current visible range so view doesn't jump after slicing
+      const visibleRange = chart.timeScale().getVisibleLogicalRange();
+
       // Slice data immediately — candles to the right disappear
       const slice = data.slice(0, barIndex);
       candleSeriesRef.current.setData(slice);
@@ -536,13 +539,18 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       emaSeriesRef.current?.setData(getEMAData(slice, 50));
       setReplayIndex(barIndex);
 
+      // Restore the visible range so the chart doesn't auto-fit (candles stay in place)
+      if (visibleRange) {
+        chart.timeScale().setVisibleLogicalRange(visibleRange);
+      }
+
       const last = slice[slice.length - 1];
       if (last) {
         setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
         onPriceUpdate(last.close);
       }
 
-      // Keep the bar stationary for 500ms, then animate slide to 215px from price axis
+      // Hold for 500ms, then animate the chart sliding RIGHT so last bar ends up 215px from price axis
       setTimeout(() => {
         setReplayPositioning(false);
         setReplayLineX(null);
