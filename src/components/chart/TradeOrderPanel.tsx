@@ -40,9 +40,21 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
   const buyPrice = lastPrice + 0.25;
   const spread = 0.25;
   const tickSize = 0.25;
-  const tpPrice = (lastPrice + tpTicks * tickSize).toFixed(2);
-  const slPrice = (lastPrice - slTicks * tickSize).toFixed(2);
-  const tickValue = 3.75;
+  const tickValue = 1.25; // MES: $0.25 tick × $5 multiplier = $1.25/tick/contract
+  const totalTickValue = tickValue * units;
+
+  // Direction-aware TP/SL pricing
+  const tpPrice = tradeSide === 'buy'
+    ? (lastPrice + tpTicks * tickSize).toFixed(2)
+    : (lastPrice - tpTicks * tickSize).toFixed(2);
+  const slPrice = tradeSide === 'buy'
+    ? (lastPrice - slTicks * tickSize).toFixed(2)
+    : (lastPrice + slTicks * tickSize).toFixed(2);
+
+  // Dollar P&L estimates
+  const tpDollar = (tpTicks * tickValue * units).toFixed(2);
+  const slDollar = (slTicks * tickValue * units).toFixed(2);
+
   const tradeValue = (lastPrice * units * 5).toFixed(2);
   const margin = (units * 68.21).toFixed(2);
   const totalMargin = '2,208.75';
@@ -182,6 +194,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
                   ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
+              <div className="text-[11px] text-[#26a69a] mt-1 text-right">+${tpDollar} USD</div>
             </div>
 
             {/* Stop loss */}
@@ -216,6 +229,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
                   ticks <ChevronDown size={10} className="inline" />
                 </div>
               </div>
+              <div className="text-[11px] text-[#ef5350] mt-1 text-right">-${slDollar} USD</div>
             </div>
           </div>
         )}
@@ -237,7 +251,7 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
         </div>
         <div className="flex items-center justify-between text-[12px]">
           <span className="text-[#787b86]">Tick value</span>
-          <span className="text-[#d1d4dc]">{tickValue.toFixed(2)} <span className="text-[#787b86]">USD</span></span>
+          <span className="text-[#d1d4dc]">{tickValue.toFixed(2)} × {units} = {totalTickValue.toFixed(2)} <span className="text-[#787b86]">USD</span></span>
         </div>
         <div className="flex items-center justify-between text-[12px]">
           <span className="text-[#787b86]">Trade value</span>
