@@ -87,6 +87,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const playIntervalRef = useRef<number | null>(null);
+  const [replayPositioning, setReplayPositioning] = useState(false);
+  const [replayLineX, setReplayLineX] = useState<number | null>(null);
   const savedRangeRef = useRef<{ from: number; to: number } | null>(null);
 
   const [ohlcv, setOhlcv] = useState({ open: 0, high: 0, low: 0, close: 0, volume: '0' });
