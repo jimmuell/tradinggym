@@ -529,11 +529,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       // Clamp to valid bar index
       const barIndex = Math.max(1, Math.min(Math.round(logical), data.length));
 
-      // Transition to normal replay from this position
-      setReplayPositioning(false);
-      setReplayLineX(null);
-
-      // Set data up to the selected bar
+      // Slice data immediately — candles to the right disappear
       const slice = data.slice(0, barIndex);
       candleSeriesRef.current.setData(slice);
       smaSeriesRef.current?.setData(getSMAData(slice, 20));
@@ -546,10 +542,15 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         onPriceUpdate(last.close);
       }
 
-      // Calculate right margin in bars to achieve ~215px gap from price axis
-      const barSpacing = chart.timeScale().options().barSpacing || 10;
-      const rightOffsetBars = Math.round(215 / barSpacing);
-      chart.timeScale().scrollToPosition(rightOffsetBars, true);
+      // Keep the bar stationary for 500ms, then animate slide to 215px from price axis
+      setTimeout(() => {
+        setReplayPositioning(false);
+        setReplayLineX(null);
+        if (!chartRef.current) return;
+        const barSpacing = chartRef.current.timeScale().options().barSpacing || 10;
+        const rightOffsetBars = Math.round(215 / barSpacing);
+        chartRef.current.timeScale().scrollToPosition(rightOffsetBars, true);
+      }, 500);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
