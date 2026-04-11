@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Settings2, MoreHorizontal, ChevronDown, ChevronUp, HelpCircle, ArrowUpDown } from 'lucide-react';
+import { X, Settings2, MoreHorizontal, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 
 export interface SLTPConfig {
   slEnabled: boolean;
