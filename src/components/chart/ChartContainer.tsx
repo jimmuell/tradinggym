@@ -701,26 +701,6 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
-        <div className="flex items-center gap-2 mt-1.5 pointer-events-auto">
-          <label className="text-[11px] text-[#787b86] flex items-center gap-1">
-            SL (ticks)
-            <input
-              type="number"
-              value={slTicks}
-              onChange={(e) => { const v = Number(e.target.value); setSlTicks(v); slTicksRef.current = v; }}
-              className="w-12 bg-[#131722] border border-[#363a45] rounded px-1 py-0.5 text-[11px] text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </label>
-          <label className="text-[11px] text-[#787b86] flex items-center gap-1">
-            TP (ticks)
-            <input
-              type="number"
-              value={tpTicks}
-              onChange={(e) => { const v = Number(e.target.value); setTpTicks(v); tpTicksRef.current = v; }}
-              className="w-12 bg-[#131722] border border-[#363a45] rounded px-1 py-0.5 text-[11px] text-white outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </label>
-        </div>
         <div className="text-[12px] text-[#787b86] mt-1">▼ {positions.length}</div>
       </div>
 
