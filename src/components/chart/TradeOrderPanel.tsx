@@ -202,7 +202,10 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
                   readOnly
                   className={`flex-1 bg-transparent text-sm px-3 py-2 outline-none ${slEnabled ? 'text-[#d1d4dc]' : 'text-[#787b86]'}`}
                 />
-                <button className="px-2 text-[#787b86]"><ArrowUpDown size={14} /></button>
+                <div className="flex flex-col border-l border-[#363a45]">
+                  <button onClick={() => setSlTicks(slTicks + 1)} className="px-2 py-0.5 text-[#787b86] hover:text-[#d1d4dc]"><ChevronUp size={12} /></button>
+                  <button onClick={() => setSlTicks(Math.max(1, slTicks - 1))} className="px-2 py-0.5 text-[#787b86] hover:text-[#d1d4dc]"><ChevronDown size={12} /></button>
+                </div>
                 <div className="border-l border-[#363a45] px-3 py-2 text-sm text-[#787b86] flex items-center gap-1">
                   <input
                     type="number"
