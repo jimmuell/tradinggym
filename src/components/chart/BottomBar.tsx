@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, Maximize2, Minimize2, Settings, ChevronRight } from 'lucide-react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Settings, ChevronRight } from 'lucide-react';
 import DateRangeModal from './DateRangeModal';
 
 const timeframes = ['1D', '5D', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'All'];
@@ -49,14 +49,12 @@ function getEmptyMessage(subTab: TradingSubTab): string {
   }
 }
 
-// TV logo small icon
 const TVIcon = () => (
   <svg width="16" height="12" viewBox="0 0 40 28" className="inline-block">
     <path d="M8 0h24L40 28H0z" fill="#2962ff" />
   </svg>
 );
 
-// Strategy report icon
 const StrategyIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#787b86" strokeWidth="1.5" className="inline-block">
     <circle cx="12" cy="12" r="10" />
@@ -64,15 +62,125 @@ const StrategyIcon = () => (
   </svg>
 );
 
+// TradingView-style chevron up icon (^)
+const ChevronUpIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M5 11l4-4 4 4" stroke="#787b86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// TradingView-style chevron down icon (v)
+const ChevronDownIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <path d="M5 7l4 4 4-4" stroke="#787b86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// TradingView-style maximize icon (square outline)
+const MaximizeIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <rect x="4" y="4" width="10" height="10" rx="1" stroke="#787b86" strokeWidth="1.5" />
+  </svg>
+);
+
+// TradingView-style minimize icon (overlapping squares)
+const MinimizeIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <rect x="3" y="6" width="8" height="8" rx="1" stroke="#787b86" strokeWidth="1.5" />
+    <path d="M7 6V4.5a1 1 0 011-1h5.5a1 1 0 011 1V10a1 1 0 01-1 1H12" stroke="#787b86" strokeWidth="1.5" />
+  </svg>
+);
+
+const MIN_PANEL_HEIGHT = 0;
+const DEFAULT_PANEL_HEIGHT = 280;
+const MAX_PANEL_RATIO = 0.6; // 60vh equivalent
+
 export default function BottomBar() {
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('Paper Trading');
   const [activeSubTab, setActiveSubTab] = useState<TradingSubTab>('Positions');
-  const [expanded, setExpanded] = useState(false);
+  const [panelHeight, setPanelHeight] = useState(0); // 0 = collapsed
   const [maximized, setMaximized] = useState(false);
   const [activeOrderFilter, setActiveOrderFilter] = useState('All');
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const dragStartHeight = useRef(0);
+  const preMaximizeHeight = useRef(DEFAULT_PANEL_HEIGHT);
 
-  const panelHeight = maximized ? 'h-[60vh]' : expanded ? 'h-[280px]' : 'h-0';
+  const expanded = panelHeight > 0;
+
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    dragStartY.current = e.clientY;
+    dragStartHeight.current = maximized
+      ? window.innerHeight * MAX_PANEL_RATIO
+      : panelHeight;
+  }, [panelHeight, maximized]);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const delta = dragStartY.current - e.clientY;
+      const newHeight = Math.max(MIN_PANEL_HEIGHT, Math.min(
+        window.innerHeight * MAX_PANEL_RATIO,
+        dragStartHeight.current + delta
+      ));
+      if (maximized) setMaximized(false);
+      setPanelHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Snap to closed if very small
+      setPanelHeight(prev => prev < 40 ? 0 : prev);
+    };
+
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, maximized]);
+
+  const toggleExpand = () => {
+    if (maximized) {
+      setMaximized(false);
+      setPanelHeight(preMaximizeHeight.current);
+    } else if (expanded) {
+      setPanelHeight(0);
+    } else {
+      setPanelHeight(DEFAULT_PANEL_HEIGHT);
+    }
+  };
+
+  const toggleMaximize = () => {
+    if (maximized) {
+      setMaximized(false);
+      setPanelHeight(preMaximizeHeight.current);
+    } else {
+      if (expanded) preMaximizeHeight.current = panelHeight;
+      else preMaximizeHeight.current = DEFAULT_PANEL_HEIGHT;
+      setMaximized(true);
+      setPanelHeight(0); // maximized uses vh
+    }
+  };
+
+  const openPanel = () => {
+    if (!expanded && !maximized) setPanelHeight(DEFAULT_PANEL_HEIGHT);
+  };
+
+  const effectiveHeight = maximized
+    ? `${Math.floor(window.innerHeight * MAX_PANEL_RATIO)}px`
+    : `${panelHeight}px`;
+
   const columns = getColumnsForSubTab(activeSubTab);
   const emptyMessage = getEmptyMessage(activeSubTab);
 
@@ -101,12 +209,23 @@ export default function BottomBar() {
         </div>
       </div>
 
+      {/* Draggable separator */}
+      <div
+        onMouseDown={handleDragStart}
+        className={`relative h-[4px] shrink-0 group cursor-ns-resize ${isDragging ? 'bg-[#2962ff]' : 'bg-[#2a2e39] hover:bg-[#3a3e49]'}`}
+        style={{ transition: isDragging ? 'none' : 'background-color 0.15s' }}
+      >
+        {/* Center dot indicator */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className={`w-8 h-[2px] rounded-full ${isDragging ? 'bg-[#5b8def]' : 'bg-[#3a3e49] group-hover:bg-[#505460]'}`} />
+        </div>
+      </div>
+
       {/* Row 2: Main tabs bar */}
-      <div className="flex items-center h-[30px] bg-[#1e222d] border-t border-[#2a2e39] px-2 text-[12px] text-[#787b86] shrink-0">
+      <div className="flex items-center h-[30px] bg-[#1e222d] px-2 text-[12px] text-[#787b86] shrink-0">
         <div className="flex items-center gap-1">
-          {/* Strategy Report tab */}
           <button
-            onClick={() => { setActiveMainTab('Strategy Report'); if (!expanded) setExpanded(true); }}
+            onClick={() => { setActiveMainTab('Strategy Report'); openPanel(); }}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[12px] ${
               activeMainTab === 'Strategy Report'
                 ? 'text-[#d1d4dc] bg-[#2a2e39]'
@@ -117,9 +236,8 @@ export default function BottomBar() {
             Strategy Report
           </button>
 
-          {/* Paper Trading tab */}
           <button
-            onClick={() => { setActiveMainTab('Paper Trading'); if (!expanded) setExpanded(true); }}
+            onClick={() => { setActiveMainTab('Paper Trading'); openPanel(); }}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[12px] ${
               activeMainTab === 'Paper Trading'
                 ? 'text-[#d1d4dc] bg-[#2a2e39]'
@@ -130,9 +248,8 @@ export default function BottomBar() {
             Paper Trading
           </button>
 
-          {/* Trade tab */}
           <button
-            onClick={() => { setActiveMainTab('Trade'); if (!expanded) setExpanded(true); }}
+            onClick={() => { setActiveMainTab('Trade'); openPanel(); }}
             className={`flex items-center gap-1 px-2.5 py-0.5 rounded border text-[12px] ${
               activeMainTab === 'Trade'
                 ? 'text-[#d1d4dc] border-[#d1d4dc]'
@@ -145,23 +262,31 @@ export default function BottomBar() {
 
         <div className="flex-1" />
 
-        {/* Collapse / Maximize buttons */}
+        {/* Collapse / Maximize buttons — matching TradingView style */}
         <button
-          onClick={() => { if (maximized) { setMaximized(false); } else { setExpanded(!expanded); } }}
-          className="p-1 hover:text-[#d1d4dc]"
+          onClick={toggleExpand}
+          className="p-1 hover:text-[#d1d4dc] transition-colors"
+          title={expanded || maximized ? 'Collapse' : 'Expand'}
         >
-          {expanded || maximized ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          {expanded || maximized ? <ChevronDownIcon /> : <ChevronUpIcon />}
         </button>
         <button
-          onClick={() => { if (!expanded) setExpanded(true); setMaximized(!maximized); }}
-          className="p-1 hover:text-[#d1d4dc]"
+          onClick={toggleMaximize}
+          className="p-1 hover:text-[#d1d4dc] transition-colors"
+          title={maximized ? 'Restore' : 'Maximize'}
         >
-          {maximized ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+          {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
         </button>
       </div>
 
       {/* Expandable panel */}
-      <div className={`${panelHeight} bg-[#131722] border-t border-[#2a2e39] overflow-hidden transition-all duration-200 flex flex-col shrink-0`}>
+      <div
+        className="bg-[#131722] overflow-hidden flex flex-col shrink-0"
+        style={{
+          height: effectiveHeight,
+          transition: isDragging ? 'none' : 'height 0.2s ease',
+        }}
+      >
         {(expanded || maximized) && (
           <>
             {/* Panel header: broker info + account stats */}
