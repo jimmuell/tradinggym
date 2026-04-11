@@ -160,6 +160,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       borderUpColor: '#26a69a',
       wickDownColor: '#ef5350',
       wickUpColor: '#26a69a',
+      priceFormat: {
+        type: 'price',
+        precision: 2,
+        minMove: 0.25,
+      },
     });
     candleSeriesRef.current = candleSeries;
 

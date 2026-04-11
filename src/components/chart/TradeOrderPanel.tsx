@@ -40,9 +40,21 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
   const buyPrice = lastPrice + 0.25;
   const spread = 0.25;
   const tickSize = 0.25;
-  const tpPrice = (lastPrice + tpTicks * tickSize).toFixed(2);
-  const slPrice = (lastPrice - slTicks * tickSize).toFixed(2);
-  const tickValue = 3.75;
+  const tickValue = 1.25; // MES: $0.25 tick × $5 multiplier = $1.25/tick/contract
+  const totalTickValue = tickValue * units;
+
+  // Direction-aware TP/SL pricing
+  const tpPrice = tradeSide === 'buy'
+    ? (lastPrice + tpTicks * tickSize).toFixed(2)
+    : (lastPrice - tpTicks * tickSize).toFixed(2);
+  const slPrice = tradeSide === 'buy'
+    ? (lastPrice - slTicks * tickSize).toFixed(2)
+    : (lastPrice + slTicks * tickSize).toFixed(2);
+
+  // Dollar P&L estimates
+  const tpDollar = (tpTicks * tickValue * units).toFixed(2);
+  const slDollar = (slTicks * tickValue * units).toFixed(2);
+
   const tradeValue = (lastPrice * units * 5).toFixed(2);
   const margin = (units * 68.21).toFixed(2);
   const totalMargin = '2,208.75';
