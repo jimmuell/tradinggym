@@ -356,14 +356,14 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (!data.length || !candleSeriesRef.current) return;
 
     if (replayMode) {
+      // Enter positioning phase — keep all data visible, show vertical bar
+      setReplayPositioning(true);
       setReplayIndex(0);
       setIsPlaying(false);
-      candleSeriesRef.current.setData([]);
-      smaSeriesRef.current?.setData([]);
-      emaSeriesRef.current?.setData([]);
-      setReplayEmptyView();
-      setOhlcv({ open: 0, high: 0, low: 0, close: 0, volume: '—' });
+      setReplayLineX(null);
     } else {
+      setReplayPositioning(false);
+      setReplayLineX(null);
       setIsPlaying(false);
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
       candleSeriesRef.current.setData(data);
