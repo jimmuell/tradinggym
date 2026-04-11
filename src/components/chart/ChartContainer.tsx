@@ -550,14 +550,32 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         onPriceUpdate(last.close);
       }
 
-      // Hold for 500ms, then animate the chart sliding RIGHT so last bar ends up 215px from price axis
+      // Hold for 500ms, then smoothly animate the chart sliding RIGHT
       setTimeout(() => {
         setReplayPositioning(false);
         setReplayLineX(null);
         if (!chartRef.current) return;
-        const barSpacing = chartRef.current.timeScale().options().barSpacing || 10;
-        const rightOffsetBars = Math.round(215 / barSpacing);
-        chartRef.current.timeScale().scrollToPosition(rightOffsetBars, true);
+        const chart = chartRef.current;
+        const barSpacing = chart.timeScale().options().barSpacing || 10;
+        const targetOffset = Math.round(215 / barSpacing);
+
+        // Get current scroll position
+        const startOffset = chart.timeScale().scrollPosition() || 0;
+        const delta = targetOffset - startOffset;
+        const duration = 800; // ms
+        const startTime = performance.now();
+
+        const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+        const animate = (now: number) => {
+          if (!chartRef.current) return;
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = easeOutCubic(progress);
+          chart.timeScale().scrollToPosition(startOffset + delta * eased, false);
+          if (progress < 1) requestAnimationFrame(animate);
+        };
+        requestAnimationFrame(animate);
       }, 500);
     };
 
