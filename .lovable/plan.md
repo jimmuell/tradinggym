@@ -1,26 +1,36 @@
 
 
-## Problem
+## Analysis: MES Pricing Accuracy
 
-The US flag image naturally centers on the flag's content, but since the stars section is on the left and stripes extend right, the visual center feels off. You want to shift the flag *image within* the round container so the flag's visual center aligns with the circle, without changing the icon's size or position.
+### Issues Found
 
-## Solution
+1. **Tick value is wrong**: Currently hardcoded as `$3.75`. MES (Micro E-mini S&P 500) tick value = tick size ($0.25) x point value ($5.00) = **$1.25 per tick per contract**. The panel should show `$1.25` per contract, or `$1.25 × units` for total tick value.
 
-Use `object-position` to shift the flag image inside the clipped circle. Since `rounded-full` + `object-cover` already crops the rectangular flag into a circle, we just need to adjust which part of the flag is shown.
+2. **TP/SL direction ignores trade side**: Currently TP is always `lastPrice + tpTicks * 0.25` (above) and SL is always `lastPrice - slTicks * 0.25` (below). This is only correct for **buys**. For **sells**, TP should be below entry and SL above.
 
-Specifically, change the `<img>` tag to include `object-[60%_center]` (or similar), which shifts the visible portion of the flag slightly to the right within the circle — showing more of the stripes and less of the left edge.
+3. **Price axis lacks `minMove` configuration**: The candlestick series doesn't specify `priceFormat` with `minMove: 0.25`, so the price axis may show non-tick-aligned values. TradingView uses `minMove: 0.25` for MES.
 
-### Change in `src/components/chart/ChartContainer.tsx` (line ~674)
+4. **No dollar P&L preview**: The panel shows ticks but doesn't show the estimated dollar gain/loss for TP and SL based on `ticks × $1.25 × units`.
 
-**From:**
-```tsx
-<img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover border border-[#d1d4dc]/30 shadow-sm" />
-```
+### Plan
 
-**To:**
-```tsx
-<img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover object-[60%_center] border border-[#d1d4dc]/30 shadow-sm" />
-```
+**File: `src/components/chart/TradeOrderPanel.tsx`**
+- Fix `tickValue` to `1.25` (per contract)
+- Display total tick value as `tickValue × units`
+- Make TP/SL prices direction-aware:
+  - Buy: TP = `lastPrice + tpTicks * 0.25`, SL = `lastPrice - slTicks * 0.25`
+  - Sell: TP = `lastPrice - tpTicks * 0.25`, SL = `lastPrice + slTicks * 0.25`
+- Add dollar P&L estimates under TP and SL fields: `±(ticks × $1.25 × units)`
 
-The `object-[60%_center]` Tailwind arbitrary value shifts the crop point rightward. We can fine-tune the percentage (55%, 65%, etc.) until it looks centered.
+**File: `src/components/chart/ChartContainer.tsx`**
+- Add `priceFormat: { type: 'price', minMove: 0.25, precision: 2 }` to the CandlestickSeries options so the price axis snaps to tick increments
+- Fix SL/TP price line calculations in the position logic to also be direction-aware
+
+### Specs Reference (MES)
+| Attribute | Value |
+|-----------|-------|
+| Tick size | 0.25 points |
+| Point value | $5.00 |
+| Tick value | $1.25 |
+| Multiplier | 5 |
 
