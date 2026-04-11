@@ -321,7 +321,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (cancelled || !candleSeriesRef.current) return;
       allDataRef.current = data;
 
-      if (replayMode) {
+      if (replayMode && !replayPositioning) {
         setReplayIndex(0);
         candleSeriesRef.current.setData([]);
         smaSeriesRef.current?.setData([]);
