@@ -23,10 +23,18 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
   const [orderType, setOrderType] = useState<'Market' | 'Limit' | 'Stop'>('Market');
   const [units, setUnits] = useState(3);
   const [exitsOpen, setExitsOpen] = useState(true);
-  const [tpEnabled, setTpEnabled] = useState(true);
-  const [slEnabled, setSlEnabled] = useState(true);
-  const [tpTicks, setTpTicks] = useState(75);
-  const [slTicks, setSlTicks] = useState(25);
+  const [tpEnabled, setTpEnabled] = useState(() => localStorage.getItem('trade_tp_enabled') !== 'false');
+  const [slEnabled, setSlEnabled] = useState(() => localStorage.getItem('trade_sl_enabled') !== 'false');
+  const [tpTicks, setTpTicks] = useState(() => Number(localStorage.getItem('trade_tp_ticks')) || 75);
+  const [slTicks, setSlTicks] = useState(() => Number(localStorage.getItem('trade_sl_ticks')) || 25);
+
+  // Persist exit settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('trade_tp_ticks', tpTicks.toString());
+    localStorage.setItem('trade_sl_ticks', slTicks.toString());
+    localStorage.setItem('trade_tp_enabled', tpEnabled.toString());
+    localStorage.setItem('trade_sl_enabled', slEnabled.toString());
+  }, [tpTicks, slTicks, tpEnabled, slEnabled]);
 
   // Sync from external drag updates
   useEffect(() => {
