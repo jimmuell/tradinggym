@@ -14,6 +14,8 @@ import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,8 @@ const App = () => (
             <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
             <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
             <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
+            <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
+            <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

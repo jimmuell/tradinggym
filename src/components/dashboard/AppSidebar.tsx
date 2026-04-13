@@ -6,6 +6,8 @@ import {
   GraduationCap,
   FolderOpen,
   BarChart3,
+  UserCircle,
+  Settings,
   LogOut,
   CandlestickChart,
 } from 'lucide-react';
@@ -33,6 +35,8 @@ const navItems = [
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Coaching', url: '/coaching', icon: GraduationCap },
   { title: 'Resources', url: '/resources', icon: FolderOpen },
+  { title: 'Profile', url: '/profile', icon: UserCircle },
+  { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
 export function AppSidebar() {
