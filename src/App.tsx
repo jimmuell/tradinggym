@@ -44,6 +44,8 @@ const App = () => (
             <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
             <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
             <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
+            <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
+            <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
