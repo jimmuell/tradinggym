@@ -77,7 +77,7 @@ export default function TradeResultModal({ result, onClose }: TradeResultModalPr
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-[#787b86] transition-colors"
+          className="absolute top-3 right-3 p-1 rounded-lg hover:bg-white/10 text-muted-foreground transition-colors"
         >
           <X size={18} />
         </button>
@@ -98,27 +98,27 @@ export default function TradeResultModal({ result, onClose }: TradeResultModalPr
           <h2 className={`text-2xl font-bold ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
             {isWin ? 'Trade Won!' : 'Trade Closed'}
           </h2>
-          <p className="text-[#d1d4dc] text-sm mt-2 leading-relaxed">{message}</p>
+          <p className="text-foreground text-sm mt-2 leading-relaxed">{message}</p>
         </div>
 
         {/* Trade details */}
-        <div className="mx-6 mt-6 rounded-xl bg-[#131722] border border-[#2a2e39] p-4 space-y-3">
+        <div className="mx-6 mt-6 rounded-xl bg-background border border-border p-4 space-y-3">
           <div className="flex justify-between text-[13px]">
-            <span className="text-[#787b86]">Side</span>
+            <span className="text-muted-foreground">Side</span>
             <span className={`font-semibold ${result.side === 'long' ? 'text-[#2962ff]' : 'text-[#ef5350]'}`}>
               {result.side === 'long' ? '▲ Long' : '▼ Short'}
             </span>
           </div>
           <div className="flex justify-between text-[13px]">
-            <span className="text-[#787b86]">Entry</span>
-            <span className="text-[#d1d4dc] font-medium">{result.entryPrice.toFixed(2)}</span>
+            <span className="text-muted-foreground">Entry</span>
+            <span className="text-foreground font-medium">{result.entryPrice.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-[13px]">
-            <span className="text-[#787b86]">Exit ({result.reason === 'tp' ? 'Take Profit' : 'Stop Loss'})</span>
-            <span className="text-[#d1d4dc] font-medium">{result.exitPrice.toFixed(2)}</span>
+            <span className="text-muted-foreground">Exit ({result.reason === 'tp' ? 'Take Profit' : 'Stop Loss'})</span>
+            <span className="text-foreground font-medium">{result.exitPrice.toFixed(2)}</span>
           </div>
-          <div className="border-t border-[#2a2e39] pt-3 flex justify-between text-[14px]">
-            <span className="text-[#787b86] font-medium">P&L</span>
+          <div className="border-t border-border pt-3 flex justify-between text-[14px]">
+            <span className="text-muted-foreground font-medium">P&L</span>
             <span className={`font-bold text-lg ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
               {isWin ? '+' : ''}{result.pnl.toFixed(2)} USD
             </span>
