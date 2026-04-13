@@ -1,14 +1,14 @@
-import { Bell, Monitor, Lock, Trash2, Palette } from 'lucide-react';
+import { Bell, Monitor, Lock, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSettings, type AppTheme, type ChartTheme } from '@/contexts/SettingsContext';
+import { useSettings, type AppTheme } from '@/contexts/SettingsContext';
 
 export default function Settings() {
-  const { theme, setTheme, chartTheme, setChartTheme } = useSettings();
+  const { theme, setTheme } = useSettings();
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
@@ -36,23 +36,6 @@ export default function Settings() {
                   <SelectItem value="dark" className="text-foreground">Dark</SelectItem>
                   <SelectItem value="light" className="text-foreground">Light</SelectItem>
                   <SelectItem value="system" className="text-foreground">System</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Separator className="bg-border" />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-                <Label className="text-foreground">Chart Theme</Label>
-              </div>
-              <Select value={chartTheme} onValueChange={(v) => setChartTheme(v as ChartTheme)}>
-                <SelectTrigger className="w-[140px] bg-background border-border text-foreground">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  <SelectItem value="dark" className="text-foreground">Dark</SelectItem>
-                  <SelectItem value="light" className="text-foreground">Light</SelectItem>
-                  <SelectItem value="trading" className="text-foreground">TradingView</SelectItem>
                 </SelectContent>
               </Select>
             </div>
