@@ -8,7 +8,7 @@ import ChartContainer from '@/components/chart/ChartContainer';
 import TradeOrderPanel from '@/components/chart/TradeOrderPanel';
 import { Timeframe } from '@/lib/chartData';
 
-export default function Index() {
+export default function Simulator() {
   const [tradeOpen, setTradeOpen] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
