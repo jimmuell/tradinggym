@@ -1,66 +1,56 @@
 
 
-## Theme-Aware Simulator Page
+## Theme-Aware Simulator: Remaining Files
 
-### Problem
-The Simulator page and all 10 child components use hardcoded dark-theme hex colors (`#131722`, `#1e222d`, `#2a2e39`, `#787b86`, `#d1d4dc`, etc.). Switching to Light or System theme has no effect on the Simulator — it stays dark regardless.
+### Status
+The previous update already themed **Simulator.tsx**, **TopBar**, **BottomBar**, **LeftToolbar**, **RightToolbar**, **ReplayControls**, and **TradeOrderPanel**. Four files still have hardcoded dark-theme colors.
 
-### Scope
-11 files need updates. Two categories of work:
+### Remaining Work
 
-**Category A — CSS classes (10 components):**
-Replace hardcoded Tailwind hex classes with semantic theme tokens, identical to what we did for Profile/Settings/Dashboard.
+**1. `ChartContainer.tsx`** (largest change)
 
-| File | Hardcoded colors found |
-|------|----------------------|
-| `Simulator.tsx` | bg, border, text |
-| `TopBar.tsx` | bg, border, text, hover states |
-| `BottomBar.tsx` | bg, border, text, active states |
-| `LeftToolbar.tsx` | bg, border, text |
-| `RightToolbar.tsx` | bg, border, text |
-| `TradeOrderPanel.tsx` | bg, border, text, inputs |
-| `ChartSettingsModal.tsx` | bg, border, text, selects |
-| `ReplayControls.tsx` | bg, border, text |
-| `DateRangeModal.tsx` | bg, border, text, inputs |
-| `TradeResultModal.tsx` | bg, border, text |
+- **Chart JS config** (lines 125-151): `createChart()` hardcodes white background, `#787b86` text, `#e1ecf2` grid/borders. Import `useSettings`, resolve dark vs light, pass correct palette. Add a `useEffect` that calls `chart.applyOptions()` when theme changes.
+  - Dark: bg `#131722`, grid `#1e222d`, text `#d1d4dc`, border `#2a2e39`
+  - Light: bg `#ffffff`, grid `#e1ecf2`, text `#787b86`, border `#e1ecf2`
+- **CurrencyDropdown** (lines 49-76): Replace `bg-white`, `text-[#131722]`, `border-[#d1d4dc]`, `hover:bg-[#f0f3fa]`, `bg-[#e8f0fe]` with `bg-card`, `text-foreground`, `border-border`, `hover:bg-accent`, `bg-accent`
+- **OHLCV overlay** (lines 799-831): Replace `text-[#787b86]` with `text-muted-foreground`, `text-[#131722]` with `text-foreground`, `bg-[#f0f3fa]` with `bg-muted`, `border-[#d1d4dc]` with `border-border`
+- **Replay positioning tooltip** (line 778): `bg-[#2a2e39]` → `bg-accent`, `text-[#d1d4dc]` → `text-foreground`, `border-[#363a45]` → `border-muted`
+- **Replay ghost overlay** (line 770): `bg-white/60` → `bg-background/60`
+- **Zoom controls** (lines 873-878): `bg-[#2a2e39]` → `bg-accent`, `hover:bg-[#363a45]` → `hover:bg-muted`, `text-[#d1d4dc]` → `text-foreground`
+- **Chart area background** (line 757): `bg-white` → `bg-background`
+- **Watermark** (line 869): `text-[#e0e3eb]` → `text-muted-foreground/20`
+- Trading colors (green/red/blue on buy/sell buttons, position badges) stay fixed
 
-Color mapping (same as previous plan):
-- `bg-[#131722]` → `bg-background`
-- `bg-[#1e222d]` → `bg-card`
-- `border-[#2a2e39]` → `border-border`
-- `text-white` / `text-[#d1d4dc]` → `text-foreground`
-- `text-[#787b86]` → `text-muted-foreground`
-- `bg-[#2a2e39]` (hover/active) → `bg-accent`
-- `bg-[#363a45]` → `bg-muted`
-- `bg-[#131722]` (inputs) → `bg-background`
+**2. `ChartSettingsModal.tsx`**
+- Modal container: `bg-[#1e222d]` → `bg-card`, `text-[#d1d4dc]` → `text-foreground`
+- Headers: `text-white` → `text-foreground`
+- Borders: `border-[#2a2e39]` → `border-border`
+- Tab sidebar: `text-[#787b86]` → `text-muted-foreground`, active `bg-[#2a2e39]` → `bg-accent`
+- Buttons: Cancel `bg-[#2a2e39]` → `bg-accent`, hover `bg-[#363a45]` → `hover:bg-muted`
+- Toggle off state: `bg-[#363a45]` → `bg-muted`
+- SelectBox: `bg-[#2a2e39]` → `bg-accent`, `border-[#363a45]` → `border-muted`
+- ColorSwatch border: `border-[#363a45]` → `border-muted`
+- Section headings: `text-[#787b86]` → `text-muted-foreground`
 
-Intentionally preserved colors (not theme-dependent):
-- `#26a69a` (green/bullish) — trading semantic
-- `#ef5350` (red/bearish) — trading semantic
-- `#2962ff` (blue accent/CTA) — brand color
+**3. `DateRangeModal.tsx`**
+- Container: `bg-[#1e222d]` → `bg-card`, `text-[#d1d4dc]` → `text-foreground`, `border-[#2a2e39]` → `border-border`
+- Header: `text-white` → `text-foreground`
+- Labels: `text-[#787b86]` → `text-muted-foreground`
+- Inputs/selects: `bg-[#131722]` → `bg-background`, `border-[#2a2e39]` → `border-border`, `text-[#d1d4dc]` → `text-foreground`
+- Cancel button: `text-[#787b86]` → `text-muted-foreground`, `hover:text-[#d1d4dc]` → `hover:text-foreground`, `hover:bg-[#2a2e39]` → `hover:bg-accent`
+- Data info spans: `text-[#d1d4dc]` → `text-foreground`
+- Remove `[color-scheme:dark]` from date inputs, add `dark:[color-scheme:dark]`
 
-**Category B — Chart JS config (ChartContainer.tsx):**
-The `createChart()` call on line 125 hardcodes `background: '#ffffff'`, `textColor: '#787b86'`, grid colors, and border colors. These need to read the current theme from `useSettings()` and apply light vs dark chart palettes dynamically. When theme changes, call `chart.applyOptions()` to update.
-
-Light chart palette: white background, `#e1ecf2` grid (already set)
-Dark chart palette: `#131722` background, `#1e222d` grid, `#d1d4dc` text
-
-### Changes
-
-1. **`src/pages/Simulator.tsx`** — Replace 3 hardcoded color classes with theme tokens
-2. **`src/components/chart/TopBar.tsx`** — Replace ~20 hardcoded colors with theme tokens
-3. **`src/components/chart/BottomBar.tsx`** — Replace ~30 hardcoded colors with theme tokens
-4. **`src/components/chart/LeftToolbar.tsx`** — Replace ~5 hardcoded colors
-5. **`src/components/chart/RightToolbar.tsx`** — Replace ~5 hardcoded colors
-6. **`src/components/chart/TradeOrderPanel.tsx`** — Replace ~25 hardcoded colors
-7. **`src/components/chart/ChartSettingsModal.tsx`** — Replace ~15 hardcoded colors
-8. **`src/components/chart/ReplayControls.tsx`** — Replace ~8 hardcoded colors
-9. **`src/components/chart/DateRangeModal.tsx`** — Replace ~10 hardcoded colors
-10. **`src/components/chart/TradeResultModal.tsx`** — Replace ~10 hardcoded colors (keep gradient accent colors for win/loss)
-11. **`src/components/chart/ChartContainer.tsx`** — Import `useSettings`, add `useEffect` to apply chart colors based on resolved theme, update `createChart` initial config
+**4. `TradeResultModal.tsx`**
+- Trade details box: `bg-[#131722]` → `bg-background`, `border-[#2a2e39]` → `border-border`
+- Detail labels: `text-[#787b86]` → `text-muted-foreground`
+- Detail values: `text-[#d1d4dc]` → `text-foreground`
+- Message text: `text-[#d1d4dc]` → `text-foreground`
+- Close button: `text-[#787b86]` → `text-muted-foreground`
+- **Keep** gradient backgrounds (`from-[#1a2e1a]`, `from-[#2e1a1a]`, `to-[#1e222d]`) and all trading colors (green/red/blue) as-is — these are accent/semantic
 
 ### Notes
-- The `CurrencyDropdown` inside ChartContainer also has hardcoded light-theme colors that need updating
-- Trading colors (green/red/blue) stay fixed — they're semantic to trading, not theme-dependent
-- The chart canvas itself (lightweight-charts) must be updated via JS `applyOptions()`, not CSS
+- No new dependencies needed
+- Trading semantic colors (`#26a69a`, `#ef5350`, `#2962ff`) remain hardcoded everywhere — intentional
+- The chart canvas colors must be applied via JS `applyOptions()`, not CSS classes
 
