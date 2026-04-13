@@ -14,6 +14,8 @@ import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
