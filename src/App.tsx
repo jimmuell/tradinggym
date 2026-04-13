@@ -36,19 +36,21 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
-            <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
-            <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
-            <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
-            <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
-            <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
-            <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
-            <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SettingsProvider>
+            <Routes>
+              <Route path="/" element={<Auth />} />
+              <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
+              <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
+              <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
+              <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
+              <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
+              <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
+              <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
+              <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
