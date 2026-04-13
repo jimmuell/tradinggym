@@ -19,6 +19,7 @@ import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-rea
 import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
 import TradeResultModal, { TradeResult } from './TradeResultModal';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Position {
   id: string;
