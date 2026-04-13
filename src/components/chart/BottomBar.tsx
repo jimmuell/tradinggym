@@ -56,50 +56,46 @@ const TVIcon = () => (
 );
 
 const StrategyIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#787b86" strokeWidth="1.5" className="inline-block">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="inline-block text-muted-foreground">
     <circle cx="12" cy="12" r="10" />
     <path d="M8 12l3 3 5-5" />
   </svg>
 );
 
-// TradingView-style chevron up icon (^)
 const ChevronUpIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <path d="M5 11l4-4 4 4" stroke="#787b86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M5 11l4-4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground" />
   </svg>
 );
 
-// TradingView-style chevron down icon (v)
 const ChevronDownIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <path d="M5 7l4 4 4-4" stroke="#787b86" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M5 7l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground" />
   </svg>
 );
 
-// TradingView-style maximize icon (square outline)
 const MaximizeIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <rect x="4" y="4" width="10" height="10" rx="1" stroke="#787b86" strokeWidth="1.5" />
+    <rect x="4" y="4" width="10" height="10" rx="1" stroke="currentColor" strokeWidth="1.5" className="text-muted-foreground" />
   </svg>
 );
 
-// TradingView-style minimize icon (overlapping squares)
 const MinimizeIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-    <rect x="3" y="6" width="8" height="8" rx="1" stroke="#787b86" strokeWidth="1.5" />
-    <path d="M7 6V4.5a1 1 0 011-1h5.5a1 1 0 011 1V10a1 1 0 01-1 1H12" stroke="#787b86" strokeWidth="1.5" />
+    <rect x="3" y="6" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1.5" className="text-muted-foreground" />
+    <path d="M7 6V4.5a1 1 0 011-1h5.5a1 1 0 011 1V10a1 1 0 01-1 1H12" stroke="currentColor" strokeWidth="1.5" className="text-muted-foreground" />
   </svg>
 );
 
 const MIN_PANEL_HEIGHT = 0;
 const DEFAULT_PANEL_HEIGHT = 280;
-const MAX_PANEL_RATIO = 0.6; // 60vh equivalent
+const MAX_PANEL_RATIO = 0.6;
 
 export default function BottomBar() {
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('Paper Trading');
   const [activeSubTab, setActiveSubTab] = useState<TradingSubTab>('Positions');
-  const [panelHeight, setPanelHeight] = useState(0); // 0 = collapsed
+  const [panelHeight, setPanelHeight] = useState(0);
   const [maximized, setMaximized] = useState(false);
   const [activeOrderFilter, setActiveOrderFilter] = useState('All');
   const [isDragging, setIsDragging] = useState(false);
@@ -133,7 +129,6 @@ export default function BottomBar() {
 
     const handleMouseUp = () => {
       setIsDragging(false);
-      // Snap to closed if very small
       setPanelHeight(prev => prev < 40 ? 0 : prev);
     };
 
@@ -169,7 +164,7 @@ export default function BottomBar() {
       if (expanded) preMaximizeHeight.current = panelHeight;
       else preMaximizeHeight.current = DEFAULT_PANEL_HEIGHT;
       setMaximized(true);
-      setPanelHeight(0); // maximized uses vh
+      setPanelHeight(0);
     }
   };
 
@@ -189,17 +184,17 @@ export default function BottomBar() {
       <DateRangeModal open={dateModalOpen} onClose={() => setDateModalOpen(false)} />
 
       {/* Row 1: Timeframe bar */}
-      <div className="flex items-center h-[26px] bg-[#1e222d] border-t border-[#2a2e39] px-2 text-[11px] text-[#787b86] shrink-0">
+      <div className="flex items-center h-[26px] bg-card border-t border-border px-2 text-[11px] text-muted-foreground shrink-0">
         <div className="flex items-center gap-0.5">
           {timeframes.map((tf) => (
             <button
               key={tf}
-              className="px-1.5 py-0.5 rounded hover:bg-[#2a2e39] hover:text-[#d1d4dc]"
+              className="px-1.5 py-0.5 rounded hover:bg-accent hover:text-foreground"
             >
               {tf}
             </button>
           ))}
-          <button onClick={() => setDateModalOpen(true)} className="px-1 py-0.5 rounded hover:bg-[#2a2e39] text-[13px]">📅</button>
+          <button onClick={() => setDateModalOpen(true)} className="px-1 py-0.5 rounded hover:bg-accent text-[13px]">📅</button>
         </div>
         <div className="flex-1" />
         <div className="flex items-center gap-2">
@@ -212,24 +207,23 @@ export default function BottomBar() {
       {/* Draggable separator */}
       <div
         onMouseDown={handleDragStart}
-        className={`relative h-[4px] shrink-0 group cursor-ns-resize ${isDragging ? 'bg-[#2962ff]' : 'bg-[#2a2e39] hover:bg-[#3a3e49]'}`}
+        className={`relative h-[4px] shrink-0 group cursor-ns-resize ${isDragging ? 'bg-[#2962ff]' : 'bg-border hover:bg-muted'}`}
         style={{ transition: isDragging ? 'none' : 'background-color 0.15s' }}
       >
-        {/* Center dot indicator */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className={`w-8 h-[2px] rounded-full ${isDragging ? 'bg-[#5b8def]' : 'bg-[#3a3e49] group-hover:bg-[#505460]'}`} />
+          <div className={`w-8 h-[2px] rounded-full ${isDragging ? 'bg-[#5b8def]' : 'bg-muted group-hover:bg-muted-foreground/30'}`} />
         </div>
       </div>
 
       {/* Row 2: Main tabs bar */}
-      <div className="flex items-center h-[30px] bg-[#1e222d] px-2 text-[12px] text-[#787b86] shrink-0">
+      <div className="flex items-center h-[30px] bg-card px-2 text-[12px] text-muted-foreground shrink-0">
         <div className="flex items-center gap-1">
           <button
             onClick={() => { setActiveMainTab('Strategy Report'); openPanel(); }}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[12px] ${
               activeMainTab === 'Strategy Report'
-                ? 'text-[#d1d4dc] bg-[#2a2e39]'
-                : 'hover:text-[#d1d4dc] hover:bg-[#2a2e39]'
+                ? 'text-foreground bg-accent'
+                : 'hover:text-foreground hover:bg-accent'
             }`}
           >
             <StrategyIcon />
@@ -240,8 +234,8 @@ export default function BottomBar() {
             onClick={() => { setActiveMainTab('Paper Trading'); openPanel(); }}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[12px] ${
               activeMainTab === 'Paper Trading'
-                ? 'text-[#d1d4dc] bg-[#2a2e39]'
-                : 'hover:text-[#d1d4dc] hover:bg-[#2a2e39]'
+                ? 'text-foreground bg-accent'
+                : 'hover:text-foreground hover:bg-accent'
             }`}
           >
             <TVIcon />
@@ -252,8 +246,8 @@ export default function BottomBar() {
             onClick={() => { setActiveMainTab('Trade'); openPanel(); }}
             className={`flex items-center gap-1 px-2.5 py-0.5 rounded border text-[12px] ${
               activeMainTab === 'Trade'
-                ? 'text-[#d1d4dc] border-[#d1d4dc]'
-                : 'text-[#787b86] border-[#787b86] hover:text-[#d1d4dc] hover:border-[#d1d4dc]'
+                ? 'text-foreground border-foreground'
+                : 'text-muted-foreground border-muted-foreground hover:text-foreground hover:border-foreground'
             }`}
           >
             Trade
@@ -262,17 +256,16 @@ export default function BottomBar() {
 
         <div className="flex-1" />
 
-        {/* Collapse / Maximize buttons — matching TradingView style */}
         <button
           onClick={toggleExpand}
-          className="p-1 hover:text-[#d1d4dc] transition-colors"
+          className="p-1 hover:text-foreground transition-colors"
           title={expanded || maximized ? 'Collapse' : 'Expand'}
         >
           {expanded || maximized ? <ChevronDownIcon /> : <ChevronUpIcon />}
         </button>
         <button
           onClick={toggleMaximize}
-          className="p-1 hover:text-[#d1d4dc] transition-colors"
+          className="p-1 hover:text-foreground transition-colors"
           title={maximized ? 'Restore' : 'Maximize'}
         >
           {maximized ? <MinimizeIcon /> : <MaximizeIcon />}
@@ -281,7 +274,7 @@ export default function BottomBar() {
 
       {/* Expandable panel */}
       <div
-        className="bg-[#131722] overflow-hidden flex flex-col shrink-0"
+        className="bg-background overflow-hidden flex flex-col shrink-0"
         style={{
           height: effectiveHeight,
           transition: isDragging ? 'none' : 'height 0.2s ease',
@@ -290,29 +283,29 @@ export default function BottomBar() {
         {(expanded || maximized) && (
           <>
             {/* Panel header: broker info + account stats */}
-            <div className="flex items-center h-[36px] px-3 border-b border-[#2a2e39] shrink-0">
-              <div className="flex items-center gap-2 text-[12px] text-[#d1d4dc]">
-                <span className="flex items-center gap-1 cursor-pointer hover:text-white">
+            <div className="flex items-center h-[36px] px-3 border-b border-border shrink-0">
+              <div className="flex items-center gap-2 text-[12px] text-foreground">
+                <span className="flex items-center gap-1 cursor-pointer hover:text-foreground">
                   Paper Trading <ChevronRight size={12} className="rotate-90" />
                 </span>
-                <span className="flex items-center gap-1 text-[#787b86] cursor-pointer hover:text-[#d1d4dc]">
+                <span className="flex items-center gap-1 text-muted-foreground cursor-pointer hover:text-foreground">
                   mueller USD <ChevronRight size={12} className="rotate-90" />
                 </span>
-                <Settings size={14} className="text-[#787b86] hover:text-[#d1d4dc] cursor-pointer" />
+                <Settings size={14} className="text-muted-foreground hover:text-foreground cursor-pointer" />
               </div>
               <div className="flex-1" />
               <div className="flex items-center gap-5 text-[11px]">
                 {accountStats.map(({ label, value, color }) => (
                   <div key={label} className="flex flex-col items-end">
-                    <span className="text-[#787b86] text-[10px]">{label}</span>
-                    <span className={color ? '' : 'text-[#d1d4dc]'} style={color ? { color } : undefined}>{value}</span>
+                    <span className="text-muted-foreground text-[10px]">{label}</span>
+                    <span className={color ? '' : 'text-foreground'} style={color ? { color } : undefined}>{value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Sub-tabs row */}
-            <div className="flex items-center h-[32px] px-3 border-b border-[#2a2e39] shrink-0">
+            <div className="flex items-center h-[32px] px-3 border-b border-border shrink-0">
               <div className="flex items-center gap-4 text-[12px]">
                 {tradingSubTabs.map((tab) => (
                   <button
@@ -320,8 +313,8 @@ export default function BottomBar() {
                     onClick={() => setActiveSubTab(tab)}
                     className={`pb-1 border-b-2 transition-colors ${
                       tab === activeSubTab
-                        ? 'text-[#d1d4dc] border-[#2962ff]'
-                        : 'text-[#787b86] border-transparent hover:text-[#d1d4dc]'
+                        ? 'text-foreground border-[#2962ff]'
+                        : 'text-muted-foreground border-transparent hover:text-foreground'
                     }`}
                   >
                     {tab}
@@ -339,8 +332,8 @@ export default function BottomBar() {
                     onClick={() => setActiveOrderFilter(filter)}
                     className={`px-2 py-0.5 rounded text-[11px] ${
                       filter === activeOrderFilter
-                        ? 'text-[#d1d4dc] bg-[#2a2e39]'
-                        : 'text-[#787b86] hover:text-[#d1d4dc] hover:bg-[#2a2e39]'
+                        ? 'text-foreground bg-accent'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                     }`}
                   >
                     {filter}
@@ -350,15 +343,15 @@ export default function BottomBar() {
             )}
 
             {/* Table header */}
-            <div className="flex items-center h-[28px] px-3 border-b border-[#2a2e39] text-[11px] text-[#787b86] shrink-0 overflow-x-auto">
+            <div className="flex items-center h-[28px] px-3 border-b border-border text-[11px] text-muted-foreground shrink-0 overflow-x-auto">
               {columns.map((col) => (
                 <span key={col} className="min-w-[100px] flex-shrink-0">{col}</span>
               ))}
-              <span className="ml-auto text-[#787b86] cursor-pointer">☰</span>
+              <span className="ml-auto text-muted-foreground cursor-pointer">☰</span>
             </div>
 
             {/* Empty state */}
-            <div className="flex-1 flex items-center justify-center text-[13px] text-[#787b86]">
+            <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground">
               {emptyMessage}
             </div>
           </>
