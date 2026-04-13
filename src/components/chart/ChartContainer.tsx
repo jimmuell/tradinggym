@@ -19,6 +19,7 @@ import { Minus, Plus, ChevronLeft, ChevronRight, RotateCcw, X } from 'lucide-rea
 import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
 import TradeResultModal, { TradeResult } from './TradeResultModal';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface Position {
   id: string;
@@ -54,18 +55,18 @@ function CurrencyDropdown() {
     <div className="absolute top-0 right-0 z-20" style={{ width: 62 }}>
       <div
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between bg-white border border-[#d1d4dc] px-2 py-1 text-[12px] text-[#131722] cursor-pointer hover:bg-[#f0f3fa]"
+        className="flex items-center justify-between bg-card border border-border px-2 py-1 text-[12px] text-foreground cursor-pointer hover:bg-accent"
       >
         <span>{selected}</span>
-        <svg width="8" height="5" viewBox="0 0 8 5" fill="#787b86"><path d="M0 0l4 5 4-5z"/></svg>
+        <svg width="8" height="5" viewBox="0 0 8 5" className="fill-muted-foreground"><path d="M0 0l4 5 4-5z"/></svg>
       </div>
       {open && (
-        <div className="bg-white border border-[#d1d4dc] border-t-0 shadow-md max-h-[200px] overflow-y-auto">
+        <div className="bg-card border border-border border-t-0 shadow-md max-h-[200px] overflow-y-auto">
           {currencies.map((c) => (
             <div
               key={c}
               onClick={() => { setSelected(c); setOpen(false); }}
-              className={`px-2 py-1 text-[12px] cursor-pointer hover:bg-[#e8f0fe] ${c === selected ? 'bg-[#e8f0fe] font-semibold' : 'text-[#131722]'}`}
+              className={`px-2 py-1 text-[12px] cursor-pointer hover:bg-accent ${c === selected ? 'bg-accent font-semibold' : 'text-foreground'}`}
             >
               {c}
             </div>
@@ -77,6 +78,7 @@ function CurrencyDropdown() {
 }
 
 export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag }: ChartContainerProps) {
+  const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -122,22 +124,28 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    const resolveIsDark = () => {
+      if (theme === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return theme === 'dark';
+    };
+    const isDark = resolveIsDark();
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#ffffff' },
-        textColor: '#787b86',
+        background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
+        textColor: isDark ? '#d1d4dc' : '#787b86',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#e1ecf2' },
-        horzLines: { color: '#e1ecf2' },
+        vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+        horzLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
       },
       rightPriceScale: {
-        borderColor: '#e1ecf2',
+        borderColor: isDark ? '#2a2e39' : '#e1ecf2',
         scaleMargins: { top: 0.1, bottom: 0.05 },
       },
       timeScale: {
-        borderColor: '#e1ecf2',
+        borderColor: isDark ? '#2a2e39' : '#e1ecf2',
         timeVisible: true,
         secondsVisible: false,
         barSpacing: 10,
@@ -215,6 +223,25 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       markersPluginRef.current = null;
     };
   }, []);
+
+  // React to theme changes
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    chart.applyOptions({
+      layout: {
+        background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
+        textColor: isDark ? '#d1d4dc' : '#787b86',
+      },
+      grid: {
+        vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+        horzLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+      },
+      rightPriceScale: { borderColor: isDark ? '#2a2e39' : '#e1ecf2' },
+      timeScale: { borderColor: isDark ? '#2a2e39' : '#e1ecf2' },
+    });
+  }, [theme]);
 
   // Drag handlers for SL/TP price lines
   useEffect(() => {
@@ -754,7 +781,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   };
 
   return (
-    <div className="relative flex-1 min-w-0 bg-white">
+    <div className="relative flex-1 min-w-0 bg-background">
       <div ref={chartContainerRef} className="absolute inset-0" />
 
       {/* Replay positioning overlay — vertical line + ghost */}
@@ -767,7 +794,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           />
           {/* Ghost overlay to the right of the line */}
           <div
-            className="absolute top-0 bottom-0 right-0 bg-white/60 z-10 pointer-events-none"
+            className="absolute top-0 bottom-0 right-0 bg-background/60 z-10 pointer-events-none"
             style={{ left: replayLineX + 2 }}
           />
         </>
@@ -775,7 +802,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       {/* Replay positioning instruction */}
       {replayPositioning && (
-        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-[#2a2e39] text-[#d1d4dc] text-[13px] px-4 py-2 rounded-lg shadow-lg border border-[#363a45] pointer-events-none">
+        <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-accent text-foreground text-[13px] px-4 py-2 rounded-lg shadow-lg border border-muted pointer-events-none">
           Click on the chart to set replay start position · Press <span className="text-[#2962ff] font-medium">Esc</span> to cancel
         </div>
       )}
@@ -797,13 +824,13 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       {/* OHLCV overlay */}
       <div className="absolute top-1 left-4 z-10 pointer-events-none">
-        <div className="flex items-center gap-2 text-[14px] text-[#787b86] flex-wrap">
-          <img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover object-[30%_center] border border-[#d1d4dc]/30 shadow-sm" />
+        <div className="flex items-center gap-2 text-[14px] text-muted-foreground flex-wrap">
+          <img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover object-[30%_center] border border-border/30 shadow-sm" />
           <span className="font-medium">Micro E-mini S&P 500 Index Futures (Jun 2026) · {timeframe} · CME</span>
-          <span className="ml-1">O<span className="text-[#131722] font-medium ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
-          <span>H<span className="text-[#131722] font-medium ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
-          <span>L<span className="text-[#131722] font-medium ml-0.5">{ohlcv.low.toFixed(2)}</span></span>
-          <span>C<span className="text-[#131722] font-medium ml-0.5">{ohlcv.close.toFixed(2)}</span></span>
+          <span className="ml-1">O<span className="text-foreground font-medium ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
+          <span>H<span className="text-foreground font-medium ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
+          <span>L<span className="text-foreground font-medium ml-0.5">{ohlcv.low.toFixed(2)}</span></span>
+          <span>C<span className="text-foreground font-medium ml-0.5">{ohlcv.close.toFixed(2)}</span></span>
           <span className={change >= 0 ? 'text-[#26a69a]' : 'text-[#ef5350]'}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)} ({changePct.toFixed(2)}%)
           </span>
@@ -817,7 +844,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
             <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
           </div>
-          <div className="flex flex-col items-center justify-center text-[12px] text-[#787b86] leading-tight px-2 py-1.5 bg-[#f0f3fa] border border-[#d1d4dc] rounded-[6px] min-w-[36px]">
+          <div className="flex flex-col items-center justify-center text-[12px] text-muted-foreground leading-tight px-2 py-1.5 bg-muted border border-border rounded-[6px] min-w-[36px]">
             <span>0.25</span><span>{positions.length}</span>
           </div>
           <div
@@ -828,7 +855,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
             <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
           </div>
         </div>
-        <div className="text-[12px] text-[#787b86] mt-1">▼ {positions.length}</div>
+        <div className="text-[12px] text-muted-foreground mt-1">▼ {positions.length}</div>
       </div>
 
       {/* Active positions overlay */}
@@ -866,16 +893,16 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       <CurrencyDropdown />
 
-      <div className="absolute bottom-12 left-4 text-[#e0e3eb] text-2xl font-bold select-none pointer-events-none">TV</div>
+      <div className="absolute bottom-12 left-4 text-muted-foreground/20 text-2xl font-bold select-none pointer-events-none">TV</div>
 
       {/* Zoom/scroll controls */}
       <div className="absolute bottom-[50px] left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30">
-        <button onClick={() => handleZoom('out')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><Minus size={16} /></button>
-        <button onClick={() => handleZoom('in')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><Plus size={16} /></button>
+        <button onClick={() => handleZoom('out')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent hover:bg-muted text-foreground shadow-md"><Minus size={16} /></button>
+        <button onClick={() => handleZoom('in')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent hover:bg-muted text-foreground shadow-md"><Plus size={16} /></button>
         <div className="w-1.5" />
-        <button onClick={() => handleScroll('left')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><ChevronLeft size={16} /></button>
-        <button onClick={() => handleScroll('right')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><ChevronRight size={16} /></button>
-        <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-9 h-9 flex items-center justify-center rounded-lg bg-[#2a2e39] hover:bg-[#363a45] text-[#d1d4dc] shadow-md"><RotateCcw size={16} /></button>
+        <button onClick={() => handleScroll('left')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent hover:bg-muted text-foreground shadow-md"><ChevronLeft size={16} /></button>
+        <button onClick={() => handleScroll('right')} className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent hover:bg-muted text-foreground shadow-md"><ChevronRight size={16} /></button>
+        <button onClick={() => chartRef.current?.timeScale().fitContent()} className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent hover:bg-muted text-foreground shadow-md"><RotateCcw size={16} /></button>
       </div>
 
       {/* Trade result modal */}
