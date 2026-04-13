@@ -124,22 +124,28 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    const resolveIsDark = () => {
+      if (theme === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return theme === 'dark';
+    };
+    const isDark = resolveIsDark();
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: '#ffffff' },
-        textColor: '#787b86',
+        background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
+        textColor: isDark ? '#d1d4dc' : '#787b86',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: '#e1ecf2' },
-        horzLines: { color: '#e1ecf2' },
+        vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+        horzLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
       },
       rightPriceScale: {
-        borderColor: '#e1ecf2',
+        borderColor: isDark ? '#2a2e39' : '#e1ecf2',
         scaleMargins: { top: 0.1, bottom: 0.05 },
       },
       timeScale: {
-        borderColor: '#e1ecf2',
+        borderColor: isDark ? '#2a2e39' : '#e1ecf2',
         timeVisible: true,
         secondsVisible: false,
         barSpacing: 10,
