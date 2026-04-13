@@ -224,6 +224,25 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
   }, []);
 
+  // React to theme changes
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    chart.applyOptions({
+      layout: {
+        background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
+        textColor: isDark ? '#d1d4dc' : '#787b86',
+      },
+      grid: {
+        vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+        horzLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
+      },
+      rightPriceScale: { borderColor: isDark ? '#2a2e39' : '#e1ecf2' },
+      timeScale: { borderColor: isDark ? '#2a2e39' : '#e1ecf2' },
+    });
+  }, [theme]);
+
   // Drag handlers for SL/TP price lines
   useEffect(() => {
     const container = chartContainerRef.current;
