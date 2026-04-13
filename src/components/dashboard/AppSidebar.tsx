@@ -6,6 +6,8 @@ import {
   GraduationCap,
   FolderOpen,
   BarChart3,
+  UserCircle,
+  Settings,
   LogOut,
   CandlestickChart,
 } from 'lucide-react';
