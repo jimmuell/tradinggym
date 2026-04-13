@@ -1,17 +1,18 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+export type AppTheme = 'dark' | 'light' | 'system';
 export type ChartTheme = 'dark' | 'light' | 'trading';
 
 interface SettingsContextType {
-  darkMode: boolean;
-  setDarkMode: (v: boolean) => void;
+  theme: AppTheme;
+  setTheme: (v: AppTheme) => void;
   chartTheme: ChartTheme;
   setChartTheme: (v: ChartTheme) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType>({
-  darkMode: true,
-  setDarkMode: () => {},
+  theme: 'dark',
+  setTheme: () => {},
   chartTheme: 'dark',
   setChartTheme: () => {},
 });
@@ -19,9 +20,8 @@ const SettingsContext = createContext<SettingsContextType>({
 export const useSettings = () => useContext(SettingsContext);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [darkMode, setDarkMode] = useState(() => {
-    const stored = localStorage.getItem('tg-dark-mode');
-    return stored !== null ? stored === 'true' : true;
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    return (localStorage.getItem('tg-theme') as AppTheme) || 'dark';
   });
 
   const [chartTheme, setChartTheme] = useState<ChartTheme>(() => {
@@ -30,20 +30,38 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
+
+    const applyTheme = (resolved: 'dark' | 'light') => {
+      if (resolved === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    };
+
+    if (theme === 'system') {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      applyTheme(mq.matches ? 'dark' : 'light');
+      const handler = (e: MediaQueryListEvent) => applyTheme(e.matches ? 'dark' : 'light');
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
     } else {
-      root.classList.remove('dark');
+      applyTheme(theme);
     }
-    localStorage.setItem('tg-dark-mode', String(darkMode));
-  }, [darkMode]);
+
+    localStorage.setItem('tg-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('tg-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem('tg-chart-theme', chartTheme);
   }, [chartTheme]);
 
   return (
-    <SettingsContext.Provider value={{ darkMode, setDarkMode, chartTheme, setChartTheme }}>
+    <SettingsContext.Provider value={{ theme, setTheme, chartTheme, setChartTheme }}>
       {children}
     </SettingsContext.Provider>
   );

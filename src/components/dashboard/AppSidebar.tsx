@@ -51,18 +51,18 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-[#2a2e39] bg-[#1e222d]">
-      <SidebarContent className="bg-[#1e222d]">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
+      <SidebarContent className="bg-sidebar">
         {/* Logo */}
-        <div className="flex items-center gap-2 px-4 py-4 border-b border-[#2a2e39]">
-          <CandlestickChart className="h-6 w-6 text-blue-500 shrink-0" />
+        <div className="flex items-center gap-2 px-4 py-4 border-b border-sidebar-border">
+          <CandlestickChart className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
-            <span className="text-white font-bold text-lg tracking-tight">TradingGym</span>
+            <span className="text-sidebar-foreground font-bold text-lg tracking-tight">TradingGym</span>
           )}
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-500 text-xs uppercase tracking-wider px-4">
+          <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
             {!collapsed && 'Navigation'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -75,8 +75,8 @@ export function AppSidebar() {
                       end
                       className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
                         isActive(item.url)
-                          ? 'bg-[#2a2e39] text-white font-medium'
-                          : 'text-gray-400 hover:text-white hover:bg-[#2a2e39]/50'
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                       }`}
                       activeClassName=""
                     >
@@ -91,8 +91,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="bg-[#1e222d] p-3">
-        <div className="border-t border-[#2a2e39] pt-3 mb-2">
+      <SidebarFooter className="bg-sidebar p-3">
+        <div className="border-t border-sidebar-border pt-3 mb-2">
           <SidebarMenu>
             {bottomItems.map((item) => (
               <SidebarMenuItem key={item.title}>
@@ -102,8 +102,8 @@ export function AppSidebar() {
                     end
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
                       isActive(item.url)
-                        ? 'bg-[#2a2e39] text-white font-medium'
-                        : 'text-gray-400 hover:text-white hover:bg-[#2a2e39]/50'
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                        : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
                     }`}
                     activeClassName=""
                   >
@@ -115,15 +115,15 @@ export function AppSidebar() {
             ))}
           </SidebarMenu>
         </div>
-        <div className="border-t border-[#2a2e39] pt-3">
+        <div className="border-t border-sidebar-border pt-3">
           {!collapsed && user && (
-            <div className="text-xs text-gray-500 truncate mb-2 px-1">
+            <div className="text-xs text-muted-foreground truncate mb-2 px-1">
               {user.email}
             </div>
           )}
           <button
             onClick={signOut}
-            className="flex items-center gap-2 text-gray-400 hover:text-white text-sm px-1 py-1.5 w-full transition-colors"
+            className="flex items-center gap-2 text-muted-foreground hover:text-sidebar-foreground text-sm px-1 py-1.5 w-full transition-colors"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {!collapsed && <span>Sign Out</span>}
