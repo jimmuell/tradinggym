@@ -22,11 +22,11 @@ export default function Simulator() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-screen overflow-hidden bg-[#131722]">
+      <div className="flex h-screen w-screen overflow-hidden bg-background">
         <AppSidebar />
         <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="flex items-center bg-[#1e222d] border-b border-[#2a2e39]">
-            <SidebarTrigger className="ml-2 text-gray-400 hover:text-white shrink-0" />
+          <div className="flex items-center bg-card border-b border-border">
+            <SidebarTrigger className="ml-2 text-muted-foreground hover:text-foreground shrink-0" />
             <div className="flex-1">
               <TopBar
                 onTradeClick={() => setTradeOpen(!tradeOpen)}
