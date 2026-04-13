@@ -35,6 +35,9 @@ const navItems = [
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Coaching', url: '/coaching', icon: GraduationCap },
   { title: 'Resources', url: '/resources', icon: FolderOpen },
+];
+
+const bottomItems = [
   { title: 'Profile', url: '/profile', icon: UserCircle },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
