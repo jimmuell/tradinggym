@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
@@ -35,19 +36,21 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
-            <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
-            <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
-            <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
-            <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
-            <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
-            <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
-            <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SettingsProvider>
+            <Routes>
+              <Route path="/" element={<Auth />} />
+              <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
+              <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
+              <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
+              <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
+              <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
+              <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
+              <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
+              <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

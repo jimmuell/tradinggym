@@ -1,12 +1,15 @@
-import { Moon, Bell, Monitor, Lock, Trash2 } from 'lucide-react';
+import { Moon, Sun, Bell, Monitor, Lock, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSettings, type ChartTheme } from '@/contexts/SettingsContext';
 
 export default function Settings() {
+  const { darkMode, setDarkMode, chartTheme, setChartTheme } = useSettings();
+
   return (
     <div className="min-h-screen bg-[#131722] p-6 md:p-10">
       <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
@@ -25,15 +28,19 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Moon className="h-4 w-4 text-gray-400" />
+                {darkMode ? (
+                  <Moon className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Sun className="h-4 w-4 text-yellow-400" />
+                )}
                 <Label className="text-gray-300">Dark Mode</Label>
               </div>
-              <Switch defaultChecked />
+              <Switch checked={darkMode} onCheckedChange={setDarkMode} />
             </div>
             <Separator className="bg-[#2a2e39]" />
             <div className="flex items-center justify-between">
               <Label className="text-gray-300">Chart Theme</Label>
-              <Select defaultValue="dark">
+              <Select value={chartTheme} onValueChange={(v) => setChartTheme(v as ChartTheme)}>
                 <SelectTrigger className="w-[140px] bg-[#131722] border-[#2a2e39] text-white">
                   <SelectValue />
                 </SelectTrigger>
