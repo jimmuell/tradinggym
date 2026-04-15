@@ -199,6 +199,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     });
     candleSeriesRef.current = candleSeries;
     onChartReady?.(chart, candleSeries);
+    setChartReady(true);
 
     // v5.1: use chart.addSeries(LineSeries, options)
     const sma = chart.addSeries(LineSeries, { color: '#4caf50', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
