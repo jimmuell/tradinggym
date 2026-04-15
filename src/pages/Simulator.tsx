@@ -8,6 +8,7 @@ import BottomBar from '@/components/chart/BottomBar';
 import ChartContainer, { TradeCloseData } from '@/components/chart/ChartContainer';
 import TradeOrderPanel from '@/components/chart/TradeOrderPanel';
 import { Timeframe } from '@/lib/chartData';
+import { InstrumentKey } from '@/lib/instruments';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,11 +35,18 @@ export default function Simulator() {
   const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const [blueprintSteps, setBlueprintSteps] = useState<number[]>([]);
   const [blueprintResetKey, setBlueprintResetKey] = useState(0);
+  const [instrument, setInstrument] = useState<InstrumentKey>(() =>
+    (localStorage.getItem('tg-selected-instrument') as InstrumentKey) || 'MES'
+  );
+
+  const handleInstrumentChange = (inst: InstrumentKey) => {
+    setInstrument(inst);
+    localStorage.setItem('tg-selected-instrument', inst);
+  };
 
   // Keyboard shortcuts for drawing tools + Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Skip if typing in an input
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
@@ -59,7 +67,7 @@ export default function Simulator() {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('trades').insert({
         user_id: user.id,
-        symbol: 'ES',
+        symbol: instrument,
         timeframe,
         direction: data.direction,
         entry_price: data.entryPrice,
@@ -99,6 +107,8 @@ export default function Simulator() {
                 onTimeframeChange={setTimeframe}
                 onReplayClick={() => setReplayMode(!replayMode)}
                 replayMode={replayMode}
+                instrument={instrument}
+                onInstrumentChange={handleInstrumentChange}
               />
             </div>
           </div>
@@ -133,6 +143,7 @@ export default function Simulator() {
                 chartApiRef.current = chart;
                 seriesApiRef.current = series;
               }}
+              instrument={instrument}
             />
             <RightToolbar />
             <BlueprintChecklist
@@ -147,6 +158,7 @@ export default function Simulator() {
                 onSell={(config) => { sellHandlerRef.current?.(config); }}
                 externalSlTicks={draggedSlTicks}
                 externalTpTicks={draggedTpTicks}
+                instrument={instrument}
               />
             )}
           </div>
