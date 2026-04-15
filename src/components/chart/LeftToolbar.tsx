@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Divider = () => <div className="w-6 h-px bg-border my-1" />;
 
