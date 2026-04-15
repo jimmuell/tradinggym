@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { TierProvider } from "@/contexts/TierContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DevTierSwitcher from "@/components/dev/DevTierSwitcher";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
