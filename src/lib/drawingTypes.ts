@@ -10,9 +10,9 @@ export interface HorizontalLineDrawing {
 export interface TrendLineDrawing {
   type: 'trendline';
   id: string;
-  startTime: number; // logical index
+  startTime: any; // Logical branded type from lightweight-charts
   startPrice: number;
-  endTime: number;
+  endTime: any;
   endPrice: number;
   color: string;
 }
@@ -20,9 +20,9 @@ export interface TrendLineDrawing {
 export interface RectangleDrawing {
   type: 'rectangle';
   id: string;
-  startTime: number;
+  startTime: any;
   startPrice: number;
-  endTime: number;
+  endTime: any;
   endPrice: number;
   fillColor: string;
   borderColor: string;
@@ -31,7 +31,7 @@ export interface RectangleDrawing {
 export interface TextDrawing {
   type: 'text';
   id: string;
-  time: number;
+  time: any;
   price: number;
   text: string;
   color: string;

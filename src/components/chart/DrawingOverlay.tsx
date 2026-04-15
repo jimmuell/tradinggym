@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { IChartApi, ISeriesApi } from 'lightweight-charts';
+import { IChartApi, ISeriesApi, Logical } from 'lightweight-charts';
 import { Drawing, DrawingTool } from '@/lib/drawingTypes';
 
 interface DrawingOverlayProps {
