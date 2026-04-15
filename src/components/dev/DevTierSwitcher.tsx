@@ -8,9 +8,7 @@ const TIERS: { label: string; value: TierState }[] = [
   { label: 'Coach', value: 'coach' },
 ];
 
-export default function DevTierSwitcher() {
-  if (!import.meta.env.DEV) return null;
-
+function DevTierSwitcherInner() {
   const { currentTier, setTierState } = useTier();
 
   return (
@@ -31,4 +29,9 @@ export default function DevTierSwitcher() {
       ))}
     </div>
   );
+}
+
+export default function DevTierSwitcher() {
+  if (!import.meta.env.DEV) return null;
+  return <DevTierSwitcherInner />;
 }
