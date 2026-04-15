@@ -27,7 +27,9 @@ const queryClient = new QueryClient();
 function LayoutRoute({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
-      <DashboardLayout>{children}</DashboardLayout>
+      <TierProvider>
+        <DashboardLayout>{children}</DashboardLayout>
+      </TierProvider>
     </ProtectedRoute>
   );
 }
