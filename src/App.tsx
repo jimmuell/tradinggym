@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Strategies from "./pages/Strategies";
 import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
+import Learning from "./pages/Learning";
 import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
