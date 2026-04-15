@@ -220,7 +220,7 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Like any champion bodybuilder, trading demands <span className="text-white font-medium">discipline</span>. Build structure, validate with data, and train until execution becomes instinct.
+            Like any champion, trading demands <span className="text-white font-medium">discipline</span>. Build structure, validate with data, and train until execution becomes instinct.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
