@@ -20,6 +20,8 @@ import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
 import TradeResultModal, { TradeResult } from './TradeResultModal';
 import { useSettings } from '@/contexts/SettingsContext';
+import DrawingOverlay from './DrawingOverlay';
+import { DrawingTool } from '@/lib/drawingTypes';
 
 interface Position {
   id: string;
@@ -59,6 +61,9 @@ interface ChartContainerProps {
   onRegisterSellHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
   onTradeClose?: (data: TradeCloseData) => void;
+  activeTool?: DrawingTool;
+  isCoachMode?: boolean;
+  onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -93,14 +98,14 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady }: ChartContainerProps) {
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
-
+  const [chartReady, setChartReady] = useState(false);
   const allDataRef = useRef<CandlestickData<Time>[]>([]);
   const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -193,6 +198,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       },
     });
     candleSeriesRef.current = candleSeries;
+    onChartReady?.(chart, candleSeries);
+    setChartReady(true);
 
     // v5.1: use chart.addSeries(LineSeries, options)
     const sma = chart.addSeries(LineSeries, { color: '#4caf50', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
@@ -820,6 +827,12 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   return (
     <div className="relative flex-1 min-w-0 bg-background">
       <div ref={chartContainerRef} className="absolute inset-0" />
+      <DrawingOverlay
+        activeTool={activeTool ?? null}
+        chartApi={chartRef.current}
+        seriesApi={candleSeriesRef.current}
+        isCoachMode={isCoachMode}
+      />
 
       {/* Replay positioning overlay — vertical line + ghost */}
       {replayPositioning && replayLineX != null && (
