@@ -16,6 +16,7 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
+import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
 
 export default function Simulator() {
   const { user } = useAuth();
@@ -31,6 +32,8 @@ export default function Simulator() {
   const [drawingCount, setDrawingCount] = useState(0);
   const chartApiRef = useRef<IChartApi | null>(null);
   const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const [blueprintSteps, setBlueprintSteps] = useState<number[]>([]);
+  const [blueprintResetKey, setBlueprintResetKey] = useState(0);
 
   // Keyboard shortcuts for drawing tools + Escape
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function Simulator() {
   }, []);
 
   const saveTradeMutation = useMutation({
-    mutationFn: async (data: TradeCloseData) => {
+    mutationFn: async (data: TradeCloseData & { stepsCompleted?: number[] }) => {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('trades').insert({
         user_id: user.id,
@@ -67,7 +70,7 @@ export default function Simulator() {
         pnl: data.pnl,
         pnl_ticks: data.pnlTicks,
         session_type: 'simulator',
-        steps_completed: [],
+        steps_completed: data.stepsCompleted ?? [],
         opened_at: data.openedAt,
         closed_at: data.closedAt,
       });
@@ -79,7 +82,7 @@ export default function Simulator() {
   });
 
   const handleTradeClose = (data: TradeCloseData) => {
-    saveTradeMutation.mutate(data);
+    saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
   };
 
   return (
@@ -132,6 +135,10 @@ export default function Simulator() {
               }}
             />
             <RightToolbar />
+            <BlueprintChecklist
+              onStepsChange={setBlueprintSteps}
+              resetKey={blueprintResetKey}
+            />
             {tradeOpen && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}
