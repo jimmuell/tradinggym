@@ -99,7 +99,12 @@ export default function Simulator() {
             </div>
           </div>
           <div className="flex flex-1 overflow-hidden">
-            <LeftToolbar activeTool={activeTool} onToolChange={setActiveTool} />
+            <LeftToolbar
+              activeTool={activeTool}
+              onToolChange={setActiveTool}
+              drawingCount={drawingCount}
+              onClearAll={() => (window as any).__drawingOverlayClearAll?.()}
+            />
             <ChartContainer
               timeframe={timeframe}
               replayMode={replayMode}
