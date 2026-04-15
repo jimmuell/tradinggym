@@ -34,7 +34,7 @@ const navItems = [
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Coaching', url: '/coaching', icon: GraduationCap },
-  { title: 'Resources', url: '/resources', icon: FolderOpen },
+  { title: 'Learning', url: '/resources', icon: BookOpenCheck },
 ];
 
 const bottomItems = [
