@@ -39,7 +39,8 @@ const App = () => (
         <AuthProvider>
           <SettingsProvider>
             <Routes>
-              <Route path="/" element={<Auth />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
