@@ -8,6 +8,7 @@ import { SettingsProvider } from "@/contexts/SettingsContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
+import Landing from "./pages/Landing";
 import Simulator from "./pages/Simulator";
 import Dashboard from "./pages/Dashboard";
 import Strategies from "./pages/Strategies";
