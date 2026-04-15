@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Timeframe } from '@/lib/chartData';
+import { InstrumentKey, INSTRUMENTS } from '@/lib/instruments';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ChartSettingsModal from './ChartSettingsModal';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 
@@ -28,9 +30,11 @@ interface TopBarProps {
   onTimeframeChange: (tf: Timeframe) => void;
   onReplayClick: () => void;
   replayMode: boolean;
+  instrument: InstrumentKey;
+  onInstrumentChange: (inst: InstrumentKey) => void;
 }
 
-export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onReplayClick, replayMode }: TopBarProps) {
+export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onReplayClick, replayMode, instrument, onInstrumentChange }: TopBarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
@@ -38,7 +42,19 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
     <>
     <ChartSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     <div className="flex items-center h-[38px] bg-card text-foreground text-xs px-2 gap-1 border-b border-border">
-      <span className="font-semibold text-foreground text-sm mr-1 px-2 py-0.5 border border-border rounded">ES</span>
+      <Select value={instrument} onValueChange={(v) => onInstrumentChange(v as InstrumentKey)}>
+        <SelectTrigger className="h-7 w-[72px] text-sm font-semibold border-border px-2 py-0 gap-1 [&>svg]:h-3 [&>svg]:w-3">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(Object.keys(INSTRUMENTS) as InstrumentKey[]).map((key) => (
+            <SelectItem key={key} value={key}>
+              <span className="font-semibold">{key}</span>
+              <span className="text-muted-foreground ml-1.5 text-xs">{INSTRUMENTS[key].name}</span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <button className="text-muted-foreground hover:text-foreground p-1"><Search size={14} /></button>
       <button className="text-muted-foreground hover:text-foreground p-1"><Plus size={14} /></button>
       <div className="flex items-center gap-0.5 ml-2">
