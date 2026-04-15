@@ -99,7 +99,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady, onDrawingCountChange }: ChartContainerProps) {
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
