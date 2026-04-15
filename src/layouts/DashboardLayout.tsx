@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
+import DevTierSwitcher from '@/components/dev/DevTierSwitcher';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
