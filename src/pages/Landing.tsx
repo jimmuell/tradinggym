@@ -263,7 +263,10 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <span className="text-lg font-bold text-white">Trade<span className="text-blue-500">GYM</span></span>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-white">Trade<span className="text-blue-500">GYM</span></span>
+            <span className="text-[9px] tracking-[0.2em] uppercase font-medium"><span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span></span>
+          </div>
           <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradeGYM. All rights reserved.</p>
         </div>
