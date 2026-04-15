@@ -133,6 +133,7 @@ export default function Strategies() {
           </p>
         </div>
         <HelpSheet pageName="Strategies" />
+      </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
