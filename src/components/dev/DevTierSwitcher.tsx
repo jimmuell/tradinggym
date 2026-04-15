@@ -1,4 +1,5 @@
 import { useTier, TierState } from '@/contexts/TierContext';
+import { useState, useRef, useCallback } from 'react';
 
 const TIERS: { label: string; value: TierState }[] = [
   { label: 'Foundation', value: 'foundation' },
@@ -10,14 +11,55 @@ const TIERS: { label: string; value: TierState }[] = [
 
 function DevTierSwitcherInner() {
   const { currentTier, setTierState } = useTier();
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
+  const didDrag = useRef(false);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    // Only drag from the container/badge, not buttons
+    if ((e.target as HTMLElement).tagName === 'BUTTON') return;
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
+    didDrag.current = false;
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }, [pos]);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag.current = true;
+    setPos({ x: dragRef.current.origX + dx, y: dragRef.current.origY - dy });
+  }, []);
+
+  const onPointerUp = useCallback(() => {
+    dragRef.current = null;
+    setDragging(false);
+  }, []);
 
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 text-xs shadow-lg">
-      <span className="text-blue-400 font-bold mr-1">DEV</span>
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      style={{
+        position: 'fixed',
+        bottom: `calc(1rem + ${pos.y}px)`,
+        left: `calc(50% + ${pos.x}px)`,
+        transform: 'translateX(-50%)',
+        zIndex: 50,
+        cursor: dragging ? 'grabbing' : 'grab',
+        touchAction: 'none',
+        userSelect: 'none',
+      }}
+      className="bg-slate-900 border border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 text-xs shadow-lg"
+    >
+      <span className="text-blue-400 font-bold mr-1 select-none">DEV</span>
       {TIERS.map(({ label, value }) => (
         <button
           key={value}
-          onClick={() => setTierState(value)}
+          onClick={() => { if (!didDrag.current) setTierState(value); }}
           className={
             currentTier === value
               ? 'bg-blue-600 text-white px-3 py-1 rounded-full font-medium'
