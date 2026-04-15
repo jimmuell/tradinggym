@@ -21,7 +21,7 @@ const steps = [
 ];
 
 const features = [
-  { icon: LineChart, title: 'Trading Simulator', desc: 'TradingView-powered chart with MES futures replay, real-time P&L, and position tracking.' },
+  { icon: LineChart, title: 'Trading Simulator', desc: 'Professional charting with MES futures replay, real-time P&L, and position tracking.' },
   { icon: Target, title: 'Strategy Blueprints', desc: 'Step-by-step execution checklists that enforce discipline and eliminate guesswork.' },
   { icon: Bot, title: 'AI Strategy Ingestion', desc: 'Upload a YouTube video or article and get a structured, testable strategy blueprint.' },
   { icon: BarChart3, title: 'Backtesting Engine', desc: 'Walk-forward validation, Monte Carlo simulation, and win-rate graduation gates.' },
@@ -87,8 +87,8 @@ export default function Landing() {
             MES Futures • Micro E-mini S&P 500
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            The learning layer<br />
-            <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">TradingView</span> was never meant to be
+            Train smarter.<br />
+            Trade better on <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">TradingView.</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             Turn any MES futures strategy into a structured, testable blueprint.
