@@ -512,8 +512,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     }
   }, [handleTextSubmit]);
 
-  // Determine if overlay should intercept pointer events
-  const isActive = activeTool != null || textInput != null;
+  const shouldIntercept = activeTool != null || textInput != null || drawings.length > 0;
 
   return (
     <>
@@ -521,7 +520,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         ref={canvasRef}
         className="absolute inset-0 z-[15]"
         style={{
-          pointerEvents: isActive ? 'auto' : 'none',
+          pointerEvents: shouldIntercept ? 'auto' : 'none',
           cursor: activeTool ? 'crosshair' : 'default',
         }}
         onMouseDown={handleMouseDown}
@@ -529,21 +528,6 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         onMouseUp={handleMouseUp}
         onDoubleClick={handleDoubleClick}
       />
-      {/* Always render a non-interactive canvas for existing drawings when tool is inactive */}
-      {!isActive && drawings.length > 0 && (
-        <canvas
-          ref={(el) => {
-            // This is a secondary hit-test canvas for drag & double-click when no tool active
-            // We handle it via the main canvas pointer-events logic instead
-          }}
-          className="absolute inset-0 z-[15] pointer-events-auto"
-          style={{ cursor: 'default', background: 'transparent' }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onDoubleClick={handleDoubleClick}
-        />
-      )}
       {textInput && (
         <input
           ref={textInputRef}
