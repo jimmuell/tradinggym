@@ -220,8 +220,7 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Turn any MES futures strategy into a structured, testable blueprint. Practice until execution becomes
-            instinct.
+            Like any champion bodybuilder, trading demands <span className="text-white font-medium">discipline</span>. Build structure, validate with data, and train until execution becomes instinct.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
@@ -248,7 +247,7 @@ export default function Landing() {
           <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">The Problem</p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Why 90% of traders fail</h2>
           <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
-            It's not about intelligence. It's about structure.
+            It's not about intelligence. It's about <span className="text-white font-medium">discipline</span>.
           </p>
           <div className="grid md:grid-cols-3 gap-6">
             {problems.map((p) => (
@@ -264,7 +263,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-center text-gray-300 mt-12 text-lg font-medium">
-            TradeGYM creates the system, enforces it, and <span className="text-blue-400">proves it with data.</span>
+            TradeGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
           </p>
         </div>
       </section>
@@ -398,7 +397,7 @@ export default function Landing() {
       <section className="py-24 px-6 bg-[#0d1117]">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to trade with discipline?</h2>
-          <p className="text-gray-400 text-lg mb-8">Join traders who stopped guessing and started validating.</p>
+          <p className="text-gray-400 text-lg mb-8">Champions aren't born — they're built through discipline and repetition.</p>
           <Link to="/auth">
             <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-10 h-12 text-base">
               Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
