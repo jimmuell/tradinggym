@@ -27,6 +27,7 @@ export default function Simulator() {
   const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
   const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
   const [activeTool, setActiveTool] = useState<DrawingTool>(null);
+  const [drawingCount, setDrawingCount] = useState(0);
   const chartApiRef = useRef<IChartApi | null>(null);
   const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
