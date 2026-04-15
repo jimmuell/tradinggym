@@ -17,26 +17,92 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          completed_modules: string[] | null
           created_at: string
           display_name: string | null
           id: string
+          tier_state: string
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          completed_modules?: string[] | null
           created_at?: string
           display_name?: string | null
           id?: string
+          tier_state?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          completed_modules?: string[] | null
           created_at?: string
           display_name?: string | null
           id?: string
+          tier_state?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trades: {
+        Row: {
+          closed_at: string | null
+          created_at: string | null
+          direction: string | null
+          entry_price: number | null
+          exit_price: number | null
+          id: string
+          opened_at: string | null
+          pnl: number | null
+          pnl_ticks: number | null
+          result: string | null
+          session_type: string | null
+          steps_completed: number[] | null
+          stop_loss: number | null
+          symbol: string | null
+          take_profit: number | null
+          timeframe: string | null
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string | null
+          direction?: string | null
+          entry_price?: number | null
+          exit_price?: number | null
+          id?: string
+          opened_at?: string | null
+          pnl?: number | null
+          pnl_ticks?: number | null
+          result?: string | null
+          session_type?: string | null
+          steps_completed?: number[] | null
+          stop_loss?: number | null
+          symbol?: string | null
+          take_profit?: number | null
+          timeframe?: string | null
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string | null
+          direction?: string | null
+          entry_price?: number | null
+          exit_price?: number | null
+          id?: string
+          opened_at?: string | null
+          pnl?: number | null
+          pnl_ticks?: number | null
+          result?: string | null
+          session_type?: string | null
+          steps_completed?: number[] | null
+          stop_loss?: number | null
+          symbol?: string | null
+          take_profit?: number | null
+          timeframe?: string | null
           user_id?: string
         }
         Relationships: []
