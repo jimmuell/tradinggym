@@ -23,8 +23,8 @@ import {
 const problems = [
   {
     icon: Target,
-    title: "No System",
-    desc: "Most traders lose because they trade on impulse, chasing setups without a repeatable process.",
+    title: "No System or Validation",
+    desc: "Most traders lose because they trade on impulse, chasing setups without a repeatable process or any data to back them up.",
   },
   {
     icon: BrainCircuit,
@@ -32,9 +32,9 @@ const problems = [
     desc: "Conflicting gurus, hundreds of indicators, and no way to know what actually works for you.",
   },
   {
-    icon: BarChart3,
-    title: "No Validation",
-    desc: "Strategies are never tested against real historical data before risking real capital.",
+    icon: Shield,
+    title: "No Discipline",
+    desc: "Without structured rules and accountability, even great strategies fail. Emotion replaces execution, and losses compound.",
   },
 ];
 
