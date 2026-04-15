@@ -98,7 +98,7 @@ export default function Simulator() {
             </div>
           </div>
           <div className="flex flex-1 overflow-hidden">
-            <LeftToolbar />
+            <LeftToolbar activeTool={activeTool} onToolChange={setActiveTool} />
             <ChartContainer
               timeframe={timeframe}
               replayMode={replayMode}
@@ -115,6 +115,12 @@ export default function Simulator() {
                 else setDraggedTpTicks(ticks);
               }}
               onTradeClose={handleTradeClose}
+              activeTool={activeTool}
+              isCoachMode={false}
+              onChartReady={(chart, series) => {
+                chartApiRef.current = chart;
+                seriesApiRef.current = series;
+              }}
             />
             <RightToolbar />
             {tradeOpen && (
