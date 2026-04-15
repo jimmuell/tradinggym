@@ -60,6 +60,12 @@ const App = () => (
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
               <Route path="/learning/foundation" element={<LayoutRoute><FoundationLearning /></LayoutRoute>} />
               <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
+              <Route path="/learning/tier1" element={<LayoutRoute><Tier1Learning /></LayoutRoute>} />
+              <Route path="/learning/tier1/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier2" element={<LayoutRoute><Tier2Learning /></LayoutRoute>} />
+              <Route path="/learning/tier2/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier3" element={<LayoutRoute><Tier3Learning /></LayoutRoute>} />
+              <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
