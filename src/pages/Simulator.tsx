@@ -4,13 +4,18 @@ import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
 import RightToolbar from '@/components/chart/RightToolbar';
 import BottomBar from '@/components/chart/BottomBar';
-import ChartContainer from '@/components/chart/ChartContainer';
+import ChartContainer, { TradeCloseData } from '@/components/chart/ChartContainer';
 import TradeOrderPanel from '@/components/chart/TradeOrderPanel';
 import { Timeframe } from '@/lib/chartData';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function Simulator() {
+  const { user } = useAuth();
   const [tradeOpen, setTradeOpen] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
@@ -19,6 +24,37 @@ export default function Simulator() {
   const sellHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
   const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
   const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
+
+  const saveTradeMutation = useMutation({
+    mutationFn: async (data: TradeCloseData) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase.from('trades').insert({
+        user_id: user.id,
+        symbol: 'ES',
+        timeframe,
+        direction: data.direction,
+        entry_price: data.entryPrice,
+        exit_price: data.exitPrice,
+        stop_loss: data.slPrice,
+        take_profit: data.tpPrice,
+        result: data.result,
+        pnl: data.pnl,
+        pnl_ticks: data.pnlTicks,
+        session_type: 'simulator',
+        steps_completed: [],
+        opened_at: data.openedAt,
+        closed_at: data.closedAt,
+      });
+      if (error) throw error;
+    },
+    onError: (err: Error) => {
+      toast.error('Failed to save trade: ' + err.message);
+    },
+  });
+
+  const handleTradeClose = (data: TradeCloseData) => {
+    saveTradeMutation.mutate(data);
+  };
 
   return (
     <SidebarProvider>
@@ -54,6 +90,7 @@ export default function Simulator() {
                 if (type === 'sl') setDraggedSlTicks(ticks);
                 else setDraggedTpTicks(ticks);
               }}
+              onTradeClose={handleTradeClose}
             />
             <RightToolbar />
             {tradeOpen && (
