@@ -7,6 +7,7 @@ export interface TradeResult {
   entryPrice: number;
   exitPrice: number;
   pnl: number;
+  pnlTicks: number;
   result: 'win' | 'loss';
   reason: 'tp' | 'sl';
 }
@@ -120,7 +121,7 @@ export default function TradeResultModal({ result, onClose }: TradeResultModalPr
           <div className="border-t border-border pt-3 flex justify-between text-[14px]">
             <span className="text-muted-foreground font-medium">P&L</span>
             <span className={`font-bold text-lg ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
-              {isWin ? '+' : ''}{result.pnl.toFixed(2)} USD
+              {isWin ? '+' : ''}{result.pnlTicks} ticks / {isWin ? '+' : ''}${Math.abs(result.pnl).toFixed(2)}
             </span>
           </div>
         </div>
