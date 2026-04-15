@@ -1,5 +1,7 @@
 import { useTier, TierState } from '@/contexts/TierContext';
 import { useState, useRef, useCallback } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState, useRef, useCallback } from 'react';
 
 const TIERS: { label: string; value: TierState }[] = [
   { label: 'Foundation', value: 'foundation' },
@@ -55,7 +57,16 @@ function DevTierSwitcherInner() {
       }}
       className="bg-slate-900 border border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 text-xs shadow-lg"
     >
-      <span className="text-blue-400 font-bold mr-1 select-none">DEV</span>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-blue-400 font-bold mr-1 select-none">DEV</span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="text-xs">Development only — switches tier state for testing. Not visible in production.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       {TIERS.map(({ label, value }) => (
         <button
           key={value}
