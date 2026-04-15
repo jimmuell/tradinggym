@@ -64,7 +64,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-tight text-white">Trade<span className="text-blue-500">GYM</span></span>
-            <span className="text-[9px] tracking-[0.2em] uppercase text-gray-500 font-medium">No Pain No Gain</span>
+            <span className="text-[9px] tracking-[0.2em] uppercase font-medium"><span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span></span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
