@@ -62,7 +62,10 @@ export default function Landing() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0b0e13]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <span className="text-xl font-bold tracking-tight text-white">Trade<span className="text-blue-500">GYM</span></span>
+          <div className="flex flex-col">
+            <span className="text-xl font-bold tracking-tight text-white">Trade<span className="text-blue-500">GYM</span></span>
+            <span className="text-[9px] tracking-[0.2em] uppercase text-gray-500 font-medium">No Pain No Gain</span>
+          </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
