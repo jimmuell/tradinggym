@@ -22,6 +22,7 @@ import TradeResultModal, { TradeResult } from './TradeResultModal';
 import { useSettings } from '@/contexts/SettingsContext';
 import DrawingOverlay from './DrawingOverlay';
 import { DrawingTool } from '@/lib/drawingTypes';
+import { InstrumentKey, INSTRUMENTS } from '@/lib/instruments';
 
 interface Position {
   id: string;
