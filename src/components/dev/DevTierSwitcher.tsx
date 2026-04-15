@@ -1,7 +1,6 @@
 import { useTier, TierState } from '@/contexts/TierContext';
 import { useState, useRef, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useState, useRef, useCallback } from 'react';
 
 const TIERS: { label: string; value: TierState }[] = [
   { label: 'Foundation', value: 'foundation' },
