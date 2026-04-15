@@ -35,6 +35,20 @@ interface Position {
   tpPrice: number | null;
 }
 
+export interface TradeCloseData {
+  direction: 'long' | 'short';
+  entryPrice: number;
+  exitPrice: number;
+  slPrice: number | null;
+  tpPrice: number | null;
+  pnl: number;
+  pnlTicks: number;
+  result: 'win' | 'loss' | 'breakeven';
+  reason: 'tp' | 'sl';
+  openedAt: string;
+  closedAt: string;
+}
+
 interface ChartContainerProps {
   timeframe: Timeframe;
   replayMode: boolean;
@@ -43,6 +57,7 @@ interface ChartContainerProps {
   onRegisterBuyHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onRegisterSellHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
+  onTradeClose?: (data: TradeCloseData) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -77,7 +92,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose }: ChartContainerProps) {
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
