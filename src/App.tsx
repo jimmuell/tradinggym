@@ -23,6 +23,10 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import FoundationLearning from "./pages/learning/Foundation";
 import FoundationF1 from "./pages/learning/FoundationF1";
+import Tier1Learning from "./pages/learning/Tier1";
+import Tier2Learning from "./pages/learning/Tier2";
+import Tier3Learning from "./pages/learning/Tier3";
+import ModulePlaceholder from "./pages/learning/ModulePlaceholder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +60,12 @@ const App = () => (
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
               <Route path="/learning/foundation" element={<LayoutRoute><FoundationLearning /></LayoutRoute>} />
               <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
+              <Route path="/learning/tier1" element={<LayoutRoute><Tier1Learning /></LayoutRoute>} />
+              <Route path="/learning/tier1/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier2" element={<LayoutRoute><Tier2Learning /></LayoutRoute>} />
+              <Route path="/learning/tier2/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier3" element={<LayoutRoute><Tier3Learning /></LayoutRoute>} />
+              <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
