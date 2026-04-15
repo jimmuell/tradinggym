@@ -4,8 +4,10 @@ import {
   Undo, Redo, Ruler, Square, PenTool, Eye, Settings,
   Layout, Camera, Bookmark
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Timeframe } from '@/lib/chartData';
 import ChartSettingsModal from './ChartSettingsModal';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 
 const timeframes: Timeframe[] = ['1m', '5m', '30m', '1h', '1D'];
 
@@ -32,6 +34,7 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
+    <TooltipProvider>
     <>
     <ChartSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     <div className="flex items-center h-[38px] bg-card text-foreground text-xs px-2 gap-1 border-b border-border">
@@ -61,17 +64,25 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
       <button className="flex items-center gap-1 px-2 py-1 rounded hover:bg-accent">
         <Bell size={14} /> Alert
       </button>
-      <button
-        onClick={onReplayClick}
-        className={`flex items-center gap-1 px-2 py-1 rounded hover:bg-accent ${replayMode ? 'text-[#2962ff]' : ''}`}
-      >
-        <Rewind size={14} /> Replay
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={onReplayClick}
+            className={`flex items-center gap-1 px-2 py-1 rounded hover:bg-accent ${replayMode ? 'text-[#2962ff]' : ''}`}
+          >
+            <Rewind size={14} /> Replay
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">Replay historical market data bar by bar</p>
+        </TooltipContent>
+      </Tooltip>
       <div className="w-px h-5 bg-border mx-1" />
       <button className="text-muted-foreground hover:text-foreground p-1"><Undo size={14} /></button>
       <button className="text-muted-foreground hover:text-foreground p-1"><Redo size={14} /></button>
       <div className="flex-1" />
       <div className="flex items-center gap-0.5">
+        <KeyboardShortcutsModal />
         <button className="p-1.5 rounded hover:bg-accent text-muted-foreground"><Bookmark size={14} /></button>
         <button className="p-1.5 rounded hover:bg-accent text-muted-foreground"><Layout size={14} /></button>
         <button className="p-1.5 rounded hover:bg-accent text-muted-foreground"><Square size={14} /></button>
@@ -89,5 +100,6 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
       </div>
     </div>
     </>
+    </TooltipProvider>
   );
 }

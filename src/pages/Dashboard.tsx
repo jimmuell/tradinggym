@@ -1,3 +1,4 @@
+import HelpSheet from '@/components/HelpSheet';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -96,6 +97,12 @@ export default function Dashboard() {
   return (
     <TooltipProvider>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div />
+          <HelpSheet pageName="Dashboard" />
+        </div>
+
         {/* Continue Learning Banner */}
         <ContinueLearningBanner currentTier={currentTier} />
 
@@ -109,10 +116,17 @@ export default function Dashboard() {
                 10,000.00
               </h3>
             </div>
-            <Button variant="outline" size="sm" className="gap-2">
-              <RotateCcw className="h-4 w-4" />
-              Reset Account
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <RotateCcw className="h-4 w-4" />
+                  Reset Account
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Resets your practice account balance to the starting amount</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </Card>
 

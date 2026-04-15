@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import SimulatorHintBanner from '@/components/chart/SimulatorHintBanner';
 import { SLTPConfig } from '@/components/chart/TradeOrderPanel';
 import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
@@ -98,6 +99,7 @@ export default function Simulator() {
               />
             </div>
           </div>
+          <SimulatorHintBanner />
           <div className="flex flex-1 overflow-hidden">
             <LeftToolbar
               activeTool={activeTool}

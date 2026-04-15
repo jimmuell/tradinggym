@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Divider = () => <div className="w-6 h-px bg-border my-1" />;
 
@@ -80,6 +81,7 @@ export default function LeftToolbar({ activeTool, onToolChange, drawingCount = 0
   };
 
   return (
+    <TooltipProvider>
     <div className="flex flex-col items-center w-[44px] bg-card border-r border-border py-1">
       {groups.map((group, gi) => (
         <div key={gi}>
@@ -106,7 +108,14 @@ export default function LeftToolbar({ activeTool, onToolChange, drawingCount = 0
       ))}
       <div className="mt-auto flex flex-col items-center gap-1">
         {drawingCount > 0 && (
-          <span className="text-[10px] text-muted-foreground font-mono">({drawingCount})</span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-[10px] text-muted-foreground font-mono cursor-default">({drawingCount})</span>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p className="text-xs">Number of drawings on current chart. Click trash icon to clear all.</p>
+            </TooltipContent>
+          </Tooltip>
         )}
         <button
           title="Clear All Drawings"
@@ -122,5 +131,6 @@ export default function LeftToolbar({ activeTool, onToolChange, drawingCount = 0
         </button>
       </div>
     </div>
+    </TooltipProvider>
   );
 }

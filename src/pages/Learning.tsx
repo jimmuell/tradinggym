@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { BookOpen, PlayCircle, FileText, Clock, CheckCircle2, Lock, ChevronRight } from "lucide-react";
+import HelpSheet from '@/components/HelpSheet';
 
 const courses = [
   {
@@ -48,9 +49,12 @@ export default function Learning() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Learning Center</h1>
-        <p className="text-muted-foreground">Master the fundamentals and sharpen your edge.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Learning Center</h1>
+          <p className="text-muted-foreground">Master the fundamentals and sharpen your edge.</p>
+        </div>
+        <HelpSheet pageName="Learning" />
       </div>
 
       {/* Overall Progress */}
