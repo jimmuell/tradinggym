@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import HeroChartAnimation from '@/components/landing/HeroChartAnimation';
 import {
   BarChart3, BookOpen, Bot, BrainCircuit, ChevronRight,
   LineChart, Play, Shield, Target, TrendingUp, Users, Zap, Check, ArrowRight
@@ -79,9 +80,10 @@ export default function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-24 px-6">
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-600/5 via-transparent to-transparent" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blue-500/5 rounded-full blur-[120px]" />
+        <HeroChartAnimation />
         <div className="relative max-w-4xl mx-auto text-center">
           <Badge className="mb-6 bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/15">
             MES Futures • Micro E-mini S&P 500
