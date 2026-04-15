@@ -10,10 +10,13 @@ import {
   Settings,
   LogOut,
   CandlestickChart,
+  Lock,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTier } from '@/contexts/TierContext';
+import { toast } from 'sonner';
 import {
   Sidebar,
   SidebarContent,
@@ -27,15 +30,23 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
+const LOCK_MESSAGES: Record<string, string> = {
+  simulator: 'Complete Foundation to unlock',
+  strategies: 'Complete Foundation to unlock',
+  analytics: 'Complete Foundation to unlock',
+  backtesting: 'Complete Tier 1 to unlock',
+  coaching: 'Coach accounts only',
+};
+
 const navItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Learning', url: '/learning', icon: BookOpenCheck },
-  { title: 'Simulator', url: '/simulator', icon: CandlestickChart },
-  { title: 'Strategies', url: '/strategies', icon: BookOpen },
-  { title: 'Backtesting', url: '/backtesting', icon: FlaskConical },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
-  { title: 'Coaching', url: '/coaching', icon: GraduationCap },
-  { title: 'Resources', url: '/resources', icon: BookOpenCheck },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, feature: null },
+  { title: 'Learning', url: '/learning', icon: BookOpenCheck, feature: null },
+  { title: 'Simulator', url: '/simulator', icon: CandlestickChart, feature: 'simulator' },
+  { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
+  { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
+  { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
+  { title: 'Coaching', url: '/coaching', icon: GraduationCap, feature: 'coaching' },
+  { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
 ];
 
 const bottomItems = [
@@ -48,6 +59,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { canAccess } = useTier();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -58,7 +70,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-4 py-4 border-b border-sidebar-border">
           <CandlestickChart className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
-            <span className="text-sidebar-foreground font-bold text-lg tracking-tight"><span className="text-sidebar-foreground font-bold text-lg tracking-tight">TradeGym</span></span>
+            <span className="text-sidebar-foreground font-bold text-lg tracking-tight">TradeGym</span>
           )}
         </div>
 
@@ -68,25 +80,40 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                        isActive(item.url)
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                      }`}
-                      activeClassName=""
-                    >
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {navItems.map((item) => {
+                const locked = item.feature ? !canAccess(item.feature) : false;
+
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end
+                        onClick={(e: React.MouseEvent) => {
+                          if (locked) {
+                            e.preventDefault();
+                            toast(LOCK_MESSAGES[item.feature!] || 'Feature locked');
+                          }
+                        }}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                          isActive(item.url)
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                            : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                        } ${locked ? 'opacity-50' : ''}`}
+                        activeClassName=""
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {!collapsed && (
+                          <>
+                            <span>{item.title}</span>
+                            {locked && <Lock size={12} className="ml-auto opacity-50" />}
+                          </>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
