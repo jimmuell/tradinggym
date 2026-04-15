@@ -33,6 +33,21 @@ interface Position {
   tpLine: IPriceLine | null;
   slPrice: number | null;
   tpPrice: number | null;
+  openedAt: string;
+}
+
+export interface TradeCloseData {
+  direction: 'long' | 'short';
+  entryPrice: number;
+  exitPrice: number;
+  slPrice: number | null;
+  tpPrice: number | null;
+  pnl: number;
+  pnlTicks: number;
+  result: 'win' | 'loss' | 'breakeven';
+  reason: 'tp' | 'sl';
+  openedAt: string;
+  closedAt: string;
 }
 
 interface ChartContainerProps {
@@ -43,6 +58,7 @@ interface ChartContainerProps {
   onRegisterBuyHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onRegisterSellHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
+  onTradeClose?: (data: TradeCloseData) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -77,7 +93,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose }: ChartContainerProps) {
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -117,6 +133,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   } | null>(null);
   const onSLTPDragRef = useRef(onSLTPDrag);
   onSLTPDragRef.current = onSLTPDrag;
+  const onTradeCloseRef = useRef(onTradeClose);
+  onTradeCloseRef.current = onTradeClose;
   const positionsRef = useRef<Position[]>([]);
   positionsRef.current = positions;
 
@@ -441,6 +459,9 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (hitType) {
         const diff = pos.side === 'long' ? exitPrice - pos.entryPrice : pos.entryPrice - exitPrice;
         const pnl = diff * pos.quantity * 5;
+        const tickSize = 0.25;
+        const pnlTicks = Math.round(diff / tickSize);
+        const closedAt = new Date().toISOString();
 
         // Close the position
         if (candleSeriesRef.current) {
@@ -453,6 +474,21 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
         setPositions((prev) => prev.filter((p) => p.id !== pos.id));
         setIsPlaying(false);
+
+        // Emit trade close data for persistence
+        onTradeCloseRef.current?.({
+          direction: pos.side,
+          entryPrice: pos.entryPrice,
+          exitPrice,
+          slPrice: pos.slPrice,
+          tpPrice: pos.tpPrice,
+          pnl,
+          pnlTicks,
+          result: pnl === 0 ? 'breakeven' : hitType === 'tp' ? 'win' : 'loss',
+          reason: hitType,
+          openedAt: pos.openedAt,
+          closedAt,
+        });
 
         setTradeResult({
           side: pos.side,
@@ -739,6 +775,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       tpLine,
       slPrice: slEnabled ? slPrice : null,
       tpPrice: tpEnabled ? tpPrice : null,
+      openedAt: new Date().toISOString(),
     };
     setPositions((prev) => [...prev, pos]);
   }, []);
