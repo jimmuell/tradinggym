@@ -278,7 +278,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     if (!container) return;
 
     const DRAG_THRESHOLD_PX = 8;
-    const TICK_SIZE = 0.25;
+    const TICK_SIZE = inst.tickSize;
 
     const handleMouseDown = (e: MouseEvent) => {
       const series = candleSeriesRef.current;
@@ -738,7 +738,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     });
 
     // SL/TP price lines - use config if provided, else use overlay refs
-    const tickSize = 0.25;
+    const tickSize = inst.tickSize;
     const useSlTicks = sltpConfig ? sltpConfig.slTicks : slTicksRef.current;
     const useTpTicks = sltpConfig ? sltpConfig.tpTicks : tpTicksRef.current;
     const slEnabled = sltpConfig ? sltpConfig.slEnabled : true;
@@ -824,7 +824,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   // Calculate P&L for each position
   const getPnL = (pos: Position) => {
     const diff = pos.side === 'long' ? ohlcv.close - pos.entryPrice : pos.entryPrice - ohlcv.close;
-    return diff * pos.quantity * 5; // MES = $5 per point
+    const ticks = Math.round(diff / inst.tickSize);
+    return ticks * inst.tickValue * pos.quantity;
   };
 
   return (
@@ -880,7 +881,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       <div className="absolute top-1 left-4 z-10 pointer-events-none">
         <div className="flex items-center gap-2 text-[14px] text-muted-foreground flex-wrap">
           <img src="https://flagcdn.com/w80/us.png" alt="US" className="w-6 h-6 rounded-full object-cover object-[30%_center] border border-border/30 shadow-sm" />
-          <span className="font-medium">Micro E-mini S&P 500 Index Futures (Jun 2026) · {timeframe} · CME</span>
+          <span className="font-medium">{inst.name} Index Futures (Jun 2026) · {instrument} · {timeframe} · CME</span>
           <span className="ml-1">O<span className="text-foreground font-medium ml-0.5">{ohlcv.open.toFixed(2)}</span></span>
           <span>H<span className="text-foreground font-medium ml-0.5">{ohlcv.high.toFixed(2)}</span></span>
           <span>L<span className="text-foreground font-medium ml-0.5">{ohlcv.low.toFixed(2)}</span></span>
