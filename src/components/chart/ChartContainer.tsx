@@ -198,6 +198,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       },
     });
     candleSeriesRef.current = candleSeries;
+    onChartReady?.(chart, candleSeries);
 
     // v5.1: use chart.addSeries(LineSeries, options)
     const sma = chart.addSeries(LineSeries, { color: '#4caf50', lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
@@ -825,6 +826,12 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   return (
     <div className="relative flex-1 min-w-0 bg-background">
       <div ref={chartContainerRef} className="absolute inset-0" />
+      <DrawingOverlay
+        activeTool={activeTool ?? null}
+        chartApi={chartRef.current}
+        seriesApi={candleSeriesRef.current}
+        isCoachMode={isCoachMode}
+      />
 
       {/* Replay positioning overlay — vertical line + ghost */}
       {replayPositioning && replayLineX != null && (
