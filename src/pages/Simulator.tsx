@@ -55,7 +55,7 @@ export default function Simulator() {
   }, []);
 
   const saveTradeMutation = useMutation({
-    mutationFn: async (data: TradeCloseData) => {
+    mutationFn: async (data: TradeCloseData & { stepsCompleted?: number[] }) => {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase.from('trades').insert({
         user_id: user.id,
