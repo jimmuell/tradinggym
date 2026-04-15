@@ -21,6 +21,8 @@ import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import FoundationLearning from "./pages/learning/Foundation";
+import FoundationF1 from "./pages/learning/FoundationF1";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ const App = () => (
               <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
               <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
+              <Route path="/learning/foundation" element={<LayoutRoute><FoundationLearning /></LayoutRoute>} />
+              <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
