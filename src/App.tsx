@@ -54,6 +54,8 @@ const App = () => (
               <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
               <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
+              <Route path="/learning/foundation" element={<LayoutRoute><FoundationLearning /></LayoutRoute>} />
+              <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
