@@ -21,6 +21,8 @@ import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import FoundationLearning from "./pages/learning/Foundation";
+import FoundationF1 from "./pages/learning/FoundationF1";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
