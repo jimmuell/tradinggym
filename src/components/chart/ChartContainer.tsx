@@ -469,9 +469,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       if (hitType) {
         const diff = pos.side === 'long' ? exitPrice - pos.entryPrice : pos.entryPrice - exitPrice;
-        const pnl = diff * pos.quantity * 5;
-        const tickSize = 0.25;
-        const pnlTicks = Math.round(diff / tickSize);
+        const pnlTicks = Math.round(diff / inst.tickSize);
+        const pnl = pnlTicks * inst.tickValue * pos.quantity;
         const closedAt = new Date().toISOString();
 
         // Close the position
