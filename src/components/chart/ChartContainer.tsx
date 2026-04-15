@@ -33,6 +33,7 @@ interface Position {
   tpLine: IPriceLine | null;
   slPrice: number | null;
   tpPrice: number | null;
+  openedAt: string;
 }
 
 export interface TradeCloseData {
