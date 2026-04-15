@@ -105,7 +105,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const smaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const emaSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
-
+  const [chartReady, setChartReady] = useState(false);
   const allDataRef = useRef<CandlestickData<Time>[]>([]);
   const [replayIndex, setReplayIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
