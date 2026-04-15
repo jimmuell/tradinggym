@@ -23,6 +23,10 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import FoundationLearning from "./pages/learning/Foundation";
 import FoundationF1 from "./pages/learning/FoundationF1";
+import Tier1Learning from "./pages/learning/Tier1";
+import Tier2Learning from "./pages/learning/Tier2";
+import Tier3Learning from "./pages/learning/Tier3";
+import ModulePlaceholder from "./pages/learning/ModulePlaceholder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
