@@ -89,8 +89,8 @@ export default function Landing() {
             MES Futures • Micro E-mini S&P 500
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            Train smarter.<br />
-            Trade better on <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">TradingView.</span>
+            No pain. No gain.<br />
+            Train to trade on <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">TradingView.</span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             Turn any MES futures strategy into a structured, testable blueprint.

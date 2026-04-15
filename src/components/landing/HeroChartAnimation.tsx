@@ -45,14 +45,22 @@ export default function HeroChartAnimation() {
   const gap = (w - pad * 2) / OHLC.length;
   const toY = (v: number) => h - pad - ((v - minV) / rangeV) * (h - pad * 2);
 
-  const delayPerCandle = 100; // ms
+  // Total cycle: 3s draw + 1s hold + 0.5s fade out + 0.5s pause = 5s
+  // Each candle draws within the first 3s
+  const totalCycle = 5;
+  const drawPhase = 3;
+  const delayPerCandle = drawPhase / OHLC.length;
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       <style>{`
-        @keyframes candleIn {
+        @keyframes candleLoop {
           0% { opacity: 0; transform: scaleY(0); }
-          100% { opacity: 1; transform: scaleY(1); }
+          ${(0.4 / totalCycle * 100).toFixed(1)}% { opacity: 1; transform: scaleY(1); }
+          ${(drawPhase / totalCycle * 100).toFixed(1)}% { opacity: 1; transform: scaleY(1); }
+          ${((drawPhase + 1) / totalCycle * 100).toFixed(1)}% { opacity: 1; transform: scaleY(1); }
+          ${((drawPhase + 1.5) / totalCycle * 100).toFixed(1)}% { opacity: 0; transform: scaleY(1); }
+          100% { opacity: 0; transform: scaleY(0); }
         }
       `}</style>
 
@@ -84,18 +92,17 @@ export default function HeroChartAnimation() {
             <g
               key={i}
               style={{
-                animation: `candleIn 0.4s ease-out ${i * delayPerCandle}ms both`,
+                animation: `candleLoop ${totalCycle}s ease-out ${i * delayPerCandle}s infinite`,
                 transformOrigin: `${x}px ${toY((d.o + d.c) / 2)}px`,
+                opacity: 0,
               }}
             >
-              {/* Wick */}
               <line
                 x1={x} y1={toY(d.h)}
                 x2={x} y2={toY(d.l)}
                 stroke={color}
                 strokeWidth="1.5"
               />
-              {/* Body */}
               <rect
                 x={x - candleWidth / 2}
                 y={bodyTop}
