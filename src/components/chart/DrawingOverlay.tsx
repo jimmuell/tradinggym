@@ -31,7 +31,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
   // Pending state for multi-click tools
   const pendingRef = useRef<{
     tool: DrawingTool;
-    startTime?: number;
+    startTime?: Logical;
     startPrice?: number;
     startX?: number;
     startY?: number;
