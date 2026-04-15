@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { SLTPConfig } from '@/components/chart/TradeOrderPanel';
 import TopBar from '@/components/chart/TopBar';
 import LeftToolbar from '@/components/chart/LeftToolbar';
@@ -13,6 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { DrawingTool } from '@/lib/drawingTypes';
+import { IChartApi, ISeriesApi } from 'lightweight-charts';
 
 export default function Simulator() {
   const { user } = useAuth();
@@ -24,6 +26,28 @@ export default function Simulator() {
   const sellHandlerRef = useRef<((config: SLTPConfig) => void) | null>(null);
   const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
   const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
+  const [activeTool, setActiveTool] = useState<DrawingTool>(null);
+  const chartApiRef = useRef<IChartApi | null>(null);
+  const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+
+  // Keyboard shortcuts for drawing tools + Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Skip if typing in an input
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      switch (e.key.toLowerCase()) {
+        case 'h': setActiveTool(prev => prev === 'horizontal' ? null : 'horizontal'); break;
+        case 't': setActiveTool(prev => prev === 'trendline' ? null : 'trendline'); break;
+        case 'r': setActiveTool(prev => prev === 'rectangle' ? null : 'rectangle'); break;
+        case 'l': setActiveTool(prev => prev === 'text' ? null : 'text'); break;
+        case 'escape': setActiveTool(null); break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const saveTradeMutation = useMutation({
     mutationFn: async (data: TradeCloseData) => {
