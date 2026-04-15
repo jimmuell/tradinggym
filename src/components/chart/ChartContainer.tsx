@@ -459,6 +459,9 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       if (hitType) {
         const diff = pos.side === 'long' ? exitPrice - pos.entryPrice : pos.entryPrice - exitPrice;
         const pnl = diff * pos.quantity * 5;
+        const tickSize = 0.25;
+        const pnlTicks = Math.round(diff / tickSize);
+        const closedAt = new Date().toISOString();
 
         // Close the position
         if (candleSeriesRef.current) {
@@ -471,6 +474,21 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
         setPositions((prev) => prev.filter((p) => p.id !== pos.id));
         setIsPlaying(false);
+
+        // Emit trade close data for persistence
+        onTradeCloseRef.current?.({
+          direction: pos.side,
+          entryPrice: pos.entryPrice,
+          exitPrice,
+          slPrice: pos.slPrice,
+          tpPrice: pos.tpPrice,
+          pnl,
+          pnlTicks,
+          result: pnl === 0 ? 'breakeven' : hitType === 'tp' ? 'win' : 'loss',
+          reason: hitType,
+          openedAt: pos.openedAt,
+          closedAt,
+        });
 
         setTradeResult({
           side: pos.side,
