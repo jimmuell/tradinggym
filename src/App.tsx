@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { TierProvider } from "@/contexts/TierContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import DevTierSwitcher from "@/components/dev/DevTierSwitcher";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
@@ -45,7 +46,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/simulator" element={<ProtectedRoute><TierProvider><Simulator /></TierProvider></ProtectedRoute>} />
+              <Route path="/simulator" element={<ProtectedRoute><TierProvider><><Simulator /><DevTierSwitcher /></></TierProvider></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
               <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
