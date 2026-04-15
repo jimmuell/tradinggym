@@ -123,6 +123,7 @@ export default function Simulator() {
               onTradeClose={handleTradeClose}
               activeTool={activeTool}
               isCoachMode={false}
+              onDrawingCountChange={setDrawingCount}
               onChartReady={(chart, series) => {
                 chartApiRef.current = chart;
                 seriesApiRef.current = series;
