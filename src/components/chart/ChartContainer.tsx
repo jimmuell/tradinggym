@@ -755,6 +755,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       tpLine,
       slPrice: slEnabled ? slPrice : null,
       tpPrice: tpEnabled ? tpPrice : null,
+      openedAt: new Date().toISOString(),
     };
     setPositions((prev) => [...prev, pos]);
   }, []);
