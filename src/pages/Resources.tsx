@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, BookOpen, Calculator, Globe, FileText, Video, Newspaper, Wrench } from "lucide-react";
+import HelpSheet from '@/components/HelpSheet';
 
 const tools = [
   { name: "Position Size Calculator", description: "Calculate optimal position sizes based on account balance and risk tolerance.", icon: Calculator, tag: "Essential" },
@@ -35,9 +36,12 @@ const links = [
 export default function Resources() {
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Resources</h1>
-        <p className="text-muted-foreground">Tools, references, and curated materials to support your trading journey.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Resources</h1>
+          <p className="text-muted-foreground">Tools, references, and curated materials to support your trading journey.</p>
+        </div>
+        <HelpSheet pageName="Resources" />
       </div>
 
       <Tabs defaultValue="tools">

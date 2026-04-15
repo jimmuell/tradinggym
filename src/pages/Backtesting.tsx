@@ -1,3 +1,4 @@
+import HelpSheet from '@/components/HelpSheet';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import {
@@ -35,15 +36,18 @@ export default function Backtesting() {
     <div className="flex h-[calc(100vh-2rem)] gap-6 p-6">
       {/* Configuration Sidebar */}
       <div className="w-80 shrink-0 space-y-5 overflow-y-auto">
-        <div>
-          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <FlaskConical className="h-5 w-5 text-primary" />
-            Backtesting
-          </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Test strategies against historical data.
-          </p>
-        </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <FlaskConical className="h-5 w-5 text-primary" />
+                Backtesting
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Test strategies against historical data.
+              </p>
+            </div>
+            <HelpSheet pageName="Backtesting" />
+          </div>
 
         <Card>
           <CardHeader className="pb-3">

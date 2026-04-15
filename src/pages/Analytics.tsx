@@ -1,3 +1,4 @@
+import HelpSheet from '@/components/HelpSheet';
 import {
   BarChart3,
   TrendingUp,
@@ -80,7 +81,9 @@ export default function Analytics() {
             Track your performance, identify patterns, and improve your trading.
           </p>
         </div>
-        <Select defaultValue="all-time">
+        <div className="flex items-center gap-2">
+          <HelpSheet pageName="Analytics" />
+          <Select defaultValue="all-time">
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
@@ -91,6 +94,7 @@ export default function Analytics() {
             <SelectItem value="all-time">All Time</SelectItem>
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       {/* Tabs */}

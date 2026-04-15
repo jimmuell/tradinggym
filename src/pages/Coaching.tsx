@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Target, TrendingUp, Brain, AlertTriangle, CheckCircle2, ChevronRight, MessageSquare, Calendar } from "lucide-react";
+import HelpSheet from '@/components/HelpSheet';
 
 const weeklyGoals = [
   { label: "Complete 5 simulator sessions", current: 3, target: 5, done: false },
@@ -37,9 +38,12 @@ export default function Coaching() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Coaching</h1>
-        <p className="text-muted-foreground">Track goals, review insights, and build consistency.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Coaching</h1>
+          <p className="text-muted-foreground">Track goals, review insights, and build consistency.</p>
+        </div>
+        <HelpSheet pageName="Coaching" />
       </div>
 
       {/* Weekly Progress Summary */}

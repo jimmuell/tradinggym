@@ -1,3 +1,4 @@
+import HelpSheet from '@/components/HelpSheet';
 import { useState } from 'react';
 import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -131,7 +132,7 @@ export default function Strategies() {
             Browse proven trading strategies or create your own playbook.
           </p>
         </div>
-      </div>
+        <HelpSheet pageName="Strategies" />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
