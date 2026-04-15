@@ -57,12 +57,12 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     return seriesApi.priceToCoordinate(price);
   }, [seriesApi]);
 
-  const timeToX = useCallback((logicalIndex: number) => {
+  const timeToX = useCallback((logicalIndex: Logical) => {
     if (!chartApi) return null;
     return chartApi.timeScale().logicalToCoordinate(logicalIndex);
   }, [chartApi]);
 
-  const xToLogical = useCallback((x: number) => {
+  const xToLogical = useCallback((x: number): Logical | null => {
     if (!chartApi) return null;
     return chartApi.timeScale().coordinateToLogical(x);
   }, [chartApi]);
