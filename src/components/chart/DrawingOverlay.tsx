@@ -7,7 +7,8 @@ interface DrawingOverlayProps {
   chartApi: IChartApi | null;
   seriesApi: ISeriesApi<'Candlestick'> | null;
   isCoachMode?: boolean;
-  onToolComplete?: () => void; // called after text placement to deactivate
+  onToolComplete?: () => void;
+  onDrawingCountChange?: (count: number) => void;
 }
 
 const TICK_SIZE = 0.25;
@@ -21,14 +22,26 @@ const COACH_RECT_FILL = 'rgba(251,146,60,0.15)';
 const COACH_RECT_BORDER = 'rgba(251,146,60,0.6)';
 const TEXT_BG = 'rgba(30,34,45,0.85)';
 const COACH_TEXT_BG = 'rgba(100,60,20,0.85)';
+const SELECTION_COLOR = 'rgba(96,165,250,0.8)'; // blue-400
+const HOVER_COLOR = 'rgba(96,165,250,0.4)';
+const PREVIEW_COLOR = 'rgba(255,255,255,0.25)';
 
-export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoachMode = false, onToolComplete }: DrawingOverlayProps) {
+export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoachMode = false, onToolComplete, onDrawingCountChange }: DrawingOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [drawings, setDrawings] = useState<Drawing[]>([]);
   const drawingsRef = useRef<Drawing[]>([]);
   drawingsRef.current = drawings;
 
-  // Pending state for multi-click tools
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
+  selectedIdRef.current = selectedId;
+
+  const hoveredIdRef = useRef<string | null>(null);
+  const mouseRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; drawingId: string } | null>(null);
+
   const pendingRef = useRef<{
     tool: DrawingTool;
     startTime?: Logical;
@@ -37,13 +50,12 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     startY?: number;
   } | null>(null);
 
-  // Text input state
   const [textInput, setTextInput] = useState<{ x: number; y: number; time: number; price: number } | null>(null);
   const [textValue, setTextValue] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
 
-  // Drag state
   const dragRef = useRef<{ drawingId: string; startX: number; startY: number; origDrawing: Drawing } | null>(null);
+  const [cursorStyle, setCursorStyle] = useState<string>('default');
 
   const lineColor = isCoachMode ? COACH_COLOR : DEFAULT_LINE_COLOR;
   const rectFill = isCoachMode ? COACH_RECT_FILL : RECT_FILL;
@@ -51,7 +63,20 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
   const textBg = isCoachMode ? COACH_TEXT_BG : TEXT_BG;
   const textColor = isCoachMode ? COACH_COLOR : 'white';
 
-  // Convert chart coordinates
+  // Notify parent of drawing count changes
+  useEffect(() => {
+    onDrawingCountChange?.(drawings.length);
+  }, [drawings.length, onDrawingCountChange]);
+
+  // Expose clearAll method
+  useEffect(() => {
+    (window as any).__drawingOverlayClearAll = () => {
+      setDrawings([]);
+      setSelectedId(null);
+    };
+    return () => { delete (window as any).__drawingOverlayClearAll; };
+  }, []);
+
   const priceToY = useCallback((price: number) => {
     if (!seriesApi) return null;
     return seriesApi.priceToCoordinate(price);
@@ -72,137 +97,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     return seriesApi.coordinateToPrice(y);
   }, [seriesApi]);
 
-  // Render all drawings
-  const render = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
-
-    const dpr = window.devicePixelRatio || 1;
-
-    for (const d of drawingsRef.current) {
-      if (d.type === 'horizontal') {
-        const y = priceToY(d.price);
-        if (y == null) continue;
-        ctx.strokeStyle = d.color;
-        ctx.lineWidth = 1 * dpr;
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.moveTo(0, y * dpr);
-        ctx.lineTo(w, y * dpr);
-        ctx.stroke();
-        // Price label
-        ctx.fillStyle = d.color;
-        ctx.font = `${11 * dpr}px sans-serif`;
-        ctx.fillText(d.price.toFixed(2), 6 * dpr, (y - 4) * dpr);
-      } else if (d.type === 'trendline') {
-        const x1 = timeToX(d.startTime);
-        const y1 = priceToY(d.startPrice);
-        const x2 = timeToX(d.endTime);
-        const y2 = priceToY(d.endPrice);
-        if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
-        ctx.strokeStyle = d.color;
-        ctx.lineWidth = 1.5 * dpr;
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.moveTo(x1 * dpr, y1 * dpr);
-        ctx.lineTo(x2 * dpr, y2 * dpr);
-        ctx.stroke();
-        // Arrow at end
-        const angle = Math.atan2((y2 - y1), (x2 - x1));
-        const arrLen = 8 * dpr;
-        ctx.beginPath();
-        ctx.moveTo(x2 * dpr, y2 * dpr);
-        ctx.lineTo(x2 * dpr - arrLen * Math.cos(angle - Math.PI / 6), y2 * dpr - arrLen * Math.sin(angle - Math.PI / 6));
-        ctx.moveTo(x2 * dpr, y2 * dpr);
-        ctx.lineTo(x2 * dpr - arrLen * Math.cos(angle + Math.PI / 6), y2 * dpr - arrLen * Math.sin(angle + Math.PI / 6));
-        ctx.stroke();
-      } else if (d.type === 'rectangle') {
-        const x1 = timeToX(d.startTime);
-        const y1 = priceToY(d.startPrice);
-        const x2 = timeToX(d.endTime);
-        const y2 = priceToY(d.endPrice);
-        if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
-        const rx = Math.min(x1, x2) * dpr;
-        const ry = Math.min(y1, y2) * dpr;
-        const rw = Math.abs(x2 - x1) * dpr;
-        const rh = Math.abs(y2 - y1) * dpr;
-        ctx.fillStyle = d.fillColor;
-        ctx.fillRect(rx, ry, rw, rh);
-        ctx.strokeStyle = d.borderColor;
-        ctx.lineWidth = 1 * dpr;
-        ctx.setLineDash([]);
-        ctx.strokeRect(rx, ry, rw, rh);
-      } else if (d.type === 'text') {
-        const x = timeToX(d.time);
-        const y = priceToY(d.price);
-        if (x == null || y == null) continue;
-        ctx.font = `${12 * dpr}px sans-serif`;
-        const metrics = ctx.measureText(d.text);
-        const pad = 4 * dpr;
-        const tw = metrics.width + pad * 2;
-        const th = 16 * dpr + pad * 2;
-        ctx.fillStyle = d.bgColor;
-        const radius = 6 * dpr;
-        const bx = x * dpr - tw / 2;
-        const by = y * dpr - th / 2;
-        ctx.beginPath();
-        ctx.roundRect(bx, by, tw, th, radius);
-        ctx.fill();
-        ctx.fillStyle = d.color;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(d.text, x * dpr, y * dpr);
-        ctx.textAlign = 'start';
-        ctx.textBaseline = 'alphabetic';
-      }
-    }
-
-    // Render pending trendline preview
-    const pending = pendingRef.current;
-    if (pending?.tool === 'trendline' && pending.startTime != null && pending.startPrice != null) {
-      // We'll draw a temporary line from start to current mouse in handleMouseMove
-    }
-  }, [priceToY, timeToX]);
-
-  // Resize canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    const resize = () => {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = parent.clientWidth * dpr;
-      canvas.height = parent.clientHeight * dpr;
-      canvas.style.width = parent.clientWidth + 'px';
-      canvas.style.height = parent.clientHeight + 'px';
-      render();
-    };
-
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(parent);
-    return () => ro.disconnect();
-  }, [render]);
-
-  // Re-render when chart scrolls/zooms
-  useEffect(() => {
-    if (!chartApi) return;
-    const sub = () => render();
-    chartApi.timeScale().subscribeVisibleLogicalRangeChange(sub);
-    return () => chartApi.timeScale().unsubscribeVisibleLogicalRangeChange(sub);
-  }, [chartApi, render]);
-
-  // Re-render when drawings change
-  useEffect(() => { render(); }, [drawings, render]);
-
-  // Hit test for drawings
+  // Hit test
   const hitTest = useCallback((cx: number, cy: number): Drawing | null => {
     for (let i = drawingsRef.current.length - 1; i >= 0; i--) {
       const d = drawingsRef.current[i];
@@ -215,7 +110,6 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         const x2 = timeToX(d.endTime);
         const y2 = priceToY(d.endPrice);
         if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
-        // Distance from point to line segment
         const dx = x2 - x1, dy = y2 - y1;
         const len2 = dx * dx + dy * dy;
         let t = len2 === 0 ? 0 : ((cx - x1) * dx + (cy - y1) * dy) / len2;
@@ -241,10 +135,245 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     return null;
   }, [priceToY, timeToX]);
 
-  // Preview state for in-progress drawings
-  const previewRef = useRef<{ x: number; y: number } | null>(null);
+  // Render all drawings with selection/hover highlights and preview
+  const render = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    const dpr = window.devicePixelRatio || 1;
+
+    const sel = selectedIdRef.current;
+    const hov = hoveredIdRef.current;
+
+    for (const d of drawingsRef.current) {
+      const isSelected = d.id === sel;
+      const isHovered = d.id === hov && d.id !== sel;
+
+      if (d.type === 'horizontal') {
+        const y = priceToY(d.price);
+        if (y == null) continue;
+        const color = isSelected ? SELECTION_COLOR : isHovered ? HOVER_COLOR : d.color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = (isSelected ? 2 : 1) * dpr;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(0, y * dpr);
+        ctx.lineTo(w, y * dpr);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        ctx.font = `${11 * dpr}px sans-serif`;
+        ctx.fillText(d.price.toFixed(2), 6 * dpr, (y - 4) * dpr);
+        if (isSelected) {
+          // Selection handles
+          for (const hx of [40, w / dpr - 40]) {
+            ctx.fillStyle = SELECTION_COLOR;
+            ctx.beginPath();
+            ctx.arc(hx * dpr, y * dpr, 4 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (d.type === 'trendline') {
+        const x1 = timeToX(d.startTime);
+        const y1 = priceToY(d.startPrice);
+        const x2 = timeToX(d.endTime);
+        const y2 = priceToY(d.endPrice);
+        if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
+        const color = isSelected ? SELECTION_COLOR : isHovered ? HOVER_COLOR : d.color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = (isSelected ? 2.5 : 1.5) * dpr;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(x1 * dpr, y1 * dpr);
+        ctx.lineTo(x2 * dpr, y2 * dpr);
+        ctx.stroke();
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const arrLen = 8 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(x2 * dpr, y2 * dpr);
+        ctx.lineTo(x2 * dpr - arrLen * Math.cos(angle - Math.PI / 6), y2 * dpr - arrLen * Math.sin(angle - Math.PI / 6));
+        ctx.moveTo(x2 * dpr, y2 * dpr);
+        ctx.lineTo(x2 * dpr - arrLen * Math.cos(angle + Math.PI / 6), y2 * dpr - arrLen * Math.sin(angle + Math.PI / 6));
+        ctx.stroke();
+        if (isSelected) {
+          for (const [px, py] of [[x1, y1], [x2, y2]]) {
+            ctx.fillStyle = SELECTION_COLOR;
+            ctx.beginPath();
+            ctx.arc(px * dpr, py * dpr, 4 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (d.type === 'rectangle') {
+        const x1 = timeToX(d.startTime);
+        const y1 = priceToY(d.startPrice);
+        const x2 = timeToX(d.endTime);
+        const y2 = priceToY(d.endPrice);
+        if (x1 == null || y1 == null || x2 == null || y2 == null) continue;
+        const rx = Math.min(x1, x2) * dpr;
+        const ry = Math.min(y1, y2) * dpr;
+        const rw = Math.abs(x2 - x1) * dpr;
+        const rh = Math.abs(y2 - y1) * dpr;
+        ctx.fillStyle = isSelected ? 'rgba(96,165,250,0.15)' : isHovered ? 'rgba(96,165,250,0.1)' : d.fillColor;
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeStyle = isSelected ? SELECTION_COLOR : isHovered ? HOVER_COLOR : d.borderColor;
+        ctx.lineWidth = (isSelected ? 2 : 1) * dpr;
+        ctx.setLineDash([]);
+        ctx.strokeRect(rx, ry, rw, rh);
+        if (isSelected) {
+          for (const [px, py] of [[x1, y1], [x2, y2], [x1, y2], [x2, y1]]) {
+            ctx.fillStyle = SELECTION_COLOR;
+            ctx.beginPath();
+            ctx.arc(px * dpr, py * dpr, 4 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (d.type === 'text') {
+        const x = timeToX(d.time);
+        const y = priceToY(d.price);
+        if (x == null || y == null) continue;
+        ctx.font = `${12 * dpr}px sans-serif`;
+        const metrics = ctx.measureText(d.text);
+        const pad = 4 * dpr;
+        const tw = metrics.width + pad * 2;
+        const th = 16 * dpr + pad * 2;
+        const bx = x * dpr - tw / 2;
+        const by = y * dpr - th / 2;
+        ctx.fillStyle = d.bgColor;
+        const radius = 6 * dpr;
+        ctx.beginPath();
+        ctx.roundRect(bx, by, tw, th, radius);
+        ctx.fill();
+        if (isSelected || isHovered) {
+          ctx.strokeStyle = isSelected ? SELECTION_COLOR : HOVER_COLOR;
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.stroke();
+        }
+        ctx.fillStyle = d.color;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(d.text, x * dpr, y * dpr);
+        ctx.textAlign = 'start';
+        ctx.textBaseline = 'alphabetic';
+      }
+    }
+
+    // Preview for horizontal line tool
+    if (activeTool === 'horizontal' && mouseRef.current) {
+      const price = yToPrice(mouseRef.current.y);
+      if (price != null) {
+        const snapped = snap(price);
+        const y = priceToY(snapped);
+        if (y != null) {
+          ctx.strokeStyle = PREVIEW_COLOR;
+          ctx.lineWidth = 1 * dpr;
+          ctx.setLineDash([6 * dpr, 4 * dpr]);
+          ctx.beginPath();
+          ctx.moveTo(0, y * dpr);
+          ctx.lineTo(w, y * dpr);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = PREVIEW_COLOR;
+          ctx.font = `${11 * dpr}px sans-serif`;
+          ctx.fillText(snapped.toFixed(2), 6 * dpr, (y - 4) * dpr);
+        }
+      }
+    }
+
+    // Trendline preview (after first click)
+    const pending = pendingRef.current;
+    if (pending?.tool === 'trendline' && pending.startTime != null && mouseRef.current) {
+      const x1 = timeToX(pending.startTime);
+      const y1 = priceToY(pending.startPrice!);
+      if (x1 != null && y1 != null) {
+        ctx.strokeStyle = PREVIEW_COLOR;
+        ctx.lineWidth = 1 * dpr;
+        ctx.setLineDash([4 * dpr, 4 * dpr]);
+        ctx.beginPath();
+        ctx.moveTo(x1 * dpr, y1 * dpr);
+        ctx.lineTo(mouseRef.current.x * dpr, mouseRef.current.y * dpr);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    // Rectangle preview (while dragging)
+    if (pending?.tool === 'rectangle' && pending.startX != null && mouseRef.current) {
+      const sx = pending.startX * dpr;
+      const sy = pending.startY! * dpr;
+      const ex = mouseRef.current.x * dpr;
+      const ey = mouseRef.current.y * dpr;
+      ctx.fillStyle = 'rgba(59,130,246,0.1)';
+      ctx.fillRect(Math.min(sx, ex), Math.min(sy, ey), Math.abs(ex - sx), Math.abs(ey - sy));
+      ctx.strokeStyle = PREVIEW_COLOR;
+      ctx.lineWidth = 1 * dpr;
+      ctx.setLineDash([4 * dpr, 4 * dpr]);
+      ctx.strokeRect(Math.min(sx, ex), Math.min(sy, ey), Math.abs(ex - sx), Math.abs(ey - sy));
+      ctx.setLineDash([]);
+    }
+  }, [priceToY, timeToX, yToPrice, activeTool]);
+
+  // Resize canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = parent.clientWidth * dpr;
+      canvas.height = parent.clientHeight * dpr;
+      canvas.style.width = parent.clientWidth + 'px';
+      canvas.style.height = parent.clientHeight + 'px';
+      render();
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(parent);
+    return () => ro.disconnect();
+  }, [render]);
+
+  // Re-render when chart scrolls/zooms
+  useEffect(() => {
+    if (!chartApi) return;
+    const sub = () => render();
+    chartApi.timeScale().subscribeVisibleLogicalRangeChange(sub);
+    return () => chartApi.timeScale().unsubscribeVisibleLogicalRangeChange(sub);
+  }, [chartApi, render]);
+
+  useEffect(() => { render(); }, [drawings, selectedId, render]);
+
+  // Delete/Backspace key handler for selected drawing
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIdRef.current) {
+        setDrawings(prev => prev.filter(d => d.id !== selectedIdRef.current));
+        setSelectedId(null);
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Close context menu on click elsewhere
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handler = () => setContextMenu(null);
+    window.addEventListener('click', handler);
+    return () => window.removeEventListener('click', handler);
+  }, [contextMenu]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Close context menu on any click
+    if (contextMenu) {
+      setContextMenu(null);
+    }
+
     if (e.button !== 0) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -252,13 +381,17 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
 
-    // If no active tool, check for drag
+    // If no active tool, handle selection and drag
     if (!activeTool) {
       const hit = hitTest(cx, cy);
       if (hit) {
+        setSelectedId(hit.id);
         dragRef.current = { drawingId: hit.id, startX: cx, startY: cy, origDrawing: { ...hit } };
+        setCursorStyle('grabbing');
         e.preventDefault();
         e.stopPropagation();
+      } else {
+        setSelectedId(null);
       }
       return;
     }
@@ -276,16 +409,13 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         color: lineColor,
       };
       setDrawings(prev => [...prev, newDrawing]);
-      // Tool stays active for next placement
       e.preventDefault();
       e.stopPropagation();
     } else if (activeTool === 'trendline') {
       const pending = pendingRef.current;
       if (!pending || pending.tool !== 'trendline' || pending.startTime == null) {
-        // First click
         pendingRef.current = { tool: 'trendline', startTime: logical, startPrice: snap(price), startX: cx, startY: cy };
       } else {
-        // Second click — complete
         const newDrawing: Drawing = {
           type: 'trendline',
           id: Date.now().toString(),
@@ -297,7 +427,6 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         };
         setDrawings(prev => [...prev, newDrawing]);
         pendingRef.current = null;
-        previewRef.current = null;
       }
       e.preventDefault();
       e.stopPropagation();
@@ -312,7 +441,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
       e.stopPropagation();
       setTimeout(() => textInputRef.current?.focus(), 50);
     }
-  }, [activeTool, lineColor, xToLogical, yToPrice, hitTest]);
+  }, [activeTool, lineColor, xToLogical, yToPrice, hitTest, contextMenu]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     const canvas = canvasRef.current;
@@ -320,6 +449,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     const rect = canvas.getBoundingClientRect();
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
+    mouseRef.current = { x: cx, y: cy };
 
     // Handle drag
     const drag = dragRef.current;
@@ -377,49 +507,23 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
       return;
     }
 
-    // Trendline preview
-    const pending = pendingRef.current;
-    if (pending?.tool === 'trendline' && pending.startTime != null) {
-      previewRef.current = { x: cx, y: cy };
-      render();
-      // Draw preview line
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        const dpr = window.devicePixelRatio || 1;
-        const x1 = timeToX(pending.startTime);
-        const y1 = priceToY(pending.startPrice!);
-        if (x1 != null && y1 != null) {
-          ctx.strokeStyle = lineColor;
-          ctx.lineWidth = 1 * dpr;
-          ctx.setLineDash([4 * dpr, 4 * dpr]);
-          ctx.beginPath();
-          ctx.moveTo(x1 * dpr, y1 * dpr);
-          ctx.lineTo(cx * dpr, cy * dpr);
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
+    // Update cursor based on hover state when no tool active
+    if (!activeTool) {
+      const hit = hitTest(cx, cy);
+      const newHovered = hit?.id ?? null;
+      if (newHovered !== hoveredIdRef.current) {
+        hoveredIdRef.current = newHovered;
+        render();
       }
-    }
-
-    // Rectangle preview
-    if (pending?.tool === 'rectangle' && pending.startX != null) {
-      render();
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        const dpr = window.devicePixelRatio || 1;
-        const sx = pending.startX! * dpr;
-        const sy = pending.startY! * dpr;
-        const ex = cx * dpr;
-        const ey = cy * dpr;
-        ctx.fillStyle = rectFill;
-        ctx.fillRect(Math.min(sx, ex), Math.min(sy, ey), Math.abs(ex - sx), Math.abs(ey - sy));
-        ctx.strokeStyle = rectBorder;
-        ctx.lineWidth = 1 * dpr;
-        ctx.setLineDash([]);
-        ctx.strokeRect(Math.min(sx, ex), Math.min(sy, ey), Math.abs(ex - sx), Math.abs(ey - sy));
+      setCursorStyle(hit ? 'pointer' : 'default');
+    } else {
+      // Tool is active — always crosshair, but render preview
+      if (hoveredIdRef.current) {
+        hoveredIdRef.current = null;
       }
+      render();
     }
-  }, [activeTool, lineColor, rectFill, rectBorder, render, priceToY, timeToX, xToLogical, yToPrice]);
+  }, [activeTool, lineColor, rectFill, rectBorder, render, priceToY, timeToX, xToLogical, yToPrice, hitTest]);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
     // Complete rectangle
@@ -448,9 +552,9 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
       pendingRef.current = null;
     }
 
-    // End drag
     if (dragRef.current) {
       dragRef.current = null;
+      setCursorStyle('pointer');
     }
   }, [rectFill, rectBorder, xToLogical, yToPrice]);
 
@@ -461,11 +565,10 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
 
-    // Check for text edit
     const hit = hitTest(cx, cy);
     if (hit) {
       if (hit.type === 'text') {
-        // Edit text
+        // Edit text on double-click
         const x = timeToX(hit.time);
         const y = priceToY(hit.price);
         if (x != null && y != null) {
@@ -475,13 +578,46 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
           setTimeout(() => textInputRef.current?.focus(), 50);
         }
       } else {
-        // Delete drawing
+        // Delete drawing on double-click
         setDrawings(prev => prev.filter(d => d.id !== hit.id));
+        if (selectedId === hit.id) setSelectedId(null);
       }
       e.preventDefault();
       e.stopPropagation();
     }
-  }, [hitTest, timeToX, priceToY]);
+  }, [hitTest, timeToX, priceToY, selectedId]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+
+    const hit = hitTest(cx, cy);
+    if (hit) {
+      e.preventDefault();
+      e.stopPropagation();
+      setSelectedId(hit.id);
+      setContextMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top, drawingId: hit.id });
+    }
+  }, [hitTest]);
+
+  const handleContextDelete = useCallback(() => {
+    if (contextMenu) {
+      setDrawings(prev => prev.filter(d => d.id !== contextMenu.drawingId));
+      if (selectedId === contextMenu.drawingId) setSelectedId(null);
+      setContextMenu(null);
+    }
+  }, [contextMenu, selectedId]);
+
+  const handleMouseLeave = useCallback(() => {
+    mouseRef.current = null;
+    if (hoveredIdRef.current) {
+      hoveredIdRef.current = null;
+      render();
+    }
+  }, [render]);
 
   const handleTextSubmit = useCallback(() => {
     if (!textInput || !textValue.trim()) {
@@ -514,6 +650,8 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
 
   const shouldIntercept = activeTool != null || textInput != null || drawings.length > 0;
 
+  const effectiveCursor = activeTool ? 'crosshair' : cursorStyle;
+
   return (
     <>
       <canvas
@@ -521,12 +659,14 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
         className="absolute inset-0 z-[15]"
         style={{
           pointerEvents: shouldIntercept ? 'auto' : 'none',
-          cursor: activeTool ? 'crosshair' : 'default',
+          cursor: effectiveCursor,
         }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
       />
       {textInput && (
         <input
@@ -539,6 +679,19 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
           style={{ left: textInput.x - 50, top: textInput.y - 14, width: 120 }}
           placeholder="Label..."
         />
+      )}
+      {contextMenu && (
+        <div
+          className="absolute z-[30] bg-card border border-border rounded-md shadow-lg py-1 min-w-[120px]"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={handleContextDelete}
+            className="w-full text-left px-3 py-1.5 text-sm text-destructive hover:bg-accent transition-colors"
+          >
+            Delete
+          </button>
+        </div>
       )}
     </>
   );
