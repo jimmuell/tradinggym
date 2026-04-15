@@ -27,6 +27,7 @@ export default function Simulator() {
   const [draggedSlTicks, setDraggedSlTicks] = useState<number | null>(null);
   const [draggedTpTicks, setDraggedTpTicks] = useState<number | null>(null);
   const [activeTool, setActiveTool] = useState<DrawingTool>(null);
+  const [drawingCount, setDrawingCount] = useState(0);
   const chartApiRef = useRef<IChartApi | null>(null);
   const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
@@ -98,7 +99,12 @@ export default function Simulator() {
             </div>
           </div>
           <div className="flex flex-1 overflow-hidden">
-            <LeftToolbar activeTool={activeTool} onToolChange={setActiveTool} />
+            <LeftToolbar
+              activeTool={activeTool}
+              onToolChange={setActiveTool}
+              drawingCount={drawingCount}
+              onClearAll={() => (window as any).__drawingOverlayClearAll?.()}
+            />
             <ChartContainer
               timeframe={timeframe}
               replayMode={replayMode}
@@ -117,6 +123,7 @@ export default function Simulator() {
               onTradeClose={handleTradeClose}
               activeTool={activeTool}
               isCoachMode={false}
+              onDrawingCountChange={setDrawingCount}
               onChartReady={(chart, series) => {
                 chartApiRef.current = chart;
                 seriesApiRef.current = series;

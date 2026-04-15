@@ -6,12 +6,15 @@ import {
   Link, Trash2, Star, Square
 } from 'lucide-react';
 import { DrawingTool } from '@/lib/drawingTypes';
+import { toast } from 'sonner';
 
 const Divider = () => <div className="w-6 h-px bg-border my-1" />;
 
 interface LeftToolbarProps {
   activeTool: DrawingTool;
   onToolChange: (tool: DrawingTool) => void;
+  drawingCount?: number;
+  onClearAll?: () => void;
 }
 
 const toolMap: Record<string, DrawingTool> = {
@@ -47,11 +50,10 @@ const groups = [
   ],
   [
     { icon: Link, label: 'Link' },
-    { icon: Trash2, label: 'Remove' },
   ],
 ];
 
-export default function LeftToolbar({ activeTool, onToolChange }: LeftToolbarProps) {
+export default function LeftToolbar({ activeTool, onToolChange, drawingCount = 0, onClearAll }: LeftToolbarProps) {
   const handleClick = (label: string) => {
     const tool = toolMap[label] || null;
     if (label === 'Cursor') {
@@ -59,8 +61,22 @@ export default function LeftToolbar({ activeTool, onToolChange }: LeftToolbarPro
       return;
     }
     if (!tool) return;
-    // Toggle off if already active
     onToolChange(activeTool === tool ? null : tool);
+  };
+
+  const handleClearAll = () => {
+    if (drawingCount === 0) return;
+    toast('Clear all drawings? This cannot be undone.', {
+      action: {
+        label: 'Confirm',
+        onClick: () => onClearAll?.(),
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {},
+      },
+      duration: 8000,
+    });
   };
 
   return (
@@ -88,7 +104,19 @@ export default function LeftToolbar({ activeTool, onToolChange }: LeftToolbarPro
           })}
         </div>
       ))}
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col items-center gap-1">
+        {drawingCount > 0 && (
+          <span className="text-[10px] text-muted-foreground font-mono">({drawingCount})</span>
+        )}
+        <button
+          title="Clear All Drawings"
+          onClick={handleClearAll}
+          className={`p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground ${
+            drawingCount === 0 ? 'opacity-30 pointer-events-none' : ''
+          }`}
+        >
+          <Trash2 size={18} />
+        </button>
         <button title="Favorites" className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground">
           <Star size={18} />
         </button>

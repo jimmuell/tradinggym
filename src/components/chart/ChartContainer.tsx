@@ -64,6 +64,7 @@ interface ChartContainerProps {
   activeTool?: DrawingTool;
   isCoachMode?: boolean;
   onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
+  onDrawingCountChange?: (count: number) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -98,7 +99,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady, onDrawingCountChange }: ChartContainerProps) {
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -832,6 +833,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         chartApi={chartRef.current}
         seriesApi={candleSeriesRef.current}
         isCoachMode={isCoachMode}
+        onDrawingCountChange={onDrawingCountChange}
       />
 
       {/* Replay positioning overlay — vertical line + ghost */}
