@@ -4,7 +4,7 @@ import {
   BookOpen,
   FlaskConical,
   GraduationCap,
-  FolderOpen,
+  BookOpenCheck,
   BarChart3,
   UserCircle,
   Settings,
