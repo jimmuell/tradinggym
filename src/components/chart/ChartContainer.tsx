@@ -505,6 +505,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           entryPrice: pos.entryPrice,
           exitPrice,
           pnl,
+          pnlTicks,
           result: hitType === 'tp' ? 'win' : 'loss',
           reason: hitType,
         });
