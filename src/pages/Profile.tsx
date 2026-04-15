@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { UserCircle, Mail, Calendar, Shield } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -5,16 +6,48 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const { user } = useAuth();
+  const [displayName, setDisplayName] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.display_name) setDisplayName(data.display_name);
+        setLoading(false);
+      });
+  }, [user]);
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ display_name: displayName })
+      .eq('user_id', user.id);
+    setSaving(false);
+    if (error) {
+      toast.error('Failed to save: ' + error.message);
+    } else {
+      toast.success('Display name saved!');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
       <h1 className="text-3xl font-bold text-foreground mb-8">Profile</h1>
 
       <div className="grid gap-6 max-w-2xl">
-        {/* Avatar & Info */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground">Account Information</CardTitle>
@@ -41,6 +74,9 @@ export default function Profile() {
                 <Input
                   id="displayName"
                   placeholder="Enter your display name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={loading}
                   className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
@@ -55,8 +91,12 @@ export default function Profile() {
               </div>
             </div>
 
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Save Changes
+            <Button
+              onClick={handleSave}
+              disabled={saving || loading}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>
