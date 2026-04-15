@@ -133,6 +133,8 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   } | null>(null);
   const onSLTPDragRef = useRef(onSLTPDrag);
   onSLTPDragRef.current = onSLTPDrag;
+  const onTradeCloseRef = useRef(onTradeClose);
+  onTradeCloseRef.current = onTradeClose;
   const positionsRef = useRef<Position[]>([]);
   positionsRef.current = positions;
 
