@@ -20,6 +20,8 @@ import ReplayControls from './ReplayControls';
 import { SLTPConfig } from './TradeOrderPanel';
 import TradeResultModal, { TradeResult } from './TradeResultModal';
 import { useSettings } from '@/contexts/SettingsContext';
+import DrawingOverlay from './DrawingOverlay';
+import { DrawingTool } from '@/lib/drawingTypes';
 
 interface Position {
   id: string;
@@ -59,6 +61,9 @@ interface ChartContainerProps {
   onRegisterSellHandler?: (handler: ((config: SLTPConfig) => void) | null) => void;
   onSLTPDrag?: (type: 'sl' | 'tp', ticks: number) => void;
   onTradeClose?: (data: TradeCloseData) => void;
+  activeTool?: DrawingTool;
+  isCoachMode?: boolean;
+  onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
