@@ -58,7 +58,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-4 py-4 border-b border-sidebar-border">
           <CandlestickChart className="h-6 w-6 text-primary shrink-0" />
           {!collapsed && (
-            <span className="text-sidebar-foreground font-bold text-lg tracking-tight">TradingGym</span>
+            <span className="text-sidebar-foreground font-bold text-lg tracking-tight"><span className="text-sidebar-foreground font-bold text-lg tracking-tight">TradeGym</span></span>
           )}
         </div>
 
