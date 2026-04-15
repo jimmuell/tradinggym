@@ -66,6 +66,7 @@ interface ChartContainerProps {
   isCoachMode?: boolean;
   onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
   onDrawingCountChange?: (count: number) => void;
+  instrument?: InstrumentKey;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
