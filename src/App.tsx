@@ -45,7 +45,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/simulator" element={<ProtectedRoute><Simulator /></ProtectedRoute>} />
+              <Route path="/simulator" element={<ProtectedRoute><TierProvider><Simulator /></TierProvider></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
               <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
