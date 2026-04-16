@@ -276,7 +276,11 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
         <button
           onClick={() => {
             const config = { slEnabled, tpEnabled, slTicks, tpTicks };
-            tradeSide === 'buy' ? onBuy(config) : onSell(config);
+            if (tradeSide === 'buy') {
+              onBuy(config);
+            } else {
+              onSell(config);
+            }
           }}
           className={`w-full font-semibold py-3 rounded-lg text-base text-white ${
             tradeSide === 'buy' ? 'bg-[#2962ff] hover:bg-[#1e53e5]' : 'bg-[#ef5350] hover:bg-[#d42f3d]'

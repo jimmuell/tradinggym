@@ -142,7 +142,7 @@ export default function Strategies() {
     queryKey: ['strategies', 'system'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('strategies' as any)
+        .from('strategies')
         .select('*')
         .eq('is_system', true)
         .order('created_at');
@@ -156,7 +156,7 @@ export default function Strategies() {
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
-        .from('strategies' as any)
+        .from('strategies')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_system', false)

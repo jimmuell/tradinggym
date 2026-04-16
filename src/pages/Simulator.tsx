@@ -123,7 +123,7 @@ export default function Simulator() {
               activeTool={activeTool}
               onToolChange={setActiveTool}
               drawingCount={drawingCount}
-              onClearAll={() => (window as any).__drawingOverlayClearAll?.()}
+              onClearAll={() => (window as Window & { __drawingOverlayClearAll?: () => void }).__drawingOverlayClearAll?.()}
             />
             <ChartContainer
               timeframe={timeframe}
