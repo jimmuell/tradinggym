@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 export default function Profile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -31,10 +31,10 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (profile?.display_name) {
-      setDisplayName(profile.display_name);
+    if (profile?.display_name !== undefined && displayName === null) {
+      setDisplayName(profile.display_name ?? '');
     }
-  }, [profile]);
+  }, [profile, displayName]);
 
   const mutation = useMutation({
     mutationFn: async (name: string) => {
@@ -52,7 +52,8 @@ export default function Profile() {
     },
   });
 
-  const hasChanged = displayName !== (profile?.display_name ?? '');
+  const currentValue = displayName ?? '';
+  const hasChanged = currentValue !== (profile?.display_name ?? '');
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
@@ -88,7 +89,7 @@ export default function Profile() {
                   <Input
                     id="displayName"
                     placeholder="Enter your display name"
-                    value={displayName}
+                    value={currentValue}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   />
@@ -106,11 +107,11 @@ export default function Profile() {
             </div>
 
             <Button
-              onClick={() => mutation.mutate(displayName)}
+              onClick={() => mutation.mutate(currentValue)}
               disabled={mutation.isPending || isLoading || !hasChanged}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {mutation.isPending ? 'Saving…' : 'Save'}
+              {mutation.isPending ? 'Saving…' : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>
