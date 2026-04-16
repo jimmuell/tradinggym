@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { UserCircle, Mail, Calendar, Shield } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { UserCircle, Mail, Calendar, Shield, Upload, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
+const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+
 export default function Profile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -46,8 +50,6 @@ export default function Profile() {
       return name;
     },
     onSuccess: (savedName) => {
-      // Sync local state to the saved value so the input reflects the change
-      // and hasChanged becomes false immediately.
       setDisplayName(savedName);
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       toast.success('Profile saved');
@@ -57,8 +59,53 @@ export default function Profile() {
     },
   });
 
+  const avatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      if (!user) throw new Error('Not authenticated');
+      if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
+        throw new Error('Please choose a PNG, JPEG, WEBP, or GIF image');
+      }
+      if (file.size > MAX_AVATAR_BYTES) {
+        throw new Error('Image must be 2MB or smaller');
+      }
+
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { cacheControl: '3600', upsert: true, contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(path);
+      const publicUrl = publicUrlData.publicUrl;
+
+      const { error: rpcError } = await supabase.rpc('update_own_profile', {
+        p_avatar_url: publicUrl,
+      });
+      if (rpcError) throw rpcError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      toast.success('Avatar updated');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Failed to upload avatar');
+    },
+  });
+
+  const handleAvatarFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset input so picking the same file again still triggers change
+    e.target.value = '';
+    if (file) avatarMutation.mutate(file);
+  };
+
   const currentValue = displayName ?? '';
   const hasChanged = displayName !== null && currentValue !== (profile?.display_name ?? '');
+  const avatarUrl = profile?.avatar_url ?? null;
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
@@ -74,12 +121,46 @@ export default function Profile() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center">
-                <UserCircle className="h-10 w-10 text-muted-foreground" />
+              <div className="relative h-16 w-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Profile avatar"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserCircle className="h-10 w-10 text-muted-foreground" />
+                )}
+                {avatarMutation.isPending && (
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-foreground" />
+                  </div>
+                )}
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-foreground font-medium">{user?.email ?? 'trader@example.com'}</p>
                 <p className="text-sm text-muted-foreground">Free Plan</p>
+                <div className="mt-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    onChange={handleAvatarFileSelected}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={avatarMutation.isPending || !user}
+                    className="border-border text-foreground hover:bg-accent"
+                  >
+                    <Upload className="h-3.5 w-3.5 mr-2" />
+                    {avatarMutation.isPending ? 'Uploading…' : avatarUrl ? 'Change avatar' : 'Upload avatar'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">PNG, JPEG, WEBP or GIF · max 2MB</p>
+                </div>
               </div>
             </div>
 
