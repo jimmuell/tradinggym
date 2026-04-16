@@ -144,25 +144,39 @@ export function AppSidebar() {
       <SidebarFooter className="bg-sidebar p-3">
         <div className="border-t border-sidebar-border pt-3 mb-2">
           <SidebarMenu>
-            {bottomItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to={item.url}
-                    end
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                      isActive(item.url)
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                        : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                    }`}
-                    activeClassName=""
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {bottomItems.map((item) => {
+              const isProfile = item.url === '/profile';
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                        isActive(item.url)
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                      }`}
+                      activeClassName=""
+                    >
+                      {isProfile ? (
+                        <Avatar className="h-5 w-5 shrink-0">
+                          {profile?.avatar_url && (
+                            <AvatarImage src={profile.avatar_url} alt={profile?.display_name || 'Profile'} />
+                          )}
+                          <AvatarFallback className="text-[10px] bg-sidebar-accent text-sidebar-accent-foreground">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <item.icon className="h-4 w-4 shrink-0" />
+                      )}
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </div>
         <div className="border-t border-sidebar-border pt-3">
