@@ -50,7 +50,7 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
     startY?: number;
   } | null>(null);
 
-  const [textInput, setTextInput] = useState<{ x: number; y: number; time: number; price: number } | null>(null);
+  const [textInput, setTextInput] = useState<{ x: number; y: number; time: Logical; price: number } | null>(null);
   const [textValue, setTextValue] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,11 +70,11 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
 
   // Expose clearAll method
   useEffect(() => {
-    (window as any).__drawingOverlayClearAll = () => {
+    (window as Window & { __drawingOverlayClearAll?: () => void }).__drawingOverlayClearAll = () => {
       setDrawings([]);
       setSelectedId(null);
     };
-    return () => { delete (window as any).__drawingOverlayClearAll; };
+    return () => { delete (window as Window & { __drawingOverlayClearAll?: () => void }).__drawingOverlayClearAll; };
   }, []);
 
   const priceToY = useCallback((price: number) => {
@@ -461,17 +461,18 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
       setDrawings(prev => prev.map(d => {
         if (d.id !== drag.drawingId) return d;
         if (d.type === 'horizontal') {
-          const origY = priceToY((orig as any).price);
+          if (orig.type !== 'horizontal') return d;
+          const origY = priceToY(orig.price);
           if (origY == null) return d;
           const newPrice = yToPrice(origY + dy);
           if (newPrice == null) return d;
           return { ...d, price: snap(newPrice) };
         } else if (d.type === 'trendline') {
-          const o = orig as any;
-          const origY1 = priceToY(o.startPrice);
-          const origY2 = priceToY(o.endPrice);
-          const origX1 = timeToX(o.startTime);
-          const origX2 = timeToX(o.endTime);
+          if (orig.type !== 'trendline') return d;
+          const origY1 = priceToY(orig.startPrice);
+          const origY2 = priceToY(orig.endPrice);
+          const origX1 = timeToX(orig.startTime);
+          const origX2 = timeToX(orig.endTime);
           if (origY1 == null || origY2 == null || origX1 == null || origX2 == null) return d;
           const newP1 = yToPrice(origY1 + dy);
           const newP2 = yToPrice(origY2 + dy);
@@ -480,11 +481,11 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
           if (newP1 == null || newP2 == null || newT1 == null || newT2 == null) return d;
           return { ...d, startPrice: snap(newP1), endPrice: snap(newP2), startTime: newT1, endTime: newT2 };
         } else if (d.type === 'rectangle') {
-          const o = orig as any;
-          const origY1 = priceToY(o.startPrice);
-          const origY2 = priceToY(o.endPrice);
-          const origX1 = timeToX(o.startTime);
-          const origX2 = timeToX(o.endTime);
+          if (orig.type !== 'rectangle') return d;
+          const origY1 = priceToY(orig.startPrice);
+          const origY2 = priceToY(orig.endPrice);
+          const origX1 = timeToX(orig.startTime);
+          const origX2 = timeToX(orig.endTime);
           if (origY1 == null || origY2 == null || origX1 == null || origX2 == null) return d;
           const newP1 = yToPrice(origY1 + dy);
           const newP2 = yToPrice(origY2 + dy);
@@ -493,9 +494,9 @@ export default function DrawingOverlay({ activeTool, chartApi, seriesApi, isCoac
           if (newP1 == null || newP2 == null || newT1 == null || newT2 == null) return d;
           return { ...d, startPrice: newP1, endPrice: newP2, startTime: newT1, endTime: newT2 };
         } else if (d.type === 'text') {
-          const o = orig as any;
-          const origY = priceToY(o.price);
-          const origX = timeToX(o.time);
+          if (orig.type !== 'text') return d;
+          const origY = priceToY(orig.price);
+          const origX = timeToX(orig.time);
           if (origY == null || origX == null) return d;
           const newP = yToPrice(origY + dy);
           const newT = xToLogical(origX + dx);
