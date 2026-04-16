@@ -60,7 +60,7 @@ export default function StrategyDetailPage() {
     queryKey: ['strategy', id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('strategies' as any)
+        .from('strategies')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -93,7 +93,19 @@ export default function StrategyDetailPage() {
     mutationFn: async () => {
       if (!form.name.trim()) throw new Error('Name is required');
       if (isNew) {
-        const payload: any = {
+        const payload: {
+          user_id: string;
+          name: string;
+          description: string | null;
+          notes: string | null;
+          is_system: boolean;
+          tier_required: string;
+          instrument?: string | null;
+          timeframe?: string | null;
+          direction_bias?: string | null;
+          entry_rules?: string | null;
+          exit_rules?: string | null;
+        } = {
           user_id: user!.id,
           name: form.name.trim(),
           description: form.description || null,
@@ -109,15 +121,15 @@ export default function StrategyDetailPage() {
           payload.exit_rules = form.exit_rules || null;
         }
         const { data, error } = await supabase
-          .from('strategies' as any)
+          .from('strategies')
           .insert(payload)
           .select('id')
           .single();
         if (error) throw error;
-        return (data as any).id as string;
+        return (data as { id: string }).id;
       } else {
         const { error } = await supabase
-          .from('strategies' as any)
+          .from('strategies')
           .update({
             name: form.name.trim(),
             description: form.description || null,
@@ -127,7 +139,7 @@ export default function StrategyDetailPage() {
             entry_rules: form.entry_rules || null,
             exit_rules: form.exit_rules || null,
             notes: form.notes || null,
-          } as any)
+          })
           .eq('id', id!);
         if (error) throw error;
         return null;
@@ -151,7 +163,7 @@ export default function StrategyDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
-        .from('strategies' as any)
+        .from('strategies')
         .delete()
         .eq('id', id!);
       if (error) throw error;
