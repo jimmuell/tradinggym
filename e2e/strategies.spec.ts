@@ -1,7 +1,23 @@
 import { test, expect } from '../playwright-fixture';
 
 test.describe('Strategy CRUD lifecycle', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({ mode: 'serial', timeout: 60000 });
+
+  const testEmail = 'your-test-email@example.com';
+  const testPassword = 'your-test-password';
+
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await page.goto('/auth');
+    await page.getByLabel(/email/i).fill(testEmail);
+    await page.getByLabel(/password/i).fill(testPassword);
+    await page.getByRole('button', { name: /sign in/i }).click();
+    await page.waitForURL(/(?!.*\/auth).*/, { timeout: 15000 });
+    await page.context().storageState({ path: '/tmp/auth-state.json' });
+    await page.close();
+  });
+
+  test.use({ storageState: '/tmp/auth-state.json' });
 
   const strategyName = `E2E Test Strategy ${Date.now()}`;
   const renamedName = `E2E Renamed ${Date.now()}`;
