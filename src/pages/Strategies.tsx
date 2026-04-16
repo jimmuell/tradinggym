@@ -1,73 +1,86 @@
-import HelpSheet from '@/components/HelpSheet';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTier, TierState } from '@/contexts/TierContext';
+import HelpSheet from '@/components/HelpSheet';
 
-const builtInStrategies = [
-  {
-    id: 'orb',
-    name: 'Opening Range Breakout (ORB)',
-    description: 'Trade breakouts above/below the opening range established in the first 5–30 minutes of the session.',
-    tier: 'Foundation',
-    steps: 5,
-    winRate: '58%',
-    avgRR: '1.8:1',
-    tags: ['Momentum', 'Intraday'],
-    locked: false,
-  },
-  {
-    id: 'amd',
-    name: 'Accumulation / Manipulation / Distribution (AMD)',
-    description: 'Identify smart money phases: accumulation zones, stop hunts (manipulation), and distribution moves.',
-    tier: 'Foundation',
-    steps: 6,
-    winRate: '62%',
-    avgRR: '2.1:1',
-    tags: ['Smart Money', 'Intraday'],
-    locked: false,
-  },
-  {
-    id: 'vwap-reversion',
-    name: 'VWAP Mean Reversion',
-    description: 'Fade extended moves away from VWAP, targeting a return to the volume-weighted average price.',
-    tier: 'Tier 1',
-    steps: 4,
-    winRate: '55%',
-    avgRR: '1.5:1',
-    tags: ['Mean Reversion', 'Intraday'],
-    locked: true,
-  },
-  {
-    id: 'trend-continuation',
-    name: 'Trend Continuation Pullback',
-    description: 'Enter on pullbacks within a confirmed trend using moving averages and structure breaks.',
-    tier: 'Tier 2',
-    steps: 5,
-    winRate: '52%',
-    avgRR: '2.5:1',
-    tags: ['Trend Following', 'Swing'],
-    locked: true,
-  },
-];
+interface Strategy {
+  id: string;
+  user_id: string | null;
+  name: string;
+  description: string | null;
+  instrument: string | null;
+  timeframe: string | null;
+  direction_bias: string | null;
+  entry_rules: string | null;
+  exit_rules: string | null;
+  notes: string | null;
+  is_system: boolean;
+  tier_required: string;
+  created_at: string;
+}
 
-const tierColors: Record<string, string> = {
-  Foundation: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  'Tier 1': 'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  'Tier 2': 'bg-purple-500/15 text-purple-400 border-purple-500/30',
-  'Tier 3': 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+const tierBadgeColors: Record<string, string> = {
+  foundation: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  tier1: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  tier2: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+  tier3: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
 };
 
-function StrategyCard({ strategy }: { strategy: typeof builtInStrategies[0] }) {
+const tierLabels: Record<string, string> = {
+  foundation: 'Foundation',
+  tier1: 'Tier 1',
+  tier2: 'Tier 2',
+  tier3: 'Tier 3',
+};
+
+function StrategyCardSkeleton() {
   return (
-    <Card className={`group relative transition-all hover:shadow-md ${strategy.locked ? 'opacity-60' : 'hover:border-primary/30'}`}>
-      {strategy.locked && (
+    <Card>
+      <CardHeader className="pb-3">
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-full mt-2" />
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-12" />
+          <Skeleton className="h-5 w-10" />
+          <Skeleton className="h-5 w-14" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StrategyCard({
+  strategy,
+  locked,
+  onClick,
+}: {
+  strategy: Strategy;
+  locked: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Card
+      className={`group relative transition-all cursor-pointer ${locked ? 'opacity-50' : 'hover:border-primary/30 hover:shadow-md'}`}
+      onClick={onClick}
+    >
+      {locked && (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-[1px]">
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <Lock className="h-6 w-6" />
-            <span className="text-sm font-medium">Unlocks at {strategy.tier}</span>
+            <span className="text-sm font-medium">
+              Complete {tierLabels[strategy.tier_required] || strategy.tier_required} to unlock
+            </span>
           </div>
         </div>
       )}
@@ -75,52 +88,101 @@ function StrategyCard({ strategy }: { strategy: typeof builtInStrategies[0] }) {
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5">
             <CardTitle className="text-base leading-snug">{strategy.name}</CardTitle>
-            <CardDescription className="text-sm leading-relaxed">{strategy.description}</CardDescription>
+            <CardDescription className="text-sm leading-relaxed line-clamp-2">
+              {strategy.description}
+            </CardDescription>
           </div>
-          <Badge variant="outline" className={`shrink-0 text-xs ${tierColors[strategy.tier] || ''}`}>
-            {strategy.tier}
-          </Badge>
+          {strategy.tier_required !== 'foundation' && (
+            <Badge
+              variant="outline"
+              className={`shrink-0 text-xs ${tierBadgeColors[strategy.tier_required] || ''}`}
+            >
+              {tierLabels[strategy.tier_required]}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5" />
-            {strategy.steps} steps
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Target className="h-3.5 w-3.5" />
-            {strategy.winRate} win rate
-          </span>
-          <span className="flex items-center gap-1.5">
-            <BarChart3 className="h-3.5 w-3.5" />
-            {strategy.avgRR} R:R
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+          {strategy.instrument && (
+            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              {strategy.instrument}
+            </Badge>
+          )}
+          {strategy.timeframe && (
+            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              {strategy.timeframe}
+            </Badge>
+          )}
+          {strategy.direction_bias && (
+            <Badge variant="secondary" className="text-xs px-2 py-0.5">
+              {strategy.direction_bias}
+            </Badge>
+          )}
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex gap-1.5">
-            {strategy.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-          {!strategy.locked && (
+        {!locked && (
+          <div className="flex justify-end mt-3">
             <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
               View Details <ChevronRight className="h-3.5 w-3.5" />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export default function Strategies() {
-  const [activeTab, setActiveTab] = useState('built-in');
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isUnlocked, currentTier } = useTier();
+  const { toast } = useToast();
+
+  const { data: systemStrategies, isLoading: loadingSystem } = useQuery({
+    queryKey: ['strategies', 'system'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('strategies' as any)
+        .select('*')
+        .eq('is_system', true)
+        .order('created_at');
+      if (error) throw error;
+      return (data || []) as unknown as Strategy[];
+    },
+  });
+
+  const { data: userStrategies, isLoading: loadingUser } = useQuery({
+    queryKey: ['strategies', 'user', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('strategies' as any)
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_system', false)
+        .order('created_at');
+      if (error) throw error;
+      return (data || []) as unknown as Strategy[];
+    },
+    enabled: !!user,
+  });
+
+  const isFoundation = currentTier === 'foundation';
+  const atCap = isFoundation && (userStrategies?.length ?? 0) >= 1;
+
+  const handleCardClick = (strategy: Strategy, locked: boolean) => {
+    if (locked) {
+      toast({
+        title: 'Strategy Locked',
+        description: `Complete ${tierLabels[strategy.tier_required] || strategy.tier_required} to unlock this strategy.`,
+      });
+      return;
+    }
+    navigate(`/strategies/${strategy.id}`);
+  };
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="p-6 space-y-8 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -132,44 +194,91 @@ export default function Strategies() {
             Browse proven trading strategies or create your own playbook.
           </p>
         </div>
-        <HelpSheet pageName="Strategies" />
+        <div className="flex items-center gap-2">
+          <HelpSheet pageName="Strategies" />
+          {atCap ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button disabled className="gap-2 cursor-not-allowed">
+                    <Plus className="h-4 w-4" />
+                    New Strategy
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Upgrade to Pro to create unlimited strategies</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button className="gap-2" onClick={() => navigate('/strategies/new')}>
+              <Plus className="h-4 w-4" />
+              New Strategy
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="built-in">Built-in Templates</TabsTrigger>
-          <TabsTrigger value="my-strategies">My Strategies</TabsTrigger>
-        </TabsList>
+      {/* TradeGYM Strategies */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">TradeGYM Strategies</h2>
+        {loadingSystem ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => <StrategyCardSkeleton key={i} />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {systemStrategies?.map((s) => {
+              const locked = !isUnlocked(s.tier_required as TierState);
+              return (
+                <StrategyCard
+                  key={s.id}
+                  strategy={s}
+                  locked={locked}
+                  onClick={() => handleCardClick(s, locked)}
+                />
+              );
+            })}
+          </div>
+        )}
+      </section>
 
-        {/* Built-in Templates */}
-        <TabsContent value="built-in" className="mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {builtInStrategies.map((strategy) => (
-              <StrategyCard key={strategy.id} strategy={strategy} />
+      {/* My Strategies */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-foreground">My Strategies</h2>
+        {loadingUser ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <StrategyCardSkeleton />
+          </div>
+        ) : userStrategies && userStrategies.length > 0 ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {userStrategies.map((s) => (
+              <StrategyCard
+                key={s.id}
+                strategy={s}
+                locked={false}
+                onClick={() => navigate(`/strategies/${s.id}`)}
+              />
             ))}
           </div>
-        </TabsContent>
-
-        {/* My Strategies */}
-        <TabsContent value="my-strategies" className="mt-4">
+        ) : (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Custom Strategies Yet</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No Strategies Yet</h3>
               <p className="text-sm text-muted-foreground max-w-md mb-6">
-                Create your own strategy playbook by defining entry rules, exit criteria, and risk parameters. Start from scratch or customize a built-in template.
+                Create your first strategy to document your trading rules.
               </p>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Strategy
-              </Button>
+              {!atCap && (
+                <Button className="gap-2" onClick={() => navigate('/strategies/new')}>
+                  <Plus className="h-4 w-4" />
+                  Create Strategy
+                </Button>
+              )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </section>
     </div>
   );
 }

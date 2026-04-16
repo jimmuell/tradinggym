@@ -47,6 +47,54 @@ export type Database = {
         }
         Relationships: []
       }
+      strategies: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          direction_bias: string | null
+          entry_rules: string | null
+          exit_rules: string | null
+          id: string
+          instrument: string | null
+          is_system: boolean | null
+          name: string
+          notes: string | null
+          tier_required: string | null
+          timeframe: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          direction_bias?: string | null
+          entry_rules?: string | null
+          exit_rules?: string | null
+          id?: string
+          instrument?: string | null
+          is_system?: boolean | null
+          name: string
+          notes?: string | null
+          tier_required?: string | null
+          timeframe?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          direction_bias?: string | null
+          entry_rules?: string | null
+          exit_rules?: string | null
+          id?: string
+          instrument?: string | null
+          is_system?: boolean | null
+          name?: string
+          notes?: string | null
+          tier_required?: string | null
+          timeframe?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           closed_at: string | null
