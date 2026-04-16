@@ -43,10 +43,12 @@ export default function Profile() {
         p_display_name: name,
       });
       if (error) throw error;
+      return name;
     },
-    onSuccess: () => {
-      // Reset to null so useEffect re-initializes from fresh query data
-      setDisplayName(null);
+    onSuccess: (savedName) => {
+      // Sync local state to the saved value so the input reflects the change
+      // and hasChanged becomes false immediately.
+      setDisplayName(savedName);
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       toast.success('Profile saved');
     },
