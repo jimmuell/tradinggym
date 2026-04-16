@@ -31,6 +31,7 @@ const TierContext = createContext<TierContextType>({
   loading: true,
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTier = () => useContext(TierContext);
 
 export function TierProvider({ children }: { children: ReactNode }) {
@@ -71,6 +72,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [isUnlocked],
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const setTierState = useCallback(
     async (tier: TierState) => {
       setCurrentTier(tier);

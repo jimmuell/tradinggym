@@ -17,6 +17,7 @@ const SettingsContext = createContext<SettingsContextType>({
   setChartTheme: () => {},
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSettings = () => useContext(SettingsContext);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
