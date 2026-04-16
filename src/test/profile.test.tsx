@@ -3,18 +3,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Profile from '@/pages/Profile'
 
+type SupabaseMockResult = { data: { display_name: string; avatar_url: null } | null; error: { message: string } | null }
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
         eq: vi.fn(() => ({
-          single: vi.fn(() =>
+          single: vi.fn((): Promise<SupabaseMockResult> =>
             Promise.resolve({ data: { display_name: 'Jim', avatar_url: null }, error: null })
           ),
         })),
       })),
     })),
-    rpc: vi.fn(() => Promise.resolve({ error: null })),
+    rpc: vi.fn((): Promise<{ error: null }> => Promise.resolve({ error: null })),
   },
 }))
 
@@ -99,7 +101,7 @@ describe('Profile — display name', () => {
   it('shows error toast when RPC fails', async () => {
     const { supabase } = await import('@/integrations/supabase/client')
     const { toast } = await import('sonner')
-    vi.mocked(supabase.rpc).mockResolvedValueOnce({ error: { message: 'fail' } } as any)
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ error: { message: 'fail' } } as { error: null })
     renderProfile()
     const input = await screen.findByDisplayValue('Jim')
     fireEvent.change(input, { target: { value: 'Jimmy' } })
@@ -111,7 +113,7 @@ describe('Profile — display name', () => {
 
   it('Save button is disabled while mutation is in flight', async () => {
     const { supabase } = await import('@/integrations/supabase/client')
-    vi.mocked(supabase.rpc).mockReturnValueOnce(new Promise(() => {}) as any)
+    vi.mocked(supabase.rpc).mockReturnValueOnce(new Promise(() => {}) as Promise<{ error: null }>)
     renderProfile()
     const input = await screen.findByDisplayValue('Jim')
     fireEvent.change(input, { target: { value: 'Jimmy' } })
