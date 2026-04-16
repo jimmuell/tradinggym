@@ -17,6 +17,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Sidebar,
   SidebarContent,
@@ -60,6 +63,25 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { canAccess } = useTier();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const initials = (profile?.display_name || user?.email || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -122,25 +144,39 @@ export function AppSidebar() {
       <SidebarFooter className="bg-sidebar p-3">
         <div className="border-t border-sidebar-border pt-3 mb-2">
           <SidebarMenu>
-            {bottomItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to={item.url}
-                    end
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                      isActive(item.url)
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                        : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                    }`}
-                    activeClassName=""
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span>{item.title}</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {bottomItems.map((item) => {
+              const isProfile = item.url === '/profile';
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                        isActive(item.url)
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                      }`}
+                      activeClassName=""
+                    >
+                      {isProfile ? (
+                        <Avatar className="h-5 w-5 shrink-0">
+                          {profile?.avatar_url && (
+                            <AvatarImage src={profile.avatar_url} alt={profile?.display_name || 'Profile'} />
+                          )}
+                          <AvatarFallback className="text-[10px] bg-sidebar-accent text-sidebar-accent-foreground">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <item.icon className="h-4 w-4 shrink-0" />
+                      )}
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
           </SidebarMenu>
         </div>
         <div className="border-t border-sidebar-border pt-3">
