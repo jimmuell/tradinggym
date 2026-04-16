@@ -30,9 +30,10 @@ export default function Profile() {
     enabled: !!user,
   });
 
+  // Initialize displayName from fetched profile — only when null (not yet set or after reset)
   useEffect(() => {
-    if (profile?.display_name !== undefined && displayName === null) {
-      setDisplayName(profile.display_name ?? '');
+    if (profile !== undefined && displayName === null) {
+      setDisplayName(profile?.display_name ?? '');
     }
   }, [profile, displayName]);
 
@@ -44,6 +45,8 @@ export default function Profile() {
       if (error) throw error;
     },
     onSuccess: () => {
+      // Reset to null so useEffect re-initializes from fresh query data
+      setDisplayName(null);
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       toast.success('Profile saved');
     },
@@ -53,7 +56,7 @@ export default function Profile() {
   });
 
   const currentValue = displayName ?? '';
-  const hasChanged = currentValue !== (profile?.display_name ?? '');
+  const hasChanged = displayName !== null && currentValue !== (profile?.display_name ?? '');
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
@@ -83,7 +86,7 @@ export default function Profile() {
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
-                {isLoading ? (
+                {isLoading || displayName === null ? (
                   <Skeleton className="h-10 w-full" />
                 ) : (
                   <Input
