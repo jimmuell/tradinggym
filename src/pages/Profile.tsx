@@ -89,7 +89,7 @@ export default function Profile() {
                   <Input
                     id="displayName"
                     placeholder="Enter your display name"
-                    value={displayName}
+                    value={currentValue}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="bg-background border-border text-foreground placeholder:text-muted-foreground"
                   />
@@ -107,11 +107,11 @@ export default function Profile() {
             </div>
 
             <Button
-              onClick={() => mutation.mutate(displayName)}
+              onClick={() => mutation.mutate(currentValue)}
               disabled={mutation.isPending || isLoading || !hasChanged}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {mutation.isPending ? 'Saving…' : 'Save'}
+              {mutation.isPending ? 'Saving…' : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>
