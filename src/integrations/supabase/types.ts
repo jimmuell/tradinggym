@@ -160,7 +160,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_own_profile: {
+        Args: { p_avatar_url?: string; p_display_name?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
