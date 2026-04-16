@@ -74,12 +74,6 @@ export function TierProvider({ children }: { children: ReactNode }) {
   const setTierState = useCallback(
     async (tier: TierState) => {
       setCurrentTier(tier);
-      if (user) {
-        await supabase
-          .from('profiles')
-          .update({ tier_state: tier } as any)
-          .eq('user_id', user.id);
-      }
     },
     [user],
   );
