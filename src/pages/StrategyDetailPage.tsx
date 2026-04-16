@@ -255,8 +255,8 @@ export default function StrategyDetailPage() {
 
       {/* System banner */}
       {isSystem && (
-        <Card className="border-blue-500/30 bg-blue-500/5">
-          <CardContent className="py-3 text-sm text-blue-400">
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-3 text-sm text-primary">
             This is a TradeGYM strategy. Create your own to customise the rules.
           </CardContent>
         </Card>
