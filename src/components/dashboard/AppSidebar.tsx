@@ -64,6 +64,25 @@ export function AppSidebar() {
   const { signOut, user } = useAuth();
   const { canAccess } = useTier();
 
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const initials = (profile?.display_name || user?.email || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase();
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
