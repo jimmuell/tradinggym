@@ -5,7 +5,8 @@ export default defineConfig({
   fullyParallel: false,
   retries: 0,
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || "https://id-preview--b6ddf0f1-bdc6-4f0d-8935-25a10ca87691.lovable.app",
+    baseURL:
+      process.env.PLAYWRIGHT_BASE_URL || "https://keen-chart-clone.lovable.app",
     trace: "on-first-retry",
   },
 });
