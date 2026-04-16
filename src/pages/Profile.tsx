@@ -31,10 +31,10 @@ export default function Profile() {
   });
 
   useEffect(() => {
-    if (profile?.display_name) {
-      setDisplayName(profile.display_name);
+    if (profile?.display_name !== undefined && displayName === null) {
+      setDisplayName(profile.display_name ?? '');
     }
-  }, [profile]);
+  }, [profile, displayName]);
 
   const mutation = useMutation({
     mutationFn: async (name: string) => {
@@ -52,7 +52,8 @@ export default function Profile() {
     },
   });
 
-  const hasChanged = displayName !== (profile?.display_name ?? '');
+  const currentValue = displayName ?? '';
+  const hasChanged = currentValue !== (profile?.display_name ?? '');
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
