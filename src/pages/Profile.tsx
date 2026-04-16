@@ -5,42 +5,54 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export default function Profile() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user!.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('profiles')
-      .select('display_name')
-      .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data?.display_name) setDisplayName(data.display_name);
-        setLoading(false);
-      });
-  }, [user]);
-
-  const handleSave = async () => {
-    if (!user) return;
-    setSaving(true);
-    const { error } = await supabase.rpc('update_own_profile', {
-      p_display_name: displayName,
-    });
-    setSaving(false);
-    if (error) {
-      toast.error('Failed to save: ' + error.message);
-    } else {
-      toast.success('Display name saved!');
+    if (profile?.display_name) {
+      setDisplayName(profile.display_name);
     }
-  };
+  }, [profile]);
+
+  const mutation = useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase.rpc('update_own_profile', {
+        p_display_name: name,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      toast.success('Profile saved');
+    },
+    onError: () => {
+      toast.error('Failed to save profile — please try again');
+    },
+  });
+
+  const hasChanged = displayName !== (profile?.display_name ?? '');
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
@@ -70,14 +82,17 @@ export default function Profile() {
             <div className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="displayName" className="text-foreground">Display Name</Label>
-                <Input
-                  id="displayName"
-                  placeholder="Enter your display name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  disabled={loading}
-                  className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                />
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : (
+                  <Input
+                    id="displayName"
+                    placeholder="Enter your display name"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                  />
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email" className="text-foreground">Email</Label>
@@ -91,11 +106,11 @@ export default function Profile() {
             </div>
 
             <Button
-              onClick={handleSave}
-              disabled={saving || loading}
+              onClick={() => mutation.mutate(displayName)}
+              disabled={mutation.isPending || isLoading || !hasChanged}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {saving ? 'Saving…' : 'Save Changes'}
+              {mutation.isPending ? 'Saving…' : 'Save'}
             </Button>
           </CardContent>
         </Card>
