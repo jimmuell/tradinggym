@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import ProfilePage from '@/pages/ProfilePage'
+import Profile from '@/pages/Profile'
 
-vi.mock('@/lib/supabaseClient', () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
@@ -38,17 +38,17 @@ function renderProfile() {
   const client = makeClient()
   return render(
     <QueryClientProvider client={client}>
-      <ProfilePage />
+      <Profile />
     </QueryClientProvider>
   )
 }
 
-describe('ProfilePage — display name', () => {
+describe('Profile — display name', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('shows skeleton while profile is loading', () => {
     renderProfile()
-    expect(document.querySelector('[data-testid="display-name-skeleton"], .animate-pulse')).toBeTruthy()
+    expect(document.querySelector('.animate-pulse')).toBeTruthy()
   })
 
   it('populates input with fetched display name', async () => {
@@ -73,7 +73,7 @@ describe('ProfilePage — display name', () => {
   })
 
   it('calls update_own_profile RPC on save', async () => {
-    const { supabase } = await import('@/lib/supabaseClient')
+    const { supabase } = await import('@/integrations/supabase/client')
     renderProfile()
     const input = await screen.findByDisplayValue('Jim')
     fireEvent.change(input, { target: { value: 'Jimmy' } })
@@ -97,7 +97,7 @@ describe('ProfilePage — display name', () => {
   })
 
   it('shows error toast when RPC fails', async () => {
-    const { supabase } = await import('@/lib/supabaseClient')
+    const { supabase } = await import('@/integrations/supabase/client')
     const { toast } = await import('sonner')
     vi.mocked(supabase.rpc).mockResolvedValueOnce({ error: { message: 'fail' } } as any)
     renderProfile()
@@ -110,7 +110,7 @@ describe('ProfilePage — display name', () => {
   })
 
   it('Save button is disabled while mutation is in flight', async () => {
-    const { supabase } = await import('@/lib/supabaseClient')
+    const { supabase } = await import('@/integrations/supabase/client')
     vi.mocked(supabase.rpc).mockReturnValueOnce(new Promise(() => {}) as any)
     renderProfile()
     const input = await screen.findByDisplayValue('Jim')
