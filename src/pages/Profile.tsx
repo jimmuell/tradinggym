@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 export default function Profile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
