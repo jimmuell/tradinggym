@@ -31,10 +31,9 @@ export default function Profile() {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ display_name: displayName })
-      .eq('user_id', user.id);
+    const { error } = await supabase.rpc('update_own_profile', {
+      p_display_name: displayName,
+    });
     setSaving(false);
     if (error) {
       toast.error('Failed to save: ' + error.message);
