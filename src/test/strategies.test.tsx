@@ -39,15 +39,27 @@ vi.mock('@/contexts/TierContext', () => ({
     setTierState: vi.fn(),
     loading: false,
   }),
-  TierProvider: ({ children }: any) => children,
+  TierProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-// Mock supabase — return data based on query chain
+type ChainResult = { data: null; error: null };
+type Chain = {
+  select: (...args: string[]) => Chain;
+  eq: () => Chain;
+  order: () => Chain;
+  maybeSingle: () => Chain;
+  single: () => Chain;
+  insert: () => Chain;
+  update: () => Chain;
+  delete: () => Chain;
+  then: (resolve: (result: ChainResult) => void) => void;
+};
+
 const mockSelect = vi.fn();
 vi.mock('@/integrations/supabase/client', () => {
-  const chainable = () => {
-    const chain: any = {
-      select: (...args: any[]) => { mockSelect(...args); return chain; },
+  const chainable = (): Chain => {
+    const chain: Chain = {
+      select: (...args: string[]) => { mockSelect(...args); return chain; },
       eq: () => chain,
       order: () => chain,
       maybeSingle: () => chain,
@@ -55,7 +67,7 @@ vi.mock('@/integrations/supabase/client', () => {
       insert: () => chain,
       update: () => chain,
       delete: () => chain,
-      then: (resolve: any) => resolve({ data: null, error: null }),
+      then: (resolve: (result: ChainResult) => void) => resolve({ data: null, error: null }),
     };
     return chain;
   };
@@ -82,8 +94,8 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 // ---------- Tier lock tests (Strategies page) ----------
 
-// For tier lock tests we need to mock the react-query data directly
-// since the supabase mock returns null. We'll mock useQuery instead for these tests.
+type QueryOpts = { queryKey?: string[] };
+
 const mockSystemStrategies = [
   {
     id: '1',
@@ -121,7 +133,7 @@ vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual('@tanstack/react-query');
   return {
     ...actual,
-    useQuery: (opts: any) => {
+    useQuery: (opts: QueryOpts) => {
       if (opts.queryKey?.[0] === 'strategies' && opts.queryKey?.[1] === 'system') {
         return { data: mockSystemStrategies, isLoading: false };
       }
@@ -158,7 +170,6 @@ describe('Strategies — Tier lock logic', () => {
 
     expect(screen.getByText('Complete Tier 1 to unlock')).toBeInTheDocument();
     expect(screen.getByText('Complete Tier 2 to unlock')).toBeInTheDocument();
-    // No "View Details" buttons should be visible
     expect(screen.queryByText('View Details')).not.toBeInTheDocument();
   });
 
@@ -167,9 +178,7 @@ describe('Strategies — Tier lock logic', () => {
     const Strategies = (await import('@/pages/Strategies')).default;
     render(<Strategies />, { wrapper });
 
-    // tier1 strategy should be unlocked — View Details visible
     expect(screen.getByText('View Details')).toBeInTheDocument();
-    // tier2 strategy should still be locked
     expect(screen.getByText('Complete Tier 2 to unlock')).toBeInTheDocument();
   });
 
@@ -195,12 +204,10 @@ describe('StrategyDetailPage — Field gating', () => {
     const StrategyDetailPage = (await import('@/pages/StrategyDetailPage')).default;
     render(<StrategyDetailPage />, { wrapper });
 
-    // Name field should exist and be editable
     const nameInput = screen.getByPlaceholderText('Strategy name');
     expect(nameInput).toBeInTheDocument();
     expect(nameInput).not.toHaveAttribute('readonly');
 
-    // "Upgrade to Pro to unlock" should appear for 5 gated fields
     const upgradeTexts = screen.getAllByText('Upgrade to Pro to unlock');
     expect(upgradeTexts).toHaveLength(5);
   });
@@ -212,8 +219,6 @@ describe('StrategyDetailPage — Field gating', () => {
 
     expect(screen.getByPlaceholderText('Strategy name')).toBeInTheDocument();
     expect(screen.queryByText('Upgrade to Pro to unlock')).not.toBeInTheDocument();
-
-    // Pro fields should be rendered
     expect(screen.getByPlaceholderText('e.g. MES, NQ, ES')).toBeInTheDocument();
   });
 });
