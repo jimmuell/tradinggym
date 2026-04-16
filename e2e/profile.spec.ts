@@ -3,12 +3,10 @@ import { test, expect } from '@playwright/test'
 test.describe('Profile Save — P15', () => {
   test.describe.configure({ mode: 'serial' })
 
-  // Reuse auth state saved by strategies.spec.ts beforeAll
   test.use({ storageState: 'e2e/.auth.json' })
 
   test('profile page loads with display name populated', async ({ page }) => {
     await page.goto('/profile')
-    // Wait for the skeleton to disappear and input to have a value
     const input = page.locator('input#displayName')
     await expect(input).not.toHaveValue('', { timeout: 10000 })
     const value = await input.inputValue()
