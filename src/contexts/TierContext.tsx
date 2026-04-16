@@ -72,13 +72,12 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [isUnlocked],
   );
 
-  // user intentionally omitted — setTierState only updates local state, not DB
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Empty dep array is intentional — setTierState only updates local React state
   const setTierState = useCallback(
     async (tier: TierState) => {
       setCurrentTier(tier);
     },
-    [], // eslint-disable-line react-hooks/exhaustive-deps
+    [],
   );
 
   return (
