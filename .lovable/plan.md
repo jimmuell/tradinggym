@@ -1,50 +1,42 @@
 
 
-# P14 Tests — Vitest + Playwright
+# Fix Two Security Vulnerabilities
 
-## Vitest — `src/test/strategies.test.tsx`
+## Summary
 
-**Approach:** Since `StrategyCard` is a local function inside `Strategies.tsx` (not exported), tier lock tests will render the full `Strategies` page with mocked dependencies. Field gating tests will render `StrategyDetailPage` with mocked `useParams`.
+Two database changes (migration) plus two code updates to use the new `update_own_profile` RPC instead of direct `.update()` calls.
 
-**Mocking strategy:**
-- Mock `@/integrations/supabase/client` — return controlled data from `.from().select()`
-- Mock `@/contexts/AuthContext` — provide fake user
-- Mock `@/contexts/TierContext` — control `currentTier` and `isUnlocked`
-- Mock `react-router-dom` partially — mock `useNavigate`, `useParams`
-- Wrap in `QueryClientProvider`, `BrowserRouter`, `TooltipProvider`
+## Step 1 — Database Migration
 
-**Test cases:**
+Run a single migration with:
+1. Drop the existing UPDATE policy on `profiles`
+2. Create `update_own_profile` security-definer function (only allows updating `display_name` and `avatar_url`)
+3. Grant execute to `authenticated` role
+4. Drop `Users can read system strategies` policy
+5. Create `Users can read system strategies by tier` — tier-aware SELECT policy
 
-1. **Tier lock: foundation user sees tier1 strategy locked** — render Strategies page with system strategies including a `tier_required: 'tier1'` strategy and `currentTier: 'foundation'`. Assert lock overlay with "Complete Tier 1 to unlock" text is visible.
+## Step 2 — Update Profile.tsx
 
-2. **Tier lock: tier1 user sees tier1 strategy unlocked** — same data but `currentTier: 'tier1'`. Assert no lock overlay, "View Details" button visible.
+Replace the `.from('profiles').update(...)` call (line 34-37) with:
+```ts
+supabase.rpc('update_own_profile', { p_display_name: displayName })
+```
 
-3. **Tier lock: tier1 user sees tier2 strategy locked** — `tier_required: 'tier2'`, `currentTier: 'tier1'`. Assert lock overlay visible.
+## Step 3 — Update TierContext.tsx
 
-4. **Field gating: foundation create form** — render `StrategyDetailPage` with `useParams` returning `{ id: 'new' }`, `currentTier: 'foundation'`. Assert Name input exists and is not readonly, Description and Notes textareas exist. Assert "Upgrade to Pro to unlock" text appears 5 times (Instrument, Timeframe, Direction Bias, Entry Rules, Exit Rules).
+The `setTierState` function (line 78-81) currently does `.from('profiles').update({ tier_state: tier })`. After removing the UPDATE policy, this will fail by design — tier changes must go through a privileged path.
 
-5. **Field gating: tier1 create form** — same but `currentTier: 'tier1'`. Assert no "Upgrade to Pro to unlock" text. All fields rendered.
+Since `DevTierSwitcher` is the only consumer and is a dev-only tool, the `.update()` call will be removed. `setTierState` will only update local React state (keeping the dev switcher functional for UI testing without persisting).
 
----
+## Step 4 — Run Security Scan
 
-## Playwright — `e2e/strategies.spec.ts`
+Re-run the scan and mark both findings as fixed.
 
-Uses the `test` and `expect` from `playwright-fixture.ts`. Requires auth — will sign in via the `/auth` page at suite start.
+## Files Changed
 
-**Structure:** Single `test.describe` block with `test.describe.configure({ mode: 'serial' })`. Three sequential tests sharing state via a variable for the created strategy URL.
-
-1. **Create strategy** — navigate to `/strategies`, click "New Strategy", fill name "E2E Test Strategy", click Save, wait for redirect, navigate back to `/strategies`, assert "E2E Test Strategy" visible in page.
-
-2. **Edit strategy name** — click on "E2E Test Strategy" card, clear name input, type "E2E Renamed Strategy", click Save, wait for toast, reload page, assert input value is "E2E Renamed Strategy".
-
-3. **Delete strategy** — on detail page, click trash button, confirm in alert dialog, assert redirect to `/strategies`, assert "E2E Renamed Strategy" not visible.
-
----
-
-## Files
-
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/test/strategies.test.tsx` | Create — 5 Vitest unit tests |
-| `e2e/strategies.spec.ts` | Create — 1 describe block, 3 serial Playwright tests |
+| Migration SQL | New migration with both fixes |
+| `src/pages/Profile.tsx` | Use `supabase.rpc('update_own_profile', ...)` |
+| `src/contexts/TierContext.tsx` | Remove `.from('profiles').update()` call |
 
