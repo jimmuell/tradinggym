@@ -1,20 +1,37 @@
 
 
-# Replace Hero Chart Animation with Candlestick Visualization
+# P14 — Strategies Page with Real CRUD
 
-## Summary
-Replace the current line chart SVG animation with an animated candlestick chart that draws candles one-by-one from left to right, matching the trading theme of the app.
+## Confirmed: `isUnlocked()` exists
+`TierContext` already exposes `isUnlocked(tier: TierState) => boolean` which compares tier indices. Will use it directly — no changes to TierContext needed.
 
-## Changes
+## Step 1 — Database Migration
+Create `strategies` table with all specified columns, RLS policies (5 policies for system read, own CRUD), then seed 3 system strategies.
 
-| File | Change |
+## Step 2 — Rewrite `src/pages/Strategies.tsx`
+- Fetch system + user strategies via React Query
+- Two sections: "TradeGYM Strategies" and "My Strategies"
+- 3-col grid, tier lock via `const { isUnlocked } = useTier()` → `!isUnlocked(strategy.tier_required as TierState)`
+- Locked cards: dimmed, tier badge, toast on click
+- Unlocked cards: navigate to `/strategies/:id`
+- "New Strategy" button → `/strategies/new`, disabled when foundation user has 1+ strategies
+- Empty state + skeletons
+
+## Step 3 — Create `src/pages/StrategyDetailPage.tsx`
+- Mode: `const { id } = useParams(); const isNew = id === 'new';`
+- System strategies: read-only, banner
+- User strategies: editable, save/delete with confirmation
+- Create mode: field gating for foundation users (name/description/notes only, others locked)
+- React Query mutations, toasts, navigation
+
+## Step 4 — Update `src/App.tsx`
+Add route `/strategies/:id` → `StrategyDetailPage` wrapped in `LayoutRoute`.
+
+## Files Created/Modified
+| File | Action |
 |------|--------|
-| `src/components/landing/HeroChartAnimation.tsx` | Rewrite to render SVG candlesticks instead of a line path. Each candle (body + wicks) animates in sequentially with a staggered fade/scale-in effect. Green candles for up, red for down. Keeps the grid background and 30% opacity aesthetic. |
-
-## Animation Design
-- ~30 OHLC data points with a realistic price action pattern (uptrend with pullbacks)
-- Each candle is an SVG `<rect>` (body) + `<line>` (wick), colored green (close > open) or red (close < open)
-- Candles appear one-by-one left-to-right using CSS `animation-delay` with `fade-in` + `scale-in` keyframes
-- Total animation duration ~3 seconds (matching current line draw timing)
-- Same container positioning, opacity, and `pointer-events-none` behavior as current
+| Migration SQL | Create table + seed |
+| `src/pages/Strategies.tsx` | Rewrite |
+| `src/pages/StrategyDetailPage.tsx` | Create |
+| `src/App.tsx` | Add route |
 
