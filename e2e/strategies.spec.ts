@@ -9,7 +9,7 @@ test.describe('Strategy CRUD lifecycle', () => {
   test('create a strategy and verify it appears in My Strategies', async ({ page }) => {
     // Navigate to strategies page
     await page.goto('/strategies');
-    await page.waitForLoadState('networkidle');
+    await page.getByText('TradeGYM Strategies').waitFor({ state: 'visible' });
 
     // Click "New Strategy" button
     await page.getByRole('button', { name: /New Strategy/i }).click();
@@ -26,7 +26,7 @@ test.describe('Strategy CRUD lifecycle', () => {
 
     // Navigate back to the strategies list
     await page.goto('/strategies');
-    await page.waitForLoadState('networkidle');
+    await page.getByText('TradeGYM Strategies').waitFor({ state: 'visible' });
 
     // Verify the strategy appears
     await expect(page.getByText(strategyName)).toBeVisible();
@@ -34,7 +34,7 @@ test.describe('Strategy CRUD lifecycle', () => {
 
   test('edit the strategy name and verify persistence', async ({ page }) => {
     await page.goto('/strategies');
-    await page.waitForLoadState('networkidle');
+    await page.getByText('TradeGYM Strategies').waitFor({ state: 'visible' });
 
     // Click on the strategy card
     await page.getByText(strategyName).click();
@@ -53,13 +53,13 @@ test.describe('Strategy CRUD lifecycle', () => {
 
     // Reload and verify persistence
     await page.reload();
-    await page.waitForLoadState('networkidle');
+    await page.getByPlaceholder('Strategy name').waitFor({ state: 'visible' });
     await expect(page.getByPlaceholder('Strategy name')).toHaveValue(renamedName);
   });
 
   test('delete the strategy and verify removal', async ({ page }) => {
     await page.goto('/strategies');
-    await page.waitForLoadState('networkidle');
+    await page.getByText('TradeGYM Strategies').waitFor({ state: 'visible' });
 
     // Open the strategy
     await page.getByText(renamedName).click();
