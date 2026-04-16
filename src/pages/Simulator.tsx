@@ -13,7 +13,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
@@ -21,6 +21,7 @@ import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
 
 export default function Simulator() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [tradeOpen, setTradeOpen] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
@@ -83,6 +84,10 @@ export default function Simulator() {
         closed_at: data.closedAt,
       });
       if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['trades', user?.id] });
     },
     onError: (err: Error) => {
       toast.error('Failed to save trade: ' + err.message);
