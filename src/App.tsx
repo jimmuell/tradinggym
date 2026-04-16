@@ -14,6 +14,7 @@ import Landing from "./pages/Landing";
 import Simulator from "./pages/Simulator";
 import Dashboard from "./pages/Dashboard";
 import Strategies from "./pages/Strategies";
+import StrategyDetailPage from "./pages/StrategyDetailPage";
 import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Learning from "./pages/Learning";
