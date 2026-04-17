@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import { useStudentProgress } from '@/hooks/useStudentProgress';
 import { cn } from '@/lib/utils';
+import { getTierDisplayName } from '@/lib/tierUtils';
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';
