@@ -88,8 +88,8 @@ const features = [
   },
   {
     icon: Users,
-    title: "Coaching Module",
-    desc: "Connect with certified coaches, track student progress, and share strategies.",
+    title: "Guru Platform",
+    desc: "Run your entire trading education business inside TradeGYM — cohorts, content, live sessions, and Stripe payouts.",
   },
   {
     icon: Shield,
@@ -116,7 +116,6 @@ const pricing = [
       "Foundation learning modules",
       "1-minute MES data",
       "Basic equity tracking",
-      "Community access",
     ],
   },
   {
@@ -127,24 +126,25 @@ const pricing = [
     features: [
       "Everything in Free",
       "All strategy tiers (ORB, VWAP, AMD)",
-      "Full backtesting engine",
       "AI strategy ingestion",
       "Advanced analytics",
       "Multiple timeframes",
+      "Backtesting (engine coming soon)",
     ],
   },
   {
-    name: "Coach",
+    name: "Guru",
     price: "$49",
     period: "/mo",
     highlight: false,
     features: [
       "Everything in Pro",
-      "Coach dashboard",
-      "Student management tools",
-      "Strategy sharing",
-      "Progress monitoring",
-      "Custom assignments",
+      "Guru dashboard",
+      "Cohort & student management",
+      "Publish educational content",
+      "Student progress tracking",
+      "Live session broadcasting",
+      "Stripe Connect payouts",
     ],
   },
   {
@@ -153,7 +153,7 @@ const pricing = [
     period: "/mo",
     highlight: false,
     features: [
-      "Everything in Coach",
+      "Everything in Guru",
       "Automated execution",
       "Broker integration",
       "Risk controls & kill switch",
