@@ -97,6 +97,96 @@ export type Database = {
           },
         ]
       }
+      guru_applications: {
+        Row: {
+          email: string
+          existing_presence: string | null
+          full_name: string
+          id: string
+          reviewed_at: string | null
+          reviewer_notes: string | null
+          status: string
+          submitted_at: string
+          trading_style: string
+          user_id: string
+          what_you_teach: string
+          years_experience: string
+        }
+        Insert: {
+          email: string
+          existing_presence?: string | null
+          full_name: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          submitted_at?: string
+          trading_style: string
+          user_id: string
+          what_you_teach: string
+          years_experience: string
+        }
+        Update: {
+          email?: string
+          existing_presence?: string | null
+          full_name?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_notes?: string | null
+          status?: string
+          submitted_at?: string
+          trading_style?: string
+          user_id?: string
+          what_you_teach?: string
+          years_experience?: string
+        }
+        Relationships: []
+      }
+      guru_profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          slug: string | null
+          status: string
+          stripe_account_id: string | null
+          trial_dismissed_count: number
+          trial_ends_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          id?: string
+          slug?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          trial_dismissed_count?: number
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          slug?: string | null
+          status?: string
+          stripe_account_id?: string | null
+          trial_dismissed_count?: number
+          trial_ends_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

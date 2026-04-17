@@ -22,6 +22,7 @@ import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as 
 import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
 import TierProgressCard from '@/components/dashboard/TierProgressCard';
 import { FoundationLearningPath, FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
+import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
 
 const STAT_TOOLTIPS: Record<string, string> = {
   'Total Trades': 'Number of completed simulated trades.',
@@ -105,6 +106,9 @@ export default function Dashboard() {
 
         {/* Continue Learning Banner */}
         <ContinueLearningBanner currentTier={currentTier} />
+
+        {/* Guru Trial Banner (Expert tier only) */}
+        <GuruTrialBanner />
 
         {/* Practice Account */}
         <Card>
