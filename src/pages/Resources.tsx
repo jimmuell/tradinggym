@@ -1,134 +1,121 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, BookOpen, Calculator, Globe, FileText, Video, Newspaper, Wrench } from "lucide-react";
-import HelpSheet from '@/components/HelpSheet';
+import { Card, CardContent } from "@/components/ui/card";
+import { ExternalLink } from "lucide-react";
+import HelpSheet from "@/components/HelpSheet";
 
-const tools = [
-  { name: "Position Size Calculator", description: "Calculate optimal position sizes based on account balance and risk tolerance.", icon: Calculator, tag: "Essential" },
-  { name: "Economic Calendar", description: "Track upcoming market-moving events, FOMC meetings, and earnings reports.", icon: Globe, tag: "Daily Use" },
-  { name: "Correlation Matrix", description: "View real-time correlations between major futures contracts and indices.", icon: Wrench, tag: "Analysis" },
-  { name: "Tick Value Reference", description: "Quick reference for tick sizes, point values, and margin requirements across contracts.", icon: FileText, tag: "Reference" },
+type ResourceItem = {
+  title: string;
+  byline?: string;
+  description: string;
+  url: string;
+};
+
+type ResourceSection = {
+  heading: string;
+  subtitle: string;
+  items: ResourceItem[];
+  cols: "3" | "2";
+};
+
+const sections: ResourceSection[] = [
+  {
+    heading: "📚 Books",
+    subtitle: "Essential reading for serious traders.",
+    cols: "3",
+    items: [
+      { title: "Trading in the Zone", byline: "Mark Douglas", description: "The definitive book on trading psychology and discipline.", url: "https://www.amazon.com/dp/0735201447" },
+      { title: "The Disciplined Trader", byline: "Mark Douglas", description: "Build the mindset needed to execute a trading plan consistently.", url: "https://www.amazon.com/dp/0132157578" },
+      { title: "Market Wizards", byline: "Jack Schwager", description: "Interviews with the world's greatest traders — timeless lessons.", url: "https://www.amazon.com/dp/0887306101" },
+      { title: "How to Day Trade for a Living", byline: "Andrew Aziz", description: "Practical entry-level guide to day trading setups and risk management.", url: "https://www.amazon.com/dp/1535585951" },
+    ],
+  },
+  {
+    heading: "🎥 YouTube Channels",
+    subtitle: "Free education from active traders.",
+    cols: "3",
+    items: [
+      { title: "SMB Capital", byline: "SMB Capital", description: "Professional trading firm sharing live trade reviews, psychology, and setups.", url: "https://www.youtube.com/@smbcapital" },
+      { title: "Warrior Trading", byline: "Ross Cameron", description: "Day trading education with a focus on momentum and risk management.", url: "https://www.youtube.com/@WarriorTrading" },
+      { title: "The Chart Guys", byline: "The Chart Guys", description: "Technical analysis, chart reading, and market structure from experienced traders.", url: "https://www.youtube.com/@TheChartGuys" },
+      { title: "ICT Mentorship", byline: "The Inner Circle Trader", description: "Deep institutional concepts — AMD model, fair value gaps, liquidity. Tier 3 prerequisite.", url: "https://www.youtube.com/@InnerCircleTrader" },
+    ],
+  },
+  {
+    heading: "🛠️ Tools",
+    subtitle: "The platforms serious futures traders rely on.",
+    cols: "2",
+    items: [
+      { title: "TradingView", description: "Industry-standard charting platform. Use for chart analysis, replay, and strategy building.", url: "https://www.tradingview.com" },
+      { title: "AMP Futures", description: "Low-cost futures broker with MES support and excellent platform options.", url: "https://www.ampfutures.com" },
+      { title: "Tradovate", description: "Commission-free futures trading platform with a clean interface and replay mode.", url: "https://www.tradovate.com" },
+      { title: "Quantified Strategies", description: "Backtested strategy research and trading system ideas for retail traders.", url: "https://www.quantifiedstrategies.com" },
+    ],
+  },
+  {
+    heading: "💬 Communities",
+    subtitle: "Learn alongside other traders who are doing the work.",
+    cols: "2",
+    items: [
+      { title: "r/Daytrading", description: "Reddit community for day traders — strategy discussion, journaling, accountability.", url: "https://www.reddit.com/r/Daytrading" },
+      { title: "r/FuturesTrading", description: "Reddit community focused on futures markets — MES, ES, NQ discussion.", url: "https://www.reddit.com/r/FuturesTrading" },
+      { title: "Elite Trader Forums", description: "Long-running professional trading forum covering futures, systems, and psychology.", url: "https://www.elitetrader.com/et" },
+      { title: "Trade2Win", description: "Active UK-based trading community with futures and technical analysis discussion.", url: "https://www.trade2win.com" },
+    ],
+  },
 ];
 
-const readingList = [
-  { title: "Trading in the Zone", author: "Mark Douglas", category: "Psychology", description: "Master the mental game of trading with disciplined thinking." },
-  { title: "Market Wizards", author: "Jack Schwager", category: "Interviews", description: "Lessons from top traders on strategy, risk, and mindset." },
-  { title: "Reminiscences of a Stock Operator", author: "Edwin Lefèvre", category: "Classic", description: "Timeless lessons on speculation and market behavior." },
-  { title: "The Art and Science of Technical Analysis", author: "Adam Grimes", category: "Technical", description: "Evidence-based approach to chart patterns and price action." },
-];
-
-const videos = [
-  { title: "Understanding Order Flow", duration: "18 min", category: "Order Flow", description: "How institutional orders move price and create opportunities." },
-  { title: "Building a Trading Routine", duration: "12 min", category: "Habits", description: "Structure your day for consistent performance and review." },
-  { title: "Reading the DOM", duration: "22 min", category: "Execution", description: "Depth of Market interpretation for precise entries and exits." },
-  { title: "Backtesting Best Practices", duration: "15 min", category: "Strategy", description: "Avoid common pitfalls when validating your trading edge." },
-];
-
-const links = [
-  { name: "CME Group — MES Specs", url: "#", description: "Official Micro E-mini S&P 500 contract specifications." },
-  { name: "TradingView", url: "#", description: "Advanced charting and community-driven analysis platform." },
-  { name: "Futures.io Forum", url: "#", description: "Active community for futures traders sharing strategies and insights." },
-  { name: "Investopedia — Futures Guide", url: "#", description: "Comprehensive educational content on futures trading fundamentals." },
-];
+const gridClass = (cols: "3" | "2") =>
+  cols === "3"
+    ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+    : "grid grid-cols-1 md:grid-cols-2 gap-4";
 
 export default function Resources() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Resources</h1>
-          <p className="text-muted-foreground">Tools, references, and curated materials to support your trading journey.</p>
+          <p className="text-muted-foreground">
+            Curated tools, books, and communities to accelerate your trading education.
+          </p>
         </div>
         <HelpSheet pageName="Resources" />
       </div>
 
-      <Tabs defaultValue="tools">
-        <TabsList>
-          <TabsTrigger value="tools">Tools</TabsTrigger>
-          <TabsTrigger value="reading">Reading List</TabsTrigger>
-          <TabsTrigger value="videos">Videos</TabsTrigger>
-          <TabsTrigger value="links">Useful Links</TabsTrigger>
-        </TabsList>
+      {sections.map((section) => (
+        <section key={section.heading} className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">{section.heading}</h2>
+            <p className="text-sm text-muted-foreground">{section.subtitle}</p>
+          </div>
 
-        <TabsContent value="tools" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tools.map((tool, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <tool.icon className="h-5 w-5 text-primary" />
+          <div className={gridClass(section.cols)}>
+            {section.items.map((item) => (
+              <a
+                key={item.url}
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block group"
+              >
+                <Card className="h-full hover:border-primary/50 transition-colors">
+                  <CardContent className="pt-4 pb-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                        {item.byline && (
+                          <p className="text-xs text-muted-foreground">{item.byline}</p>
+                        )}
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
                     </div>
-                    <CardTitle className="text-base">{tool.name}</CardTitle>
-                  </div>
-                  <Badge variant="secondary">{tool.tag}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{tool.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="reading" className="space-y-3">
-          {readingList.map((book, i) => (
-            <Card key={i}>
-              <CardContent className="pt-4 pb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <BookOpen className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{book.title}</p>
-                    <p className="text-xs text-muted-foreground">by {book.author} · {book.description}</p>
-                  </div>
-                </div>
-                <Badge variant="outline">{book.category}</Badge>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="videos" className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {videos.map((video, i) => (
-            <Card key={i} className="cursor-pointer hover:bg-accent/50 transition-colors">
-              <CardContent className="pt-4 pb-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                    <Video className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-foreground">{video.title}</p>
-                      <Badge variant="outline">{video.category}</Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{video.description}</p>
-                    <p className="text-xs text-muted-foreground mt-2">{video.duration}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="links" className="space-y-3">
-          {links.map((link, i) => (
-            <Card key={i}>
-              <CardContent className="pt-4 pb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Newspaper className="h-5 w-5 text-muted-foreground shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{link.name}</p>
-                    <p className="text-xs text-muted-foreground">{link.description}</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="ghost"><ExternalLink className="h-4 w-4" /></Button>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-      </Tabs>
+                    <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
+                  </CardContent>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }
