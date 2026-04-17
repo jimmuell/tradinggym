@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import HelpSheet from '@/components/HelpSheet';
 import {
   BarChart3,
@@ -13,22 +14,17 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useAnalytics, AnalyticsFilter } from '@/hooks/useAnalytics';
+import { EquityCurveChart } from '@/components/analytics/EquityCurveChart';
+import { DailyPnlChart } from '@/components/analytics/DailyPnlChart';
+import { WinLossStats } from '@/components/analytics/WinLossStats';
 
-const metrics = [
-  { label: 'Total P&L', value: '$0.00', icon: DollarSign, change: null },
-  { label: 'Win Rate', value: '0%', icon: Target, change: null },
-  { label: 'Profit Factor', value: '0.0', icon: TrendingUp, change: null },
-  { label: 'Avg Winner', value: '$0.00', icon: TrendingUp, change: null },
-  { label: 'Avg Loser', value: '$0.00', icon: TrendingDown, change: null },
-  { label: 'Best Trade', value: '$0.00', icon: Activity, change: null },
-  { label: 'Worst Trade', value: '$0.00', icon: Activity, change: null },
-  { label: 'Total Trades', value: '0', icon: BarChart3, change: null },
-];
+const fmtCurrency = (v: number) =>
+  `${v < 0 ? '-' : ''}$${Math.abs(v).toFixed(2)}`;
 
 function EmptyChart({ title, icon: Icon, description }: { title: string; icon: React.ElementType; description: string }) {
   return (
@@ -49,28 +45,39 @@ function EmptyChart({ title, icon: Icon, description }: { title: string; icon: R
   );
 }
 
-function JournalEntry({ date, note, tags }: { date: string; note: string; tags: string[] }) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="flex gap-4 py-3">
-      <div className="shrink-0 text-xs text-muted-foreground w-20 pt-0.5">{date}</div>
-      <div className="flex-1 space-y-1.5">
-        <p className="text-sm text-foreground">{note}</p>
-        <div className="flex gap-1.5">
-          {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs px-2 py-0">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
 export default function Analytics() {
+  const [filter, setFilter] = useState<AnalyticsFilter>('all-time');
+  const a = useAnalytics(filter);
+
+  const metrics = [
+    { label: 'Total P&L', value: fmtCurrency(a.totalPnl), icon: DollarSign, negative: a.totalPnl < 0 },
+    { label: 'Win Rate', value: `${a.winRate.toFixed(0)}%`, icon: Target, negative: false },
+    { label: 'Profit Factor', value: a.profitFactor.toFixed(2), icon: TrendingUp, negative: false },
+    { label: 'Avg Winner', value: fmtCurrency(a.avgWinner), icon: TrendingUp, negative: false },
+    { label: 'Avg Loser', value: fmtCurrency(a.avgLoser), icon: TrendingDown, negative: a.avgLoser < 0 },
+    { label: 'Best Trade', value: fmtCurrency(a.bestTrade), icon: Activity, negative: a.bestTrade < 0 },
+    { label: 'Worst Trade', value: fmtCurrency(a.worstTrade), icon: Activity, negative: a.worstTrade < 0 },
+    { label: 'Total Trades', value: String(a.totalTrades), icon: BarChart3, negative: false },
+  ];
+
+  const showSkeletons = a.isLoading && a.totalTrades === 0;
+
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -83,21 +90,20 @@ export default function Analytics() {
         </div>
         <div className="flex items-center gap-2">
           <HelpSheet pageName="Analytics" />
-          <Select defaultValue="all-time">
-          <SelectTrigger className="w-40">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="today">Today</SelectItem>
-            <SelectItem value="week">This Week</SelectItem>
-            <SelectItem value="month">This Month</SelectItem>
-            <SelectItem value="all-time">All Time</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={filter} onValueChange={(v) => setFilter(v as AnalyticsFilter)}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="all-time">All Time</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {/* Tabs */}
       <Tabs defaultValue="performance">
         <TabsList>
           <TabsTrigger value="performance">Performance</TabsTrigger>
@@ -105,39 +111,50 @@ export default function Analytics() {
           <TabsTrigger value="journal">Journal</TabsTrigger>
         </TabsList>
 
-        {/* Performance Tab */}
         <TabsContent value="performance" className="mt-4 space-y-6">
-          {/* Metrics Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {metrics.map((m) => (
-              <Card key={m.label}>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-muted-foreground">{m.label}</span>
-                    <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
-                  </div>
-                  <span className="text-lg font-bold text-foreground">{m.value}</span>
-                </CardContent>
-              </Card>
-            ))}
+            {showSkeletons
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="pt-4 pb-3 px-4">
+                      <Skeleton className="h-3 w-20 mb-2" />
+                      <Skeleton className="h-6 w-16" />
+                    </CardContent>
+                  </Card>
+                ))
+              : metrics.map((m) => (
+                  <Card key={m.label}>
+                    <CardContent className="pt-4 pb-3 px-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-muted-foreground">{m.label}</span>
+                        <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                      <span className={cn('text-lg font-bold', m.negative ? 'text-destructive' : 'text-foreground')}>
+                        {m.value}
+                      </span>
+                    </CardContent>
+                  </Card>
+                ))}
           </div>
 
-          {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EmptyChart
-              title="Equity Curve"
-              icon={LineChart}
-              description="Complete trades to see your equity over time"
-            />
-            <EmptyChart
-              title="Daily P&L"
-              icon={BarChart3}
-              description="Your daily profit and loss will appear here"
-            />
+            {a.equityCurve.length === 0 ? (
+              <EmptyChart title="Equity Curve" icon={LineChart} description="Complete trades to see your equity over time" />
+            ) : (
+              <ChartCard title="Equity Curve" icon={LineChart}>
+                <EquityCurveChart data={a.equityCurve} totalPnl={a.totalPnl} />
+              </ChartCard>
+            )}
+            {a.dailyPnl.length === 0 ? (
+              <EmptyChart title="Daily P&L" icon={BarChart3} description="Your daily profit and loss will appear here" />
+            ) : (
+              <ChartCard title="Daily P&L" icon={BarChart3}>
+                <DailyPnlChart data={a.dailyPnl} />
+              </ChartCard>
+            )}
           </div>
 
-          {/* Streaks & Consistency */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-4 pb-3 px-4">
                 <div className="flex items-center gap-2 mb-1">
@@ -168,36 +185,37 @@ export default function Analytics() {
                 <span className="text-xs text-muted-foreground ml-1">min</span>
               </CardContent>
             </Card>
+            <Card>
+              <CardContent className="pt-4 pb-3 px-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <Target className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Blueprint Accuracy</span>
+                </div>
+                <span className="text-2xl font-bold text-foreground">{a.avgStepAccuracy.toFixed(0)}%</span>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
-        {/* Distribution Tab */}
         <TabsContent value="distribution" className="mt-4 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EmptyChart
-              title="Win/Loss Distribution"
-              icon={PieChart}
-              description="Trade outcome breakdown will appear here"
-            />
-            <EmptyChart
-              title="P&L by Time of Day"
-              icon={Clock}
-              description="See which hours are most profitable"
-            />
-            <EmptyChart
-              title="P&L by Strategy"
-              icon={Target}
-              description="Compare performance across strategies"
-            />
-            <EmptyChart
-              title="Trade Duration"
-              icon={Activity}
-              description="How long your trades last on average"
-            />
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <PieChart className="h-4 w-4 text-primary" />
+                  Win/Loss Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WinLossStats wins={a.wins} losses={a.losses} breakevens={a.breakevens} />
+              </CardContent>
+            </Card>
+            <EmptyChart title="P&L by Time of Day" icon={Clock} description="See which hours are most profitable" />
+            <EmptyChart title="P&L by Strategy" icon={Target} description="Compare performance across strategies" />
+            <EmptyChart title="Trade Duration" icon={Activity} description="How long your trades last on average" />
           </div>
         </TabsContent>
 
-        {/* Journal Tab */}
         <TabsContent value="journal" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
