@@ -7,11 +7,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TierState } from '@/contexts/TierContext';
 import { toast } from 'sonner';
 
-const TIERS: { key: TierState; label: string; path: string }[] = [
-  { key: 'foundation', label: 'Foundation', path: '/learning/foundation' },
-  { key: 'tier1', label: 'Tier 1', path: '/learning/tier1' },
-  { key: 'tier2', label: 'Tier 2', path: '/learning/tier2' },
-  { key: 'tier3', label: 'Tier 3', path: '/learning/tier3' },
+import { getTierDisplayName } from '@/lib/tierUtils';
+
+const TIERS: { key: TierState; path: string }[] = [
+  { key: 'foundation', path: '/learning/foundation' },
+  { key: 'tier1', path: '/learning/tier1' },
+  { key: 'tier2', path: '/learning/tier2' },
+  { key: 'tier3', path: '/learning/tier3' },
 ];
 
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
