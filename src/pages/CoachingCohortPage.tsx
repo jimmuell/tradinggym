@@ -43,6 +43,7 @@ export default function CoachingCohortPage() {
   const { cohortId } = useParams<{ cohortId: string }>();
   const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
   const { content, isLoading: contentLoading } = useCohortContent(cohortId);
+  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useCohortSessions(cohortId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
