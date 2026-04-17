@@ -79,6 +79,8 @@ const App = () => (
               <Route path="/learning/tier3" element={<LayoutRoute><Tier3Learning /></LayoutRoute>} />
               <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
+              <Route path="/coaching/:cohortId/content/:contentId" element={<LayoutRoute><CoachingContentPage /></LayoutRoute>} />
+              <Route path="/coaching/:cohortId" element={<LayoutRoute><CoachingCohortPage /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
