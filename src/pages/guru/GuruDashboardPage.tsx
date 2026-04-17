@@ -1,16 +1,20 @@
 import { Link } from 'react-router-dom';
-import { Loader2, Users, Layers, DollarSign, TrendingUp, GraduationCap } from 'lucide-react';
+import { Loader2, Users, Layers, DollarSign, TrendingUp, GraduationCap, Video } from 'lucide-react';
 import GuruLayout from '@/layouts/GuruLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile, useGuruApplication } from '@/hooks/useGuruData';
 import { useGuruDashboardStats } from '@/hooks/useGuruDashboardStats';
+import { useGuruSessions } from '@/hooks/useGuruSessions';
+import { useGuruCohorts } from '@/hooks/useGuruCohorts';
 
 export default function GuruDashboardPage() {
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp } = useGuruApplication();
   const { activeStudents, activeCohorts, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
+  const { upcomingSessions, isLoading: loadingSessions } = useGuruSessions();
+  const { cohorts } = useGuruCohorts();
 
   if (loadingProfile || loadingApp) {
     return (
