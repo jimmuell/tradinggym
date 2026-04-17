@@ -169,11 +169,11 @@ export default function Landing() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0b0e13]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center">
             <span className="text-xl font-bold tracking-tight text-white">
               Trading<span className="text-blue-500">GYM</span>
             </span>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-medium">
+            <span className="text-[9px] tracking-[0.2em] uppercase font-medium text-center">
               <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
             </span>
           </div>
@@ -260,7 +260,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-center text-gray-300 mt-12 text-lg font-medium">
-            TradeGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
+            TradingGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
           </p>
         </div>
       </section>
