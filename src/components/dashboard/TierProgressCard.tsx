@@ -65,7 +65,7 @@ export default function TierProgressCard({ currentTier }: { currentTier: TierSta
                   }}
                 >
                   {isCompleted && <Check className="h-3 w-3 mr-1" />}
-                  {tier.label}
+                  {getTierDisplayName(tier.key)}
                   {isLocked && <Lock className="h-3 w-3 ml-1" />}
                 </Badge>
                 {i < TIERS.length - 1 && (
