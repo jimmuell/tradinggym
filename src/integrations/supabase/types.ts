@@ -233,6 +233,60 @@ export type Database = {
         }
         Relationships: []
       }
+      guru_content: {
+        Row: {
+          body: string
+          cohort_id: string
+          content_type: string
+          created_at: string
+          guru_id: string
+          id: string
+          is_draft: boolean
+          published_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          cohort_id: string
+          content_type?: string
+          created_at?: string
+          guru_id: string
+          id?: string
+          is_draft?: boolean
+          published_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          cohort_id?: string
+          content_type?: string
+          created_at?: string
+          guru_id?: string
+          id?: string
+          is_draft?: boolean
+          published_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guru_content_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guru_content_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guru_profiles: {
         Row: {
           avatar_url: string | null
