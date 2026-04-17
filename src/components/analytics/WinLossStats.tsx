@@ -9,11 +9,11 @@ export function WinLossStats({ wins, losses, breakevens }: Props) {
     <div className="grid grid-cols-3 gap-3">
       <div className="rounded-md border p-4 text-center">
         <div className="text-xs text-muted-foreground mb-1">Wins</div>
-        <div className="text-2xl font-bold text-green-500">{wins}</div>
+        <div className="text-2xl font-bold text-success">{wins}</div>
       </div>
       <div className="rounded-md border p-4 text-center">
         <div className="text-xs text-muted-foreground mb-1">Losses</div>
-        <div className="text-2xl font-bold text-red-500">{losses}</div>
+        <div className="text-2xl font-bold text-destructive">{losses}</div>
       </div>
       <div className="rounded-md border p-4 text-center">
         <div className="text-xs text-muted-foreground mb-1">Breakevens</div>

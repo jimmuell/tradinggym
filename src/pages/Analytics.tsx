@@ -129,7 +129,7 @@ export default function Analytics() {
                         <span className="text-xs text-muted-foreground">{m.label}</span>
                         <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
-                      <span className={cn('text-lg font-bold', m.negative ? 'text-red-500' : 'text-foreground')}>
+                      <span className={cn('text-lg font-bold', m.negative ? 'text-destructive' : 'text-foreground')}>
                         {m.value}
                       </span>
                     </CardContent>
