@@ -260,7 +260,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-center text-gray-300 mt-12 text-lg font-medium">
-            TradeGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
+            TradingGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
           </p>
         </div>
       </section>
