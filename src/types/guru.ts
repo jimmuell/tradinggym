@@ -146,3 +146,33 @@ export interface ContentFormData {
   is_draft: boolean;
 }
 
+export type SessionStatus = 'scheduled' | 'live' | 'ended';
+
+export interface LiveSession {
+  id: string;
+  guru_id: string;
+  cohort_id: string;
+  title: string;
+  description: string | null;
+  scheduled_at: string;
+  status: SessionStatus;
+  partykit_room_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SessionFormData {
+  title: string;
+  description: string;
+  cohort_id: string;
+  scheduled_at: string;
+}
+
+export interface SessionAttendance {
+  id: string;
+  session_id: string;
+  student_id: string;
+  joined_at: string;
+  left_at: string | null;
+}
+
