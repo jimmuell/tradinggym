@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Video, Radio } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useStudentCohort } from '@/hooks/useStudentEnrollments';
 import { useCohortContent } from '@/hooks/useCohortContent';
+import { useCohortSessions } from '@/hooks/useCohortSessions';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
