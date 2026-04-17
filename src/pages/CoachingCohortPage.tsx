@@ -152,6 +152,46 @@ export default function CoachingCohortPage() {
           ))}
         </div>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <Video className="h-4 w-4" />
+          Upcoming Sessions
+        </h2>
+        {sessionsLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : upcomingSessions.filter((s) => s.status === 'scheduled').length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center text-sm text-muted-foreground">
+              No upcoming sessions scheduled.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {upcomingSessions
+              .filter((s) => s.status === 'scheduled')
+              .map((s) => (
+                <Card key={s.id}>
+                  <CardContent className="p-4">
+                    <p className="font-medium">{s.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(s.scheduled_at).toLocaleString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                    {s.description && (
+                      <p className="text-sm text-muted-foreground mt-2">{s.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
