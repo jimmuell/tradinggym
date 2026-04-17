@@ -73,7 +73,7 @@ export default function GuruStudentDetailPage() {
                     <div>
                       <div className="text-lg font-semibold">{profile?.display_name}</div>
                       <Badge variant="outline" className="mt-1 text-xs">
-                        {profile?.tier_state}
+                        {profile?.tier_state ? getTierDisplayName(profile.tier_state) : ''}
                       </Badge>
                     </div>
                   </div>
