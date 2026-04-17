@@ -25,7 +25,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/guru', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
   { to: '/guru/cohorts', label: 'Cohorts', icon: GraduationCap, enabled: true },
-  { to: '/guru/students', label: 'Students', icon: Users, enabled: false },
+  { to: '/guru/students', label: 'Students', icon: Users, enabled: true },
   { to: '/guru/content', label: 'Content', icon: BookOpen, enabled: false },
   { to: '/guru/sessions', label: 'Sessions', icon: Video, enabled: false },
   { to: '/guru/revenue', label: 'Revenue', icon: DollarSign, enabled: false },
