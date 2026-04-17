@@ -124,7 +124,7 @@ export default function GuruSessionLivePage() {
     });
     ro.observe(container);
 
-    const handler = chart.timeScale().subscribeVisibleRangeChange((range) => {
+    const handler = chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
       if (!range) return;
       const fromTs = typeof range.from === 'number' ? range.from : Math.floor(new Date(String(range.from)).getTime() / 1000);
       const toTs = typeof range.to === 'number' ? range.to : Math.floor(new Date(String(range.to)).getTime() / 1000);
@@ -139,7 +139,7 @@ export default function GuruSessionLivePage() {
 
     return () => {
       ro.disconnect();
-      chart.timeScale().unsubscribeVisibleRangeChange(handler);
+      chart.timeScale().unsubscribeVisibleTimeRangeChange(handler);
       chart.remove();
       chartRef.current = null;
       seriesRef.current = null;
