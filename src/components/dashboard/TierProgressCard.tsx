@@ -78,7 +78,7 @@ export default function TierProgressCard({ currentTier }: { currentTier: TierSta
         <Progress value={0} className="mt-4 h-2" />
         <div className="flex items-center justify-between mt-2">
           <p className="text-xs text-muted-foreground">
-            0% complete — Start your {currentTierData.label} modules
+            0% complete — Start your {getTierDisplayName(currentTierData.key)} modules
           </p>
           <Button
             size="sm"
