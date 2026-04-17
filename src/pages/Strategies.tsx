@@ -217,9 +217,9 @@ export default function Strategies() {
         </div>
       </div>
 
-      {/* TradeGYM Strategies */}
+      {/* TradingGYM Strategies */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">TradeGYM Strategies</h2>
+        <h2 className="text-lg font-semibold text-foreground">TradingGYM Strategies</h2>
         {loadingSystem ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => <StrategyCardSkeleton key={i} />)}

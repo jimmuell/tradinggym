@@ -269,7 +269,7 @@ export default function StrategyDetailPage() {
       {isSystem && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-3 text-sm text-primary">
-            This is a TradeGYM strategy. Create your own to customise the rules.
+            This is a TradingGYM strategy. Create your own to customise the rules.
           </CardContent>
         </Card>
       )}

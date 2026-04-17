@@ -22,7 +22,7 @@ export default function Settings() {
               <Monitor className="h-5 w-5" /> Appearance
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Customize how TradeGym looks
+              Customize how TradingGYM looks
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

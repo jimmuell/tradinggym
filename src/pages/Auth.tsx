@@ -73,7 +73,7 @@ export default function Auth() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#131722]">
       <div className="w-full max-w-md px-4">
-        <h1 className="text-3xl font-bold text-white text-center mb-8">TradeGym</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-8">TradingGYM</h1>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-[#1e222d]">
             <TabsTrigger value="login" className="data-[state=active]:bg-[#2a2e39] data-[state=active]:text-white text-gray-400">
@@ -132,7 +132,7 @@ export default function Auth() {
             <Card className="bg-[#1e222d] border-[#2a2e39]">
               <CardHeader>
                 <CardTitle className="text-white">Create account</CardTitle>
-                <CardDescription className="text-gray-400">Get started with TradeGym</CardDescription>
+                <CardDescription className="text-gray-400">Get started with TradingGYM</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
