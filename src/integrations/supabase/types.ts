@@ -421,29 +421,47 @@ export type Database = {
       }
     }
     Views: {
-      guru_student_profiles: {
-        Row: {
-          avatar_url: string | null
-          display_name: string | null
-          tier_state: string | null
-          user_id: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          display_name?: string | null
-          tier_state?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          display_name?: string | null
-          tier_state?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_guru_student_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          display_name: string
+          tier_state: string
+          user_id: string
+        }[]
+      }
+      get_guru_student_trades: {
+        Args: { _student_id: string }
+        Returns: {
+          closed_at: string | null
+          created_at: string | null
+          direction: string | null
+          entry_price: number | null
+          exit_price: number | null
+          id: string
+          opened_at: string | null
+          pnl: number | null
+          pnl_ticks: number | null
+          result: string | null
+          session_type: string | null
+          steps_completed: number[] | null
+          stop_loss: number | null
+          symbol: string | null
+          take_profit: number | null
+          timeframe: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "trades"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       update_own_profile: {
         Args: { p_avatar_url?: string; p_display_name?: string }
         Returns: undefined
