@@ -139,7 +139,7 @@ export default function Profile() {
               </div>
               <div className="flex-1">
                 <p className="text-foreground font-medium">{user?.email ?? 'trader@example.com'}</p>
-                <p className="text-sm text-muted-foreground">Free Plan</p>
+                <p className="text-sm text-muted-foreground">Starter Plan</p>
                 <div className="mt-2">
                   <input
                     ref={fileInputRef}
