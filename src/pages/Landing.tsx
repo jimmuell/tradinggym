@@ -369,10 +369,21 @@ export default function Landing() {
             {pricing.map((p) => (
               <Card
                 key={p.name}
-                className={`bg-[#131722] border transition-all ${p.highlight ? "border-blue-500/40 shadow-lg shadow-blue-500/10" : "border-white/5"}`}
+                className={`bg-[#131722] border transition-all ${
+                  p.guru
+                    ? "border-amber-500/40 shadow-lg shadow-amber-500/10"
+                    : p.highlight
+                    ? "border-blue-500/40 shadow-lg shadow-blue-500/10"
+                    : "border-white/5"
+                }`}
               >
                 <CardContent className="p-8 flex flex-col h-full">
-                  {p.highlight && (
+                  {p.guru && (
+                    <Badge className="self-start bg-amber-500/10 text-amber-400 border-amber-500/20 mb-4">
+                      For Educators
+                    </Badge>
+                  )}
+                  {p.highlight && !p.guru && (
                     <Badge className="self-start bg-blue-500/10 text-blue-400 border-blue-500/20 mb-4">
                       Most Popular
                     </Badge>
@@ -385,16 +396,26 @@ export default function Landing() {
                   <ul className="space-y-3 mb-8 flex-1">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
-                        <Check className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                        <Check
+                          className={`h-4 w-4 shrink-0 mt-0.5 ${
+                            p.guru ? "text-amber-400" : "text-blue-400"
+                          }`}
+                        />
                         {f}
                       </li>
                     ))}
                   </ul>
                   <Link to="/auth">
                     <Button
-                      className={`w-full ${p.highlight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white/5 hover:bg-white/10 text-gray-300"}`}
+                      className={`w-full ${
+                        p.guru
+                          ? "bg-amber-500 hover:bg-amber-600 text-white"
+                          : p.highlight
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-white/5 hover:bg-white/10 text-gray-300"
+                      }`}
                     >
-                      Get Started
+                      {p.guru ? "Start Teaching" : "Get Started"}
                     </Button>
                   </Link>
                 </CardContent>
