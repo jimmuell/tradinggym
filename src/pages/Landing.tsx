@@ -256,24 +256,24 @@ export default function Landing() {
       </section>
 
       {/* Guru Callout Banner */}
-      <section className="py-8 px-6 bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 border-y border-amber-500/10">
+      <section className="py-8 px-6 bg-gradient-to-r from-blue-500/[0.03] via-blue-500/[0.06] to-blue-500/[0.03] border-y border-white/5">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-amber-400" />
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-blue-400" />
             </div>
             <div>
               <p className="text-white font-semibold text-sm">Are you a trading educator?</p>
               <p className="text-gray-400 text-sm">
                 Run your entire coaching business inside TradingGYM — cohorts, live sessions, and Stripe payouts.{" "}
-                <span className="text-amber-400 font-medium">You keep 80%.</span>
+                <span className="text-blue-400 font-medium">You keep 80%.</span>
               </p>
             </div>
           </div>
           <a href="#pricing" className="shrink-0">
             <Button
               variant="outline"
-              className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 whitespace-nowrap"
+              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 whitespace-nowrap"
             >
               Start Teaching <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
