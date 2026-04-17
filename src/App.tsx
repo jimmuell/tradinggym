@@ -91,6 +91,9 @@ const App = () => (
               <Route path="/guru/cohorts" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
               <Route path="/guru/students/:studentId" element={<ProtectedRoute><GuruStudentDetailPage /></ProtectedRoute>} />
               <Route path="/guru/students" element={<ProtectedRoute><GuruStudentsPage /></ProtectedRoute>} />
+              <Route path="/guru/content/new" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
+              <Route path="/guru/content/:id" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
+              <Route path="/guru/content" element={<ProtectedRoute><GuruContentPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SettingsProvider>
