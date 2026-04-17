@@ -25,6 +25,8 @@ import Settings from "./pages/Settings";
 import FoundationLearning from "./pages/learning/Foundation";
 import GuruApplyPage from "./pages/guru/GuruApplyPage";
 import GuruDashboardPage from "./pages/guru/GuruDashboardPage";
+import GuruCohortsPage from "./pages/guru/GuruCohortsPage";
+import GuruCohortFormPage from "./pages/guru/GuruCohortFormPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
@@ -76,6 +78,9 @@ const App = () => (
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
+              <Route path="/guru/cohorts/new" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
+              <Route path="/guru/cohorts/:id" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
+              <Route path="/guru/cohorts" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SettingsProvider>
