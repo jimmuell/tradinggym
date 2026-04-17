@@ -75,6 +75,23 @@ export default function CoachingCohortPage() {
         My Cohorts
       </Link>
 
+      {liveSession && (
+        <Card className="border-green-500/40 bg-green-500/5">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <Radio className="h-5 w-5 text-green-400 animate-pulse shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-green-400">Live Now</p>
+                <p className="font-medium truncate">{liveSession.title}</p>
+              </div>
+            </div>
+            <Button asChild className="bg-green-600 text-white hover:bg-green-500">
+              <Link to={`/coaching/${cohortId}/session/${liveSession.id}`}>Join Session →</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{enrolled.cohort.name}</h1>
         <p className="text-sm text-muted-foreground mt-1">
