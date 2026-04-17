@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      backtest_runs: {
+        Row: {
+          avg_loser: number | null
+          avg_winner: number | null
+          created_at: string
+          end_date: string
+          id: string
+          initial_balance: number
+          losses: number | null
+          max_drawdown: number | null
+          max_trades_per_day: number
+          net_pnl: number | null
+          profit_factor: number | null
+          start_date: string
+          status: string
+          stop_loss_ticks: number
+          strategy_id: string | null
+          strategy_name: string
+          take_profit_ticks: number
+          timeframe: string
+          total_trades: number | null
+          user_id: string
+          win_rate: number | null
+          wins: number | null
+        }
+        Insert: {
+          avg_loser?: number | null
+          avg_winner?: number | null
+          created_at?: string
+          end_date: string
+          id?: string
+          initial_balance?: number
+          losses?: number | null
+          max_drawdown?: number | null
+          max_trades_per_day?: number
+          net_pnl?: number | null
+          profit_factor?: number | null
+          start_date: string
+          status?: string
+          stop_loss_ticks?: number
+          strategy_id?: string | null
+          strategy_name: string
+          take_profit_ticks?: number
+          timeframe: string
+          total_trades?: number | null
+          user_id: string
+          win_rate?: number | null
+          wins?: number | null
+        }
+        Update: {
+          avg_loser?: number | null
+          avg_winner?: number | null
+          created_at?: string
+          end_date?: string
+          id?: string
+          initial_balance?: number
+          losses?: number | null
+          max_drawdown?: number | null
+          max_trades_per_day?: number
+          net_pnl?: number | null
+          profit_factor?: number | null
+          start_date?: string
+          status?: string
+          stop_loss_ticks?: number
+          strategy_id?: string | null
+          strategy_name?: string
+          take_profit_ticks?: number
+          timeframe?: string
+          total_trades?: number | null
+          user_id?: string
+          win_rate?: number | null
+          wins?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backtest_runs_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
