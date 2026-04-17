@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Loader2, Users, Layers, DollarSign, TrendingUp, GraduationCap, Video } from 'lucide-react';
+import { Loader2, Users, Layers, DollarSign, TrendingUp, GraduationCap, Video, Radio } from 'lucide-react';
 import GuruLayout from '@/layouts/GuruLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,9 @@ export default function GuruDashboardPage() {
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp } = useGuruApplication();
   const { activeStudents, activeCohorts, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
-  const { upcomingSessions, isLoading: loadingSessions } = useGuruSessions();
+  const { sessions, upcomingSessions, isLoading: loadingSessions } = useGuruSessions();
   const { cohorts } = useGuruCohorts();
+  const liveSession = sessions.find((s) => s.status === 'live') ?? null;
 
   if (loadingProfile || loadingApp) {
     return (
@@ -99,50 +100,71 @@ export default function GuruDashboardPage() {
           ))}
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Video className="h-4 w-4 text-muted-foreground" />
-                Next Session
-              </h2>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/guru/sessions">View all</Link>
-              </Button>
-            </div>
-            {loadingSessions ? (
-              <Skeleton className="h-16 w-full" />
-            ) : upcomingSessions.length === 0 ? (
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">No sessions scheduled</p>
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/guru/sessions/new">Schedule One</Link>
-                </Button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        {liveSession ? (
+          <Card className="border-l-4 border-l-green-500 border-green-500/30 bg-green-500/5">
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{upcomingSessions[0].title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {cohorts.find((c) => c.id === upcomingSessions[0].cohort_id)?.name ?? '—'} ·{' '}
-                    {new Date(upcomingSessions[0].scheduled_at).toLocaleString(undefined, {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+                  <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-green-400">
+                    <Radio className="h-3.5 w-3.5 animate-pulse" />
+                    Session Live
+                  </p>
+                  <p className="font-medium truncate mt-1">
+                    {liveSession.title} — {cohorts.find((c) => c.id === liveSession.cohort_id)?.name ?? '—'}
                   </p>
                 </div>
-                <Button asChild size="sm">
-                  <Link to={`/guru/sessions/${upcomingSessions[0].id}`}>
-                    {upcomingSessions[0].status === 'live' ? 'Enter Session' : 'Manage'}
-                  </Link>
+                <Button asChild className="bg-green-600 text-white hover:bg-green-500">
+                  <Link to={`/guru/sessions/${liveSession.id}/live`}>Enter Session →</Link>
                 </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold flex items-center gap-2">
+                  <Video className="h-4 w-4 text-muted-foreground" />
+                  Next Session
+                </h2>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/guru/sessions">View all</Link>
+                </Button>
+              </div>
+              {loadingSessions ? (
+                <Skeleton className="h-16 w-full" />
+              ) : upcomingSessions.length === 0 ? (
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">No sessions scheduled</p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/guru/sessions/new">Schedule One</Link>
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{upcomingSessions[0].title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {cohorts.find((c) => c.id === upcomingSessions[0].cohort_id)?.name ?? '—'} ·{' '}
+                      {new Date(upcomingSessions[0].scheduled_at).toLocaleString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <Button asChild size="sm">
+                    <Link to={`/guru/sessions/${upcomingSessions[0].id}`}>
+                      {upcomingSessions[0].status === 'live' ? 'Enter Session' : 'Manage'}
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </GuruLayout>
   );

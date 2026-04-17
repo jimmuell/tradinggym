@@ -1,23 +1,87 @@
-import { useEffect } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
-import { Eye, Loader2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import {
+  createChart,
+  CandlestickSeries,
+  ColorType,
+  type IChartApi,
+  type ISeriesApi,
+  type Time,
+} from 'lightweight-charts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentCohort } from '@/hooks/useStudentEnrollments';
 import { useCohortSessions } from '@/hooks/useCohortSessions';
+import { useSessionBroadcast } from '@/hooks/useSessionBroadcast';
+import { loadTimeframeData, type Timeframe } from '@/lib/chartData';
+
+const BROADCAST_TF_MAP: Record<string, Timeframe> = {
+  '1': '1m',
+  '5': '5m',
+  '15': '5m', // fallback — no 15m CSV
+  '30': '30m',
+  '60': '1h',
+  '1H': '1h',
+  '240': '1h', // fallback
+  '4H': '1h', // fallback
+  '1D': '1D',
+  D: '1D',
+};
+
+function resolveTimeframe(tf: string): Timeframe {
+  return BROADCAST_TF_MAP[tf] ?? '5m';
+}
 
 export default function CoachingSessionPage() {
   const { cohortId, sessionId } = useParams<{ cohortId: string; sessionId: string }>();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
   const { sessions, isLoading: sessionsLoading } = useCohortSessions(cohortId);
 
   const session = sessions.find((s) => s.id === sessionId) ?? null;
 
-  // Record attendance on mount, update left_at on unmount
+  const { chartState, isConnected } = useSessionBroadcast(
+    session?.status === 'live' ? sessionId : undefined,
+    'viewer',
+  );
+
+  const chartContainerRef = useRef<HTMLDivElement | null>(null);
+  const chartRef = useRef<IChartApi | null>(null);
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const loadedTfRef = useRef<Timeframe | null>(null);
+
+  // Poll session status every 10s for auto-redirect on end
+  const statusQuery = useQuery({
+    queryKey: ['session-status-poll', sessionId],
+    queryFn: async (): Promise<{ status: string } | null> => {
+      if (!sessionId) return null;
+      const { data, error } = await supabase
+        .from('live_sessions')
+        .select('status')
+        .eq('id', sessionId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 10000,
+    enabled: !!sessionId,
+  });
+
+  useEffect(() => {
+    if (statusQuery.data?.status === 'ended') {
+      toast.info('This session has ended');
+      const t = setTimeout(() => navigate(`/coaching/${cohortId}`), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [statusQuery.data?.status, cohortId, navigate]);
+
+  // Attendance tracking — unchanged from P25
   useEffect(() => {
     if (!user?.id || !sessionId || !session || session.status !== 'live') return;
     let cancelled = false;
@@ -32,7 +96,6 @@ export default function CoachingSessionPage() {
           { onConflict: 'session_id,student_id' },
         );
       if (error && !cancelled) {
-        // Non-fatal; viewer can still watch
         console.error('attendance upsert failed', error);
       }
     })();
@@ -46,6 +109,78 @@ export default function CoachingSessionPage() {
         .eq('student_id', studentId);
     };
   }, [user?.id, sessionId, session]);
+
+  // Init read-only chart
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
+    const container = chartContainerRef.current;
+    const chart = createChart(container, {
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#9ca3af',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255,255,255,0.05)' },
+        horzLines: { color: 'rgba(255,255,255,0.05)' },
+      },
+      width: container.clientWidth,
+      height: container.clientHeight,
+      rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)' },
+      timeScale: { borderColor: 'rgba(255,255,255,0.1)', timeVisible: true, secondsVisible: false },
+      handleScroll: { mouseWheel: false, pressedMouseMove: false, horzTouchDrag: false, vertTouchDrag: false },
+      handleScale: { mouseWheel: false, pinch: false, axisPressedMouseMove: false, axisDoubleClickReset: false },
+    });
+    const series = chart.addSeries(CandlestickSeries, {
+      upColor: '#10b981',
+      downColor: '#ef4444',
+      borderVisible: false,
+      wickUpColor: '#10b981',
+      wickDownColor: '#ef4444',
+    });
+    chartRef.current = chart;
+    seriesRef.current = series;
+
+    const ro = new ResizeObserver(() => {
+      chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+    });
+    ro.observe(container);
+
+    return () => {
+      ro.disconnect();
+      chart.remove();
+      chartRef.current = null;
+      seriesRef.current = null;
+      loadedTfRef.current = null;
+    };
+  }, []);
+
+  // Apply broadcast state
+  useEffect(() => {
+    if (!chartState || !chartRef.current || !seriesRef.current) return;
+    const tf = resolveTimeframe(chartState.timeframe);
+
+    let cancelled = false;
+    const apply = async () => {
+      if (loadedTfRef.current !== tf) {
+        const data = await loadTimeframeData(tf);
+        if (cancelled) return;
+        seriesRef.current?.setData(data);
+        loadedTfRef.current = tf;
+      }
+      try {
+        chartRef.current?.timeScale().setVisibleRange({
+          from: chartState.fromTimestamp as Time,
+          to: chartState.toTimestamp as Time,
+        });
+      } catch {
+        // Range outside data — ignore
+      }
+    };
+    void apply();
+    return () => {
+      cancelled = true;
+    };
+  }, [chartState]);
 
   if (enrLoading || sessionsLoading) {
     return (
@@ -70,7 +205,9 @@ export default function CoachingSessionPage() {
       <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3">
         <div className="min-w-0 flex-1">
           <h1 className="font-semibold truncate">{session.title}</h1>
-          <p className="text-xs text-muted-foreground">{enrolled.cohort.name}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            Viewing {enrolled.guru.display_name}'s chart · {enrolled.cohort.name}
+          </p>
         </div>
         <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30">
           <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-green-400" />
@@ -81,16 +218,23 @@ export default function CoachingSessionPage() {
         </Button>
       </header>
 
-      <main className="flex-1 p-6">
-        <div className="flex h-full min-h-[400px] items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/20">
-          <div className="text-center">
-            <Eye className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-            <p className="text-base font-medium">Live chart viewer will appear here in P26</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Your coach's chart will stream here in real time
-            </p>
+      <main className="relative flex-1 overflow-hidden">
+        <div ref={chartContainerRef} className="absolute inset-0 bg-background" />
+        {!chartState && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="text-center">
+              <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">
+                Waiting for your coach to share their chart…
+              </p>
+            </div>
           </div>
-        </div>
+        )}
+        {!isConnected && chartState && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 rounded-md border border-amber-500/30 bg-amber-500/15 px-3 py-1.5 text-xs text-amber-400">
+            Connection lost — reconnecting…
+          </div>
+        )}
       </main>
 
       <footer className="border-t border-border bg-card px-6 py-3">
