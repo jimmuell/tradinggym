@@ -35,12 +35,9 @@ const tierBadgeColors: Record<string, string> = {
   tier3: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
 };
 
-const tierLabels: Record<string, string> = {
-  foundation: 'Foundation',
-  tier1: 'Tier 1',
-  tier2: 'Tier 2',
-  tier3: 'Tier 3',
-};
+import { TIER_DISPLAY_NAMES, getTierDisplayName } from '@/lib/tierUtils';
+
+const tierLabels: Record<string, string> = TIER_DISPLAY_NAMES;
 
 function StrategyCardSkeleton() {
   return (
