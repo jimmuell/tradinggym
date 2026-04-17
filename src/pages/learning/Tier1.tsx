@@ -43,9 +43,9 @@ export default function Tier1Learning() {
   if (!isUnlocked('tier1')) {
     return (
       <TierLockedState
-        previousLevel="Foundation"
+        previousLevel="Starter"
         previousPath="/learning/foundation"
-        subtext="Complete Foundation and pass the quiz first."
+        subtext="Complete Starter and pass the quiz first."
       />
     );
   }
