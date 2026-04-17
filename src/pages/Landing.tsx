@@ -169,13 +169,22 @@ export default function Landing() {
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0b0e13]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
-          <div className="flex flex-col items-center">
-            <span className="text-xl font-bold tracking-tight text-white">
-              Trading<span className="text-blue-500">GYM</span>
-            </span>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-medium text-center">
-              <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
-            </span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/favicon.png"
+              alt="TradingGYM logo"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-lg shrink-0"
+            />
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold tracking-tight text-white leading-none">
+                Trading<span className="text-blue-500">GYM</span>
+              </span>
+              <span className="text-[9px] tracking-[0.2em] uppercase font-medium text-center mt-1">
+                <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
+              </span>
+            </div>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
             <a href="#features" className="hover:text-white transition-colors">
@@ -406,13 +415,23 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col">
-            <span className="text-lg font-bold text-white">
-              Trading<span className="text-blue-500">GYM</span>
-            </span>
-            <span className="text-[9px] tracking-[0.2em] uppercase font-medium">
-              <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
-            </span>
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/favicon.png"
+              alt="TradingGYM logo"
+              width={28}
+              height={28}
+              loading="lazy"
+              className="h-7 w-7 rounded-md shrink-0"
+            />
+            <div className="flex flex-col">
+              <span className="text-lg font-bold text-white leading-none">
+                Trading<span className="text-blue-500">GYM</span>
+              </span>
+              <span className="text-[9px] tracking-[0.2em] uppercase font-medium mt-1">
+                <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
+              </span>
+            </div>
           </div>
           <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradingGYM. All rights reserved.</p>
