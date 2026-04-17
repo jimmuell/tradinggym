@@ -122,3 +122,27 @@ export interface StudentTrade {
   closed_at: string | null;
   created_at: string | null;
 }
+
+export type ContentType = 'lesson' | 'post' | 'blueprint';
+
+export interface GuruContent {
+  id: string;
+  guru_id: string;
+  cohort_id: string;
+  title: string;
+  body: string;
+  content_type: ContentType;
+  is_draft: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContentFormData {
+  title: string;
+  body: string;
+  content_type: ContentType;
+  cohort_id: string;
+  is_draft: boolean;
+}
+
