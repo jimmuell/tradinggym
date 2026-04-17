@@ -7,11 +7,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TierState } from '@/contexts/TierContext';
 import { toast } from 'sonner';
 
-const TIERS: { key: TierState; label: string; path: string }[] = [
-  { key: 'foundation', label: 'Foundation', path: '/learning/foundation' },
-  { key: 'tier1', label: 'Tier 1', path: '/learning/tier1' },
-  { key: 'tier2', label: 'Tier 2', path: '/learning/tier2' },
-  { key: 'tier3', label: 'Tier 3', path: '/learning/tier3' },
+import { getTierDisplayName } from '@/lib/tierUtils';
+
+const TIERS: { key: TierState; path: string }[] = [
+  { key: 'foundation', path: '/learning/foundation' },
+  { key: 'tier1', path: '/learning/tier1' },
+  { key: 'tier2', path: '/learning/tier2' },
+  { key: 'tier3', path: '/learning/tier3' },
 ];
 
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
@@ -56,14 +58,14 @@ export default function TierProgressCard({ currentTier }: { currentTier: TierSta
                   onClick={() => {
                     if (isLocked) {
                       const prev = TIERS[idx - 1];
-                      toast(`Complete ${prev?.label || 'previous tier'} to unlock`);
+                      toast(`Complete ${prev ? getTierDisplayName(prev.key) : 'previous tier'} to unlock`);
                     } else {
                       navigate(tier.path);
                     }
                   }}
                 >
                   {isCompleted && <Check className="h-3 w-3 mr-1" />}
-                  {tier.label}
+                  {getTierDisplayName(tier.key)}
                   {isLocked && <Lock className="h-3 w-3 ml-1" />}
                 </Badge>
                 {i < TIERS.length - 1 && (
@@ -76,7 +78,7 @@ export default function TierProgressCard({ currentTier }: { currentTier: TierSta
         <Progress value={0} className="mt-4 h-2" />
         <div className="flex items-center justify-between mt-2">
           <p className="text-xs text-muted-foreground">
-            0% complete — Start your {currentTierData.label} modules
+            0% complete — Start your {getTierDisplayName(currentTierData.key)} modules
           </p>
           <Button
             size="sm"

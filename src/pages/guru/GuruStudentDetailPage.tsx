@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import { useStudentProgress } from '@/hooks/useStudentProgress';
 import { cn } from '@/lib/utils';
+import { getTierDisplayName } from '@/lib/tierUtils';
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';
@@ -73,7 +74,7 @@ export default function GuruStudentDetailPage() {
                     <div>
                       <div className="text-lg font-semibold">{profile?.display_name}</div>
                       <Badge variant="outline" className="mt-1 text-xs">
-                        {profile?.tier_state}
+                        {profile?.tier_state ? getTierDisplayName(profile.tier_state) : ''}
                       </Badge>
                     </div>
                   </div>
