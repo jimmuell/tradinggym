@@ -32,20 +32,25 @@ export default function HeroChartAnimation() {
 
       {/* Glow halo behind brand image */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-blue-500/30"
-        style={{ animation: 'brandGlow 6s ease-in-out infinite' }}
+        className="absolute left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-blue-500/30"
+        style={{ top: '180px', animation: 'brandGlow 6s ease-in-out infinite' }}
       />
 
-      {/* Brand mark */}
+      {/* Brand mark — centered behind H1, corners masked off */}
       <img
         src="/favicon.png"
         alt=""
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] max-w-[60%] h-auto rounded-3xl"
+        className="absolute left-1/2 -translate-x-1/2 w-[480px] max-w-[55%] h-auto"
         style={{
-          opacity: 0.18,
+          top: '120px',
+          opacity: 0.22,
           animation:
             'brandFadeIn 1.2s ease-out forwards, brandFloat 7s ease-in-out 1.2s infinite',
           mixBlendMode: 'screen',
+          WebkitMaskImage:
+            'radial-gradient(circle at 50% 50%, black 42%, transparent 68%)',
+          maskImage:
+            'radial-gradient(circle at 50% 50%, black 42%, transparent 68%)',
         }}
       />
     </div>
