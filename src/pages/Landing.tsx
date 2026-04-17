@@ -107,7 +107,7 @@ const tiers = [
 
 const pricing = [
   {
-    name: "Free",
+    name: "Starter",
     price: "$0",
     period: "/forever",
     highlight: false,
@@ -126,7 +126,7 @@ const pricing = [
     highlight: true,
     guru: false,
     features: [
-      "Everything in Free",
+      "Everything in Starter",
       "All strategy tiers (ORB, VWAP, AMD)",
       "AI strategy ingestion",
       "Advanced analytics",

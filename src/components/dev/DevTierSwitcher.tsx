@@ -3,11 +3,11 @@ import { useState, useRef, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const TIERS: { label: string; value: TierState }[] = [
-  { label: 'Foundation', value: 'foundation' },
+  { label: 'Starter', value: 'foundation' },
   { label: 'Tier 1', value: 'tier1' },
   { label: 'Tier 2', value: 'tier2' },
   { label: 'Tier 3', value: 'tier3' },
-  { label: 'Coach', value: 'coach' },
+  { label: 'Guru', value: 'coach' },
 ];
 
 function DevTierSwitcherInner() {
