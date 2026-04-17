@@ -97,6 +97,44 @@ export type Database = {
           },
         ]
       }
+      cohort_enrollments: {
+        Row: {
+          cancelled_at: string | null
+          cohort_id: string
+          enrolled_at: string
+          id: string
+          status: string
+          stripe_subscription_id: string | null
+          student_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cohort_id: string
+          enrolled_at?: string
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          student_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cohort_id?: string
+          enrolled_at?: string
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohort_enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cohorts: {
         Row: {
           created_at: string
@@ -383,7 +421,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guru_student_profiles: {
+        Row: {
+          avatar_url: string | null
+          display_name: string | null
+          tier_state: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          display_name?: string | null
+          tier_state?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          display_name?: string | null
+          tier_state?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       update_own_profile: {
