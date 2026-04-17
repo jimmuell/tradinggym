@@ -58,7 +58,7 @@ export default function TierProgressCard({ currentTier }: { currentTier: TierSta
                   onClick={() => {
                     if (isLocked) {
                       const prev = TIERS[idx - 1];
-                      toast(`Complete ${prev?.label || 'previous tier'} to unlock`);
+                      toast(`Complete ${prev ? getTierDisplayName(prev.key) : 'previous tier'} to unlock`);
                     } else {
                       navigate(tier.path);
                     }
