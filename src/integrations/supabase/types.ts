@@ -97,6 +97,59 @@ export type Database = {
           },
         ]
       }
+      cohorts: {
+        Row: {
+          created_at: string
+          description: string | null
+          guru_id: string
+          id: string
+          max_students: number | null
+          name: string
+          price_monthly: number
+          status: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          updated_at: string
+          win_rate_gate: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          guru_id: string
+          id?: string
+          max_students?: number | null
+          name: string
+          price_monthly?: number
+          status?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+          win_rate_gate?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          guru_id?: string
+          id?: string
+          max_students?: number | null
+          name?: string
+          price_monthly?: number
+          status?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          updated_at?: string
+          win_rate_gate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guru_applications: {
         Row: {
           email: string

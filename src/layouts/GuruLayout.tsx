@@ -8,6 +8,7 @@ import {
   DollarSign,
   Settings,
   LogOut,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,6 +24,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/guru', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
+  { to: '/guru/cohorts', label: 'Cohorts', icon: GraduationCap, enabled: true },
   { to: '/guru/students', label: 'Students', icon: Users, enabled: false },
   { to: '/guru/content', label: 'Content', icon: BookOpen, enabled: false },
   { to: '/guru/sessions', label: 'Sessions', icon: Video, enabled: false },
@@ -72,7 +74,7 @@ export default function GuruLayout({ children }: { children: ReactNode }) {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end
+                end={item.to === '/guru'}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',

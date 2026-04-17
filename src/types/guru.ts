@@ -1,6 +1,7 @@
 export type GuruStatus = 'pending' | 'active' | 'suspended';
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
 export type YearsExperience = 'under_1' | '1_3' | '3_5' | '5_10' | 'over_10';
+export type CohortStatus = 'draft' | 'active' | 'closed';
 
 export interface GuruProfile {
   id: string;
@@ -39,6 +40,30 @@ export interface ApplicationFormData {
   years_experience: YearsExperience;
   what_you_teach: string;
   existing_presence?: string;
+}
+
+export interface Cohort {
+  id: string;
+  guru_id: string;
+  name: string;
+  description: string | null;
+  price_monthly: number;
+  win_rate_gate: number;
+  max_students: number | null;
+  status: CohortStatus;
+  stripe_product_id: string | null;
+  stripe_price_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CohortFormData {
+  name: string;
+  description: string;
+  price_monthly: number;
+  win_rate_gate: number;
+  max_students: number | null;
+  status: CohortStatus;
 }
 
 export const YEARS_EXPERIENCE_OPTIONS: { value: YearsExperience; label: string }[] = [
