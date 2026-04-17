@@ -171,7 +171,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-tight text-white">
-              Trade<span className="text-blue-500">GYM</span>
+              Trading<span className="text-blue-500">GYM</span>
             </span>
             <span className="text-[9px] tracking-[0.2em] uppercase font-medium">
               <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
@@ -211,12 +211,9 @@ export default function Landing() {
             MES Futures • Micro E-mini S&P 500
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            No Pain -{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">No Gain</span>
-            <br />
-            Train to trade on{" "}
+            Build Your Trading<br />
             <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              TradingView
+              Muscle Memory
             </span>
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -411,14 +408,14 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex flex-col">
             <span className="text-lg font-bold text-white">
-              Trade<span className="text-blue-500">GYM</span>
+              Trading<span className="text-blue-500">GYM</span>
             </span>
             <span className="text-[9px] tracking-[0.2em] uppercase font-medium">
               <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
             </span>
           </div>
           <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
-          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradeGYM. All rights reserved.</p>
+          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradingGYM. All rights reserved.</p>
         </div>
       </footer>
     </div>
