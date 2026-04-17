@@ -55,13 +55,15 @@ export function useGuruCohorts() {
       id: string;
       data: Partial<CohortFormData>;
     }): Promise<Cohort> => {
-      const payload: Record<string, unknown> = { ...data };
-      if ('description' in payload) {
-        payload.description = (payload.description as string) || null;
-      }
+      const payload = {
+        ...data,
+        ...('description' in data
+          ? { description: data.description ? data.description : null }
+          : {}),
+      };
       const { data: row, error } = await supabase
         .from('cohorts')
-        .update(payload)
+        .update(payload as never)
         .eq('id', id)
         .select('*')
         .single();
