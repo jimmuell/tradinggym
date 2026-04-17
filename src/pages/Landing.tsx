@@ -89,7 +89,7 @@ const features = [
   {
     icon: Users,
     title: "Guru Platform",
-    desc: "Run your entire trading education business inside TradeGYM — cohorts, content, live sessions, and Stripe payouts.",
+    desc: "Run your entire trading education business inside TradingGYM — cohorts, content, live sessions, and Stripe payouts.",
   },
   {
     icon: Shield,
@@ -249,6 +249,9 @@ export default function Landing() {
               </Button>
             </a>
           </div>
+          <p className="text-xs text-gray-600 mt-6">
+            For educational and simulation purposes only. Not financial advice. Paper trading only — no real money at risk.
+          </p>
         </div>
       </section>
 
@@ -262,7 +265,7 @@ export default function Landing() {
             <div>
               <p className="text-white font-semibold text-sm">Are you a trading educator?</p>
               <p className="text-gray-400 text-sm">
-                Run your entire coaching business inside TradeGYM — cohorts, live sessions, and Stripe payouts.{" "}
+                Run your entire coaching business inside TradingGYM — cohorts, live sessions, and Stripe payouts.{" "}
                 <span className="text-amber-400 font-medium">You keep 80%.</span>
               </p>
             </div>
@@ -487,6 +490,9 @@ export default function Landing() {
           </div>
           <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradingGYM. All rights reserved.</p>
+          <p className="text-gray-600 text-xs text-center w-full mt-2">
+            TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
+          </p>
         </div>
       </footer>
     </div>
