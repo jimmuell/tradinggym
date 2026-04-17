@@ -111,6 +111,7 @@ const pricing = [
     price: "$0",
     period: "/forever",
     highlight: false,
+    guru: false,
     features: [
       "Trading Simulator",
       "Foundation learning modules",
@@ -123,6 +124,7 @@ const pricing = [
     price: "$29",
     period: "/mo",
     highlight: true,
+    guru: false,
     features: [
       "Everything in Free",
       "All strategy tiers (ORB, VWAP, AMD)",
@@ -133,32 +135,35 @@ const pricing = [
     ],
   },
   {
-    name: "Guru",
+    name: "Expert",
     price: "$49",
     period: "/mo",
     highlight: false,
+    guru: false,
     features: [
       "Everything in Pro",
-      "Guru dashboard",
-      "Cohort & student management",
-      "Publish educational content",
-      "Student progress tracking",
-      "Live session broadcasting",
-      "Stripe Connect payouts",
-    ],
-  },
-  {
-    name: "Expert",
-    price: "$99",
-    period: "/mo",
-    highlight: false,
-    features: [
-      "Everything in Guru",
       "Automated execution",
       "Broker integration",
       "Risk controls & kill switch",
       "Monte Carlo validation",
       "Priority support",
+      "30-day Guru trial included",
+    ],
+  },
+  {
+    name: "Guru",
+    price: "$99",
+    period: "/mo",
+    highlight: false,
+    guru: true,
+    features: [
+      "Everything in Expert",
+      "Guru dashboard & cohort management",
+      "Publish educational content",
+      "Student progress tracking",
+      "Live session broadcasting",
+      "Stripe Connect payouts",
+      "Keep 80% of student revenue",
     ],
   },
 ];
@@ -244,6 +249,32 @@ export default function Landing() {
               </Button>
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* Guru Callout Banner */}
+      <section className="py-8 px-6 bg-gradient-to-r from-amber-500/5 via-amber-500/10 to-amber-500/5 border-y border-amber-500/10">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+              <Users className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-white font-semibold text-sm">Are you a trading educator?</p>
+              <p className="text-gray-400 text-sm">
+                Run your entire coaching business inside TradeGYM — cohorts, live sessions, and Stripe payouts.{" "}
+                <span className="text-amber-400 font-medium">You keep 80%.</span>
+              </p>
+            </div>
+          </div>
+          <a href="#pricing" className="shrink-0">
+            <Button
+              variant="outline"
+              className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/50 whitespace-nowrap"
+            >
+              Start Teaching <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </a>
         </div>
       </section>
 
@@ -364,10 +395,21 @@ export default function Landing() {
             {pricing.map((p) => (
               <Card
                 key={p.name}
-                className={`bg-[#131722] border transition-all ${p.highlight ? "border-blue-500/40 shadow-lg shadow-blue-500/10" : "border-white/5"}`}
+                className={`bg-[#131722] border transition-all ${
+                  p.guru
+                    ? "border-amber-500/40 shadow-lg shadow-amber-500/10"
+                    : p.highlight
+                    ? "border-blue-500/40 shadow-lg shadow-blue-500/10"
+                    : "border-white/5"
+                }`}
               >
                 <CardContent className="p-8 flex flex-col h-full">
-                  {p.highlight && (
+                  {p.guru && (
+                    <Badge className="self-start bg-amber-500/10 text-amber-400 border-amber-500/20 mb-4">
+                      For Educators
+                    </Badge>
+                  )}
+                  {p.highlight && !p.guru && (
                     <Badge className="self-start bg-blue-500/10 text-blue-400 border-blue-500/20 mb-4">
                       Most Popular
                     </Badge>
@@ -380,16 +422,26 @@ export default function Landing() {
                   <ul className="space-y-3 mb-8 flex-1">
                     {p.features.map((f) => (
                       <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
-                        <Check className="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
+                        <Check
+                          className={`h-4 w-4 shrink-0 mt-0.5 ${
+                            p.guru ? "text-amber-400" : "text-blue-400"
+                          }`}
+                        />
                         {f}
                       </li>
                     ))}
                   </ul>
                   <Link to="/auth">
                     <Button
-                      className={`w-full ${p.highlight ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-white/5 hover:bg-white/10 text-gray-300"}`}
+                      className={`w-full ${
+                        p.guru
+                          ? "bg-amber-500 hover:bg-amber-600 text-white"
+                          : p.highlight
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-white/5 hover:bg-white/10 text-gray-300"
+                      }`}
                     >
-                      Get Started
+                      {p.guru ? "Start Teaching" : "Get Started"}
                     </Button>
                   </Link>
                 </CardContent>
