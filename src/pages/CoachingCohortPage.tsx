@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen } from 'lucide-react';
+import { ArrowLeft, BookOpen, Video, Radio } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { useStudentCohort } from '@/hooks/useStudentEnrollments';
 import { useCohortContent } from '@/hooks/useCohortContent';
+import { useCohortSessions } from '@/hooks/useCohortSessions';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -41,6 +43,7 @@ export default function CoachingCohortPage() {
   const { cohortId } = useParams<{ cohortId: string }>();
   const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
   const { content, isLoading: contentLoading } = useCohortContent(cohortId);
+  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useCohortSessions(cohortId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
@@ -71,6 +74,23 @@ export default function CoachingCohortPage() {
         <ArrowLeft className="h-4 w-4 mr-1" />
         My Cohorts
       </Link>
+
+      {liveSession && (
+        <Card className="border-green-500/40 bg-green-500/5">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <Radio className="h-5 w-5 text-green-400 animate-pulse shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-green-400">Live Now</p>
+                <p className="font-medium truncate">{liveSession.title}</p>
+              </div>
+            </div>
+            <Button asChild className="bg-green-600 text-white hover:bg-green-500">
+              <Link to={`/coaching/${cohortId}/session/${liveSession.id}`}>Join Session →</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{enrolled.cohort.name}</h1>
@@ -132,6 +152,46 @@ export default function CoachingCohortPage() {
           ))}
         </div>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <Video className="h-4 w-4" />
+          Upcoming Sessions
+        </h2>
+        {sessionsLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : upcomingSessions.filter((s) => s.status === 'scheduled').length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center text-sm text-muted-foreground">
+              No upcoming sessions scheduled.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {upcomingSessions
+              .filter((s) => s.status === 'scheduled')
+              .map((s) => (
+                <Card key={s.id}>
+                  <CardContent className="p-4">
+                    <p className="font-medium">{s.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(s.scheduled_at).toLocaleString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                    {s.description && (
+                      <p className="text-sm text-muted-foreground mt-2">{s.description}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
