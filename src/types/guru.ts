@@ -73,3 +73,52 @@ export const YEARS_EXPERIENCE_OPTIONS: { value: YearsExperience; label: string }
   { value: '5_10', label: '5–10 years' },
   { value: 'over_10', label: '10+ years' },
 ];
+
+export type EnrollmentStatus = 'active' | 'paused' | 'cancelled';
+
+export interface CohortEnrollment {
+  id: string;
+  cohort_id: string;
+  student_id: string;
+  status: EnrollmentStatus;
+  stripe_subscription_id: string | null;
+  enrolled_at: string;
+  cancelled_at: string | null;
+}
+
+export interface StudentProfile {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  tier_state: string;
+}
+
+export interface StudentStats {
+  total_trades: number;
+  win_rate: number;
+  wins: number;
+  losses: number;
+  net_pnl: number;
+  meets_win_rate_gate: boolean;
+}
+
+export interface EnrolledStudent {
+  enrollment: CohortEnrollment;
+  profile: StudentProfile;
+  cohort: Cohort;
+  stats: StudentStats;
+}
+
+export interface StudentTrade {
+  id: string;
+  user_id: string;
+  symbol: string | null;
+  direction: string | null;
+  result: string | null;
+  pnl: number | null;
+  pnl_ticks: number | null;
+  steps_completed: number[] | null;
+  opened_at: string | null;
+  closed_at: string | null;
+  created_at: string | null;
+}

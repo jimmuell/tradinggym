@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile, useGuruApplication } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruDashboardStats } from '@/hooks/useGuruDashboardStats';
 
 export default function GuruDashboardPage() {
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp } = useGuruApplication();
-  const { cohorts, isLoading: loadingCohorts } = useGuruCohorts();
+  const { activeStudents, activeCohorts, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
 
   if (loadingProfile || loadingApp) {
     return (
@@ -54,14 +54,16 @@ export default function GuruDashboardPage() {
     );
   }
 
-  const activeCohorts = cohorts.filter((c) => c.status === 'active').length;
-
   const stats: { label: string; icon: typeof Users; value: React.ReactNode }[] = [
-    { label: 'Active Students', icon: Users, value: '—' },
+    {
+      label: 'Active Students',
+      icon: Users,
+      value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeStudents,
+    },
     {
       label: 'Active Cohorts',
       icon: Layers,
-      value: loadingCohorts ? <Skeleton className="h-7 w-10" /> : activeCohorts,
+      value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeCohorts,
     },
     { label: "This Month's Revenue", icon: DollarSign, value: '—' },
     { label: 'Avg Student Win Rate', icon: TrendingUp, value: '—' },
