@@ -31,8 +31,12 @@ import GuruStudentsPage from "./pages/guru/GuruStudentsPage";
 import GuruStudentDetailPage from "./pages/guru/GuruStudentDetailPage";
 import GuruContentPage from "./pages/guru/GuruContentPage";
 import GuruContentFormPage from "./pages/guru/GuruContentFormPage";
+import GuruSessionsPage from "./pages/guru/GuruSessionsPage";
+import GuruSessionFormPage from "./pages/guru/GuruSessionFormPage";
+import GuruSessionLivePage from "./pages/guru/GuruSessionLivePage";
 import CoachingCohortPage from "./pages/CoachingCohortPage";
 import CoachingContentPage from "./pages/CoachingContentPage";
+import CoachingSessionPage from "./pages/CoachingSessionPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
@@ -80,6 +84,7 @@ const App = () => (
               <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
               <Route path="/coaching/:cohortId/content/:contentId" element={<LayoutRoute><CoachingContentPage /></LayoutRoute>} />
+              <Route path="/coaching/:cohortId/session/:sessionId" element={<ProtectedRoute><CoachingSessionPage /></ProtectedRoute>} />
               <Route path="/coaching/:cohortId" element={<LayoutRoute><CoachingCohortPage /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
@@ -94,6 +99,10 @@ const App = () => (
               <Route path="/guru/content/new" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
               <Route path="/guru/content/:id" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
               <Route path="/guru/content" element={<ProtectedRoute><GuruContentPage /></ProtectedRoute>} />
+              <Route path="/guru/sessions/:id/live" element={<ProtectedRoute><GuruSessionLivePage /></ProtectedRoute>} />
+              <Route path="/guru/sessions/new" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
+              <Route path="/guru/sessions/:id" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
+              <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SettingsProvider>
