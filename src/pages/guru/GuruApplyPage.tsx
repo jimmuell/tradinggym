@@ -96,7 +96,11 @@ export default function GuruApplyPage() {
     setErrors({});
     try {
       await submitApplication.mutateAsync({
-        ...parsed.data,
+        full_name: parsed.data.full_name,
+        email: parsed.data.email,
+        trading_style: parsed.data.trading_style,
+        years_experience: parsed.data.years_experience,
+        what_you_teach: parsed.data.what_you_teach,
         existing_presence: parsed.data.existing_presence || undefined,
       });
       toast({ title: 'Application submitted', description: 'We\u2019ll review and get back to you.' });
