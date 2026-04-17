@@ -9,7 +9,6 @@ test.describe('Analytics page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/analytics');
     await page.waitForLoadState('networkidle');
-    // Wait for Performance tab panel to be visible before each test
     await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible();
   });
 
@@ -40,8 +39,10 @@ test.describe('Analytics page', () => {
   });
 
   test('renders Blueprint Accuracy card', async ({ page }) => {
-    // Blueprint Accuracy is in the streaks row at the bottom of Performance tab
-    await expect(page.getByText('Blueprint Accuracy')).toBeVisible({ timeout: 10000 });
+    // Scroll to bottom of page to ensure the streaks row is in viewport
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const card = page.locator('span.text-muted-foreground', { hasText: 'Blueprint Accuracy' });
+    await expect(card).toBeVisible({ timeout: 10000 });
   });
 
   test('time range selector is present and defaults to All Time', async ({ page }) => {
@@ -58,13 +59,14 @@ test.describe('Analytics page', () => {
   });
 
   test('Distribution tab renders Win/Loss stat block', async ({ page }) => {
-    const distTab = page.getByRole('tab', { name: /distribution/i });
-    await distTab.click();
-    // Wait for the tab panel to activate
+    await page.getByRole('tab', { name: /distribution/i }).click();
+    // Wait for the active tab panel — Win/Loss Distribution heading is inside it
     await expect(page.getByText('Win/Loss Distribution')).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('Wins')).toBeVisible();
-    await expect(page.getByText('Losses')).toBeVisible();
-    await expect(page.getByText('Breakevens')).toBeVisible();
+    // WinLossStats labels — scope to the active tab panel to avoid hidden panels
+    const panel = page.locator('[role="tabpanel"]:visible');
+    await expect(panel.getByText('Wins')).toBeVisible();
+    await expect(panel.getByText('Losses')).toBeVisible();
+    await expect(panel.getByText('Breakevens')).toBeVisible();
   });
 
   test('Journal tab renders empty state', async ({ page }) => {
