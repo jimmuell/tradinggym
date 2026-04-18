@@ -101,7 +101,7 @@ describe('Profile — display name', () => {
   it('shows error toast when RPC fails', async () => {
     const { supabase } = await import('@/integrations/supabase/client')
     const { toast } = await import('sonner')
-    vi.mocked(supabase.rpc).mockResolvedValueOnce({ error: { message: 'fail' } } as { error: null })
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ error: { message: 'fail' } } as never)
     renderProfile()
     const input = await screen.findByDisplayValue('Jim')
     fireEvent.change(input, { target: { value: 'Jimmy' } })
