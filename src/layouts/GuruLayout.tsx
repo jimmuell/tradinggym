@@ -10,6 +10,7 @@ import {
   LogOut,
   GraduationCap,
   UserCircle,
+  Wallet,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -26,6 +27,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: '/guru', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
   { to: '/guru/profile', label: 'My Public Profile', icon: UserCircle, enabled: true },
+  { to: '/guru/payouts', label: 'Payouts', icon: Wallet, enabled: true },
   { to: '/guru/cohorts', label: 'Cohorts', icon: GraduationCap, enabled: true },
   { to: '/guru/students', label: 'Students', icon: Users, enabled: true },
   { to: '/guru/content', label: 'Content', icon: BookOpen, enabled: true },

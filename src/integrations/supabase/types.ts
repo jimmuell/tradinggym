@@ -302,6 +302,9 @@ export type Database = {
           slug: string | null
           status: string
           stripe_account_id: string | null
+          stripe_connect_id: string | null
+          stripe_connect_status: string | null
+          stripe_onboarding_complete: boolean | null
           tagline: string | null
           trial_dismissed_count: number
           trial_ends_at: string | null
@@ -322,6 +325,9 @@ export type Database = {
           slug?: string | null
           status?: string
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
+          stripe_onboarding_complete?: boolean | null
           tagline?: string | null
           trial_dismissed_count?: number
           trial_ends_at?: string | null
@@ -342,6 +348,9 @@ export type Database = {
           slug?: string | null
           status?: string
           stripe_account_id?: string | null
+          stripe_connect_id?: string | null
+          stripe_connect_status?: string | null
+          stripe_onboarding_complete?: boolean | null
           tagline?: string | null
           trial_dismissed_count?: number
           trial_ends_at?: string | null
@@ -349,6 +358,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      guru_referrals: {
+        Row: {
+          commission_rate: number | null
+          created_at: string | null
+          guru_id: string | null
+          id: string
+          redeemed_at: string | null
+          referral_code: string
+          referred_user_id: string | null
+          status: string | null
+          stripe_subscription_id: string | null
+        }
+        Insert: {
+          commission_rate?: number | null
+          created_at?: string | null
+          guru_id?: string | null
+          id?: string
+          redeemed_at?: string | null
+          referral_code: string
+          referred_user_id?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Update: {
+          commission_rate?: number | null
+          created_at?: string | null
+          guru_id?: string | null
+          id?: string
+          redeemed_at?: string | null
+          referral_code?: string
+          referred_user_id?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guru_referrals_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guru_referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       live_session_attendance: {
         Row: {
