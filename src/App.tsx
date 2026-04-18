@@ -25,6 +25,7 @@ import Settings from "./pages/Settings";
 import FoundationLearning from "./pages/learning/Foundation";
 import GuruApplyPage from "./pages/guru/GuruApplyPage";
 import GuruDashboardPage from "./pages/guru/GuruDashboardPage";
+import GuruPublicProfilePage from "./pages/guru/GuruPublicProfilePage";
 import GuruCohortsPage from "./pages/guru/GuruCohortsPage";
 import GuruCohortFormPage from "./pages/guru/GuruCohortFormPage";
 import GuruStudentsPage from "./pages/guru/GuruStudentsPage";
@@ -95,6 +96,7 @@ const App = () => (
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
+              <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
               <Route path="/guru/cohorts/new" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
               <Route path="/guru/cohorts/:id" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
               <Route path="/guru/cohorts" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
