@@ -35,6 +35,8 @@ import GuruSessionsPage from "./pages/guru/GuruSessionsPage";
 import GuruSessionFormPage from "./pages/guru/GuruSessionFormPage";
 import GuruSessionLivePage from "./pages/guru/GuruSessionLivePage";
 import CoachingCohortPage from "./pages/CoachingCohortPage";
+import CoachesDirectoryPage from "./pages/CoachesDirectoryPage";
+import CoachesProfilePage from "./pages/CoachesProfilePage";
 import CoachingContentPage from "./pages/CoachingContentPage";
 import CoachingSessionPage from "./pages/CoachingSessionPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
@@ -86,6 +88,8 @@ const App = () => (
               <Route path="/coaching/:cohortId/content/:contentId" element={<LayoutRoute><CoachingContentPage /></LayoutRoute>} />
               <Route path="/coaching/:cohortId/session/:sessionId" element={<ProtectedRoute><CoachingSessionPage /></ProtectedRoute>} />
               <Route path="/coaching/:cohortId" element={<LayoutRoute><CoachingCohortPage /></LayoutRoute>} />
+              <Route path="/coaches" element={<LayoutRoute><CoachesDirectoryPage /></LayoutRoute>} />
+              <Route path="/coaches/:guruId" element={<LayoutRoute><CoachesProfilePage /></LayoutRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
