@@ -294,9 +294,15 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          is_public: boolean
+          primary_instrument: string | null
+          primary_strategy: string | null
+          referral_code: string | null
+          referral_discount_pct: number | null
           slug: string | null
           status: string
           stripe_account_id: string | null
+          tagline: string | null
           trial_dismissed_count: number
           trial_ends_at: string | null
           updated_at: string
@@ -308,9 +314,15 @@ export type Database = {
           created_at?: string
           display_name: string
           id?: string
+          is_public?: boolean
+          primary_instrument?: string | null
+          primary_strategy?: string | null
+          referral_code?: string | null
+          referral_discount_pct?: number | null
           slug?: string | null
           status?: string
           stripe_account_id?: string | null
+          tagline?: string | null
           trial_dismissed_count?: number
           trial_ends_at?: string | null
           updated_at?: string
@@ -322,9 +334,15 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          is_public?: boolean
+          primary_instrument?: string | null
+          primary_strategy?: string | null
+          referral_code?: string | null
+          referral_discount_pct?: number | null
           slug?: string | null
           status?: string
           stripe_account_id?: string | null
+          tagline?: string | null
           trial_dismissed_count?: number
           trial_ends_at?: string | null
           updated_at?: string
@@ -600,6 +618,44 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_public_guru_directory: {
+        Args: never
+        Returns: {
+          active_students: number
+          avatar_url: string
+          bio: string
+          display_name: string
+          id: string
+          primary_instrument: string
+          primary_strategy: string
+          referral_code: string
+          referral_discount_pct: number
+          tagline: string
+          tier_state: string
+          total_trades: number
+          user_id: string
+          win_rate: number
+        }[]
+      }
+      get_public_guru_profile: {
+        Args: { _guru_id: string }
+        Returns: {
+          active_students: number
+          avatar_url: string
+          bio: string
+          display_name: string
+          id: string
+          primary_instrument: string
+          primary_strategy: string
+          referral_code: string
+          referral_discount_pct: number
+          tagline: string
+          tier_state: string
+          total_trades: number
+          user_id: string
+          win_rate: number
+        }[]
       }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       update_own_profile: {
