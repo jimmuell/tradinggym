@@ -11,6 +11,7 @@ import {
   LogOut,
   CandlestickChart,
   Lock,
+  Users,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -49,6 +50,7 @@ const navItems = [
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
   { title: 'Coaching', url: '/coaching', icon: GraduationCap, feature: 'coaching' },
+  { title: 'Find a Guru', url: '/coaches', icon: Users, feature: null, hideAtFoundation: true },
   { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
 ];
 
@@ -62,7 +64,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { signOut, user } = useAuth();
-  const { canAccess } = useTier();
+  const { canAccess, currentTier } = useTier();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -111,6 +113,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
+                if (item.hideAtFoundation && currentTier === 'foundation') return null;
                 const locked = item.feature ? !canAccess(item.feature) : false;
 
                 return (
