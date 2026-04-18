@@ -35,6 +35,7 @@ import GuruContentFormPage from "./pages/guru/GuruContentFormPage";
 import GuruSessionsPage from "./pages/guru/GuruSessionsPage";
 import GuruSessionFormPage from "./pages/guru/GuruSessionFormPage";
 import GuruSessionLivePage from "./pages/guru/GuruSessionLivePage";
+import GuruPayoutsPage from "./pages/guru/GuruPayoutsPage";
 import CoachingCohortPage from "./pages/CoachingCohortPage";
 import CoachesDirectoryPage from "./pages/CoachesDirectoryPage";
 import CoachesProfilePage from "./pages/CoachesProfilePage";
@@ -109,6 +110,7 @@ const App = () => (
               <Route path="/guru/sessions/new" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
               <Route path="/guru/sessions/:id" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
               <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
+              <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SettingsProvider>
