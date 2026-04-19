@@ -1,0 +1,2 @@
+DELETE FROM public.cohort_enrollments WHERE id = '8b9f978a-a06d-4d36-b6bc-7855727ac596';
+UPDATE public.profiles SET referral_source = NULL, referred_by_guru_id = NULL WHERE user_id = 'a9aadb3a-9be2-4f15-acc3-52a0bf4fcbc3';
