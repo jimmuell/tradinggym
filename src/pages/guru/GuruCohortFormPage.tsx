@@ -300,7 +300,7 @@ export default function GuruCohortFormPage() {
                     <Button
                       type="button"
                       variant="ghost"
-                      onClick={() => navigate('/guru/cohorts')}
+                      onClick={() => navigate('/guru/classes')}
                       disabled={pending}
                     >
                       Cancel
