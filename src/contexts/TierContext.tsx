@@ -13,7 +13,6 @@ const FEATURE_TIER_MAP: Record<string, TierState> = {
   strategies: 'tier1',
   backtesting: 'tier2',
   analytics: 'tier1',
-  coaching: 'coach',
   transcript_upload: 'tier2',
 };
 

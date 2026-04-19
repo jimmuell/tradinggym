@@ -39,7 +39,6 @@ const LOCK_MESSAGES: Record<string, string> = {
   strategies: 'Complete Foundation to unlock',
   analytics: 'Complete Foundation to unlock',
   backtesting: 'Complete Tier 1 to unlock',
-  coaching: 'Coach accounts only',
 };
 
 
@@ -50,8 +49,8 @@ const navItems = [
   { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
-  { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: 'coaching' },
-  { title: 'Find a Guru', url: '/gurus', icon: Users, feature: null, hideAtFoundation: true },
+  { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: null },
+  { title: 'Find a Guru', url: '/gurus', icon: Users, feature: null },
   { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
 ];
 
