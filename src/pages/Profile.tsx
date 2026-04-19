@@ -18,6 +18,7 @@ const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gi
 
 export default function Profile() {
   const { user } = useAuth();
+  const { currentTier } = useTier();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
