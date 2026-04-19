@@ -41,6 +41,7 @@ import CoachesDirectoryPage from "./pages/CoachesDirectoryPage";
 import CoachesProfilePage from "./pages/CoachesProfilePage";
 import CoachingContentPage from "./pages/CoachingContentPage";
 import CoachingSessionPage from "./pages/CoachingSessionPage";
+import EnrollmentSuccessPage from "./pages/EnrollmentSuccessPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
@@ -92,6 +93,7 @@ const App = () => (
               <Route path="/coaching/:cohortId" element={<LayoutRoute><CoachingCohortPage /></LayoutRoute>} />
               <Route path="/coaches" element={<LayoutRoute><CoachesDirectoryPage /></LayoutRoute>} />
               <Route path="/coaches/:guruId" element={<LayoutRoute><CoachesProfilePage /></LayoutRoute>} />
+              <Route path="/checkout/success" element={<ProtectedRoute><EnrollmentSuccessPage /></ProtectedRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />

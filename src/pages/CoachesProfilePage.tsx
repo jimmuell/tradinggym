@@ -1,5 +1,5 @@
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,50 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTier } from '@/contexts/TierContext';
+import { useEnrollWithGuru } from '@/hooks/useEnrollWithGuru';
 import { usePublicGuru } from '@/hooks/usePublicGurus';
 import { getTierDisplayName } from '@/lib/tierUtils';
 
 export default function CoachesProfilePage() {
   const { guruId } = useParams<{ guruId: string }>();
+  const [searchParams] = useSearchParams();
+  const referralCode = searchParams.get('ref') ?? undefined;
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentTier } = useTier();
   const { data: guru, isLoading } = usePublicGuru(guruId);
+  const enroll = useEnrollWithGuru();
+
+  const isFoundation = currentTier === 'foundation';
+  const isAuthed = !!user;
+
+  const handleJoin = () => {
+    if (!guruId) return;
+    enroll.mutate(
+      { guruId, referralCode },
+      {
+        onSuccess: (result) => {
+          toast({
+            title: 'Welcome to the cohort!',
+            description: result.enrollment_type === 'referred'
+              ? 'First month free credit applied.'
+              : 'Your enrollment is confirmed.',
+          });
+          navigate(`/checkout/success?cohort_id=${result.cohort_id}`);
+        },
+        onError: (err) => {
+          toast({
+            title: 'Could not enroll',
+            description: err.message,
+            variant: 'destructive',
+          });
+        },
+      },
+    );
+  };
 
   if (isLoading) {
     return (
@@ -128,18 +166,35 @@ export default function CoachesProfilePage() {
 
       {/* CTA */}
       <div className="flex justify-center">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span tabIndex={0}>
-                <Button size="lg" disabled>
-                  Join Cohort
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>Enrollment coming soon.</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {!isAuthed ? (
+          <Button asChild size="lg">
+            <Link to="/auth">Sign in to join</Link>
+          </Button>
+        ) : isFoundation ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="lg" disabled>
+                    Join Cohort
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Complete Foundation to enroll with a Coach.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <Button size="lg" onClick={handleJoin} disabled={enroll.isPending}>
+            {enroll.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enrolling…
+              </>
+            ) : (
+              'Join Cohort'
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );
