@@ -55,7 +55,7 @@ serve(async (req) => {
         }
         // Idempotent — only update if not already active with this sub
         const { data: existing } = await admin
-          .from("cohort_enrollments")
+          .from("class_enrollments")
           .select("status, stripe_subscription_id")
           .eq("id", enrollmentId)
           .maybeSingle();
@@ -67,7 +67,7 @@ serve(async (req) => {
           break;
         }
         await admin
-          .from("cohort_enrollments")
+          .from("class_enrollments")
           .update({
             status: "active",
             stripe_subscription_id: sub.id,
@@ -83,7 +83,7 @@ serve(async (req) => {
         const meta = sub.metadata ?? {};
         if (meta.enrollment_id) {
           await admin
-            .from("cohort_enrollments")
+            .from("class_enrollments")
             .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
             .eq("id", meta.enrollment_id);
           log("enrollment cancelled", { enrollmentId: meta.enrollment_id });
