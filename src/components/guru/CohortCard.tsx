@@ -31,10 +31,10 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
   const onDelete = async () => {
     try {
       await deleteCohort.mutateAsync(cohort.id);
-      toast.success('Cohort deleted');
+      toast.success('Class deleted');
       setConfirmOpen(false);
     } catch {
-      toast.error('Could not delete cohort');
+      toast.error('Could not delete class');
     }
   };
 
@@ -83,7 +83,7 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
                 size="icon"
                 className="text-muted-foreground hover:text-destructive"
                 onClick={() => setConfirmOpen(true)}
-                aria-label="Delete cohort"
+                aria-label="Delete class"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -95,9 +95,9 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete cohort?</AlertDialogTitle>
+            <AlertDialogTitle>Delete class?</AlertDialogTitle>
             <AlertDialogDescription>
-              This cohort is a draft and has no students. This action cannot be undone.
+              This class is a draft and has no students. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

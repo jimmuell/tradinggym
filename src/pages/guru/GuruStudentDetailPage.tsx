@@ -82,7 +82,7 @@ export default function GuruStudentDetailPage() {
                   {enrollment && (
                     <div className="space-y-1 border-t border-border pt-3 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Cohort</span>
+                        <span className="text-muted-foreground">Class</span>
                         <span className="font-medium">{enrollment.cohort.name}</span>
                       </div>
                       <div className="flex justify-between">
