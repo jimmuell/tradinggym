@@ -1,24 +1,30 @@
-import { useTier, TierState } from '@/contexts/TierContext';
+import { useTier, TierState, PlanState } from '@/contexts/TierContext';
 import { useState, useRef, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const TIERS: { label: string; value: TierState }[] = [
-  { label: 'Starter', value: 'foundation' },
+  { label: 'Foundation', value: 'foundation' },
   { label: 'Tier 1', value: 'tier1' },
   { label: 'Tier 2', value: 'tier2' },
   { label: 'Tier 3', value: 'tier3' },
-  { label: 'Guru', value: 'coach' },
+  { label: 'Coach', value: 'coach' },
+];
+
+const PLANS: { label: string; value: PlanState }[] = [
+  { label: 'Starter', value: 'starter' },
+  { label: 'Pro', value: 'pro' },
+  { label: 'Expert', value: 'expert' },
+  { label: 'Guru', value: 'guru' },
 ];
 
 function DevTierSwitcherInner() {
-  const { currentTier, setTierState } = useTier();
+  const { currentTier, planState, setTierState, setPlanState } = useTier();
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
   const didDrag = useRef(false);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    // Only drag from the container/badge, not buttons
     if ((e.target as HTMLElement).tagName === 'BUTTON') return;
     dragRef.current = { startX: e.clientX, startY: e.clientY, origX: pos.x, origY: pos.y };
     didDrag.current = false;
@@ -39,6 +45,10 @@ function DevTierSwitcherInner() {
     setDragging(false);
   }, []);
 
+  const activeBtn = 'bg-blue-600 text-white px-3 py-1 rounded-full font-medium';
+  const inactiveBtn = 'text-slate-400 px-3 py-1 rounded-full hover:text-white hover:bg-slate-700 cursor-pointer';
+  const labelCls = 'text-blue-400 font-bold text-[10px] tracking-wider w-16 select-none';
+
   return (
     <div
       onPointerDown={onPointerDown}
@@ -54,31 +64,47 @@ function DevTierSwitcherInner() {
         touchAction: 'none',
         userSelect: 'none',
       }}
-      className="bg-slate-900 border border-slate-700 rounded-full px-4 py-2 flex items-center gap-2 text-xs shadow-lg"
+      className="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-2 flex flex-col gap-1.5 text-xs shadow-lg"
     >
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-blue-400 font-bold mr-1 select-none">DEV</span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-xs">Development only — switches tier state for testing. Not visible in production.</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      {TIERS.map(({ label, value }) => (
-        <button
-          key={value}
-          onClick={() => { if (!didDrag.current) setTierState(value); }}
-          className={
-            currentTier === value
-              ? 'bg-blue-600 text-white px-3 py-1 rounded-full font-medium'
-              : 'text-slate-400 px-3 py-1 rounded-full hover:text-white hover:bg-slate-700 cursor-pointer'
-          }
-        >
-          {label}
-        </button>
-      ))}
+      <div className="flex items-center gap-2">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className={labelCls}>DEV</span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">Development only — switches plan/tier state for testing. Not visible in production.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <span className="text-slate-500 text-[10px]">PLAN &amp; LEARNING (independent)</span>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <span className={labelCls}>PLAN</span>
+        {PLANS.map(({ label, value }) => (
+          <button
+            key={value}
+            onClick={() => { if (!didDrag.current) setPlanState(value); }}
+            className={planState === value ? activeBtn : inactiveBtn}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-1">
+        <span className={labelCls}>LEARNING</span>
+        {TIERS.map(({ label, value }) => (
+          <button
+            key={value}
+            onClick={() => { if (!didDrag.current) setTierState(value); }}
+            className={currentTier === value ? activeBtn : inactiveBtn}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
