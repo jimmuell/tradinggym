@@ -89,7 +89,7 @@ export default function GuruCohortFormPage() {
   }
 
   if (!isNew && !loadingCohorts && !existingCohort) {
-    return <Navigate to="/guru/cohorts" replace />;
+    return <Navigate to="/guru/classes" replace />;
   }
 
   const isLoading = !isNew && loadingCohorts;
@@ -111,7 +111,7 @@ export default function GuruCohortFormPage() {
       if (isNew) {
         await createCohort.mutateAsync(form);
         toast.success('Class created');
-        navigate('/guru/cohorts');
+        navigate('/guru/classes');
       } else if (id) {
         await updateCohort.mutateAsync({ id, data: form });
         toast.success('Changes saved');
@@ -127,7 +127,7 @@ export default function GuruCohortFormPage() {
       <div className="mx-auto max-w-5xl space-y-6">
         <div>
           <Link
-            to="/guru/cohorts"
+            to="/guru/classes"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
