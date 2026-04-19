@@ -64,7 +64,7 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { signOut, user } = useAuth();
-  const { canAccess, currentTier } = useTier();
+  const { canAccess } = useTier();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
