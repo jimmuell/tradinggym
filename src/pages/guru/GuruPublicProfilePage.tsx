@@ -53,14 +53,17 @@ export default function GuruPublicProfilePage() {
   const [bio, setBio] = useState('');
   const [instrument, setInstrument] = useState('MES');
   const [strategy, setStrategy] = useState('ORB');
+  const hydratedRef = useRef(false);
 
-  // Hydrate form when profile loads
+  // Hydrate form ONCE when profile first loads, to avoid clobbering
+  // in-flight user edits when React Query refetches after mutations.
   useEffect(() => {
-    if (!ext) return;
+    if (!ext || hydratedRef.current) return;
     setTagline(ext.tagline ?? '');
     setBio(ext.bio ?? '');
     setInstrument(ext.primary_instrument ?? 'MES');
     setStrategy(ext.primary_strategy ?? 'ORB');
+    hydratedRef.current = true;
   }, [ext]);
 
   const isPublic = ext?.is_public === true;
