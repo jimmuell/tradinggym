@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTier } from '@/contexts/TierContext';
+import { getTierDisplayName } from '@/lib/tierUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -16,6 +18,7 @@ const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gi
 
 export default function Profile() {
   const { user } = useAuth();
+  const { currentTier } = useTier();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -139,7 +142,7 @@ export default function Profile() {
               </div>
               <div className="flex-1">
                 <p className="text-foreground font-medium">{user?.email ?? 'trader@example.com'}</p>
-                <p className="text-sm text-muted-foreground">Starter Plan</p>
+                <p className="text-sm text-muted-foreground">Current Plan: {getTierDisplayName(currentTier)}</p>
                 <div className="mt-2">
                   <input
                     ref={fileInputRef}
