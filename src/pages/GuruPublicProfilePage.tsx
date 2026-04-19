@@ -43,7 +43,8 @@ export default function GuruPublicProfilePage() {
               ? 'First month free credit applied.'
               : 'Your enrollment is confirmed.',
           });
-          navigate(`/checkout/success?cohort_id=${result.cohort_id}`);
+          // Navigate directly to the class — skip /checkout/success to avoid query param loss
+          navigate(`/classes/${result.cohort_id}`);
         },
         onError: (err) => {
           toast({
