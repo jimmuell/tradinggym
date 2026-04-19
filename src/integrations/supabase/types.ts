@@ -521,6 +521,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          plan_state: string
           referral_source: string | null
           referred_by_guru_id: string | null
           tier_state: string
@@ -533,6 +534,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
           tier_state?: string
@@ -545,6 +547,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
           tier_state?: string
@@ -753,6 +756,10 @@ export type Database = {
       student_is_enrolled_in_class: {
         Args: { _class_id: string }
         Returns: boolean
+      }
+      update_own_plan_state: {
+        Args: { new_plan_state: string }
+        Returns: undefined
       }
       update_own_profile: {
         Args: { p_avatar_url?: string; p_display_name?: string }
