@@ -11,7 +11,7 @@ export default function EnrollmentSuccessPage() {
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 1500);
-    const redirect = setTimeout(() => navigate('/coaching'), 4000);
+    const redirect = setTimeout(() => navigate('/classes'), 4000);
     return () => {
       clearTimeout(t);
       clearTimeout(redirect);
@@ -40,12 +40,12 @@ export default function EnrollmentSuccessPage() {
           </div>
           <h1 className="text-2xl font-bold text-foreground">You're enrolled!</h1>
           <p className="text-muted-foreground">
-            Your Coach access is ready. We're taking you to your coaching dashboard.
+            Your Guru access is ready. We're taking you to your classes.
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <Button asChild>
-              <Link to={cohortId ? `/coaching/${cohortId}` : '/coaching'}>
-                Go to My Coaching
+              <Link to={cohortId ? `/classes/${cohortId}` : '/classes'}>
+                Go to My Classes
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm">

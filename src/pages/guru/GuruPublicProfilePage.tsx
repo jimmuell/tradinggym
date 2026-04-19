@@ -90,7 +90,7 @@ export default function GuruPublicProfilePage() {
       onSuccess: () =>
         toast.success(
           next
-            ? "You're now listed in the coaches directory."
+            ? "You're now listed in the Gurus directory."
             : 'Your profile is now hidden.',
         ),
       onError: () => toast.error('Update failed — try again.'),
@@ -119,7 +119,7 @@ export default function GuruPublicProfilePage() {
     );
   }
 
-  const previewHref = `/coaches/${ext.id}`;
+  const previewHref = `/gurus/${ext.id}`;
   const canPreview = isPublic && isActive;
   const showTaglineWarning = isPublic && tagline.trim().length === 0;
 
@@ -129,7 +129,7 @@ export default function GuruPublicProfilePage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">My Public Profile</h1>
           <p className="text-muted-foreground mt-1">
-            How you appear in the public coaches directory.
+            How you appear in the public Gurus directory.
           </p>
         </div>
 
@@ -211,7 +211,7 @@ export default function GuruPublicProfilePage() {
           <CardContent className="space-y-4">
             <div className="flex items-start justify-between gap-4">
               <p className="text-sm text-muted-foreground flex-1">
-                When enabled, your profile appears in the /coaches directory.
+                When enabled, your profile appears in the /gurus directory.
                 Students can find and view your profile.
               </p>
               <div className="flex items-center gap-2 shrink-0">

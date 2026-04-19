@@ -28,7 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/guru', label: 'Dashboard', icon: LayoutDashboard, enabled: true },
   { to: '/guru/profile', label: 'My Public Profile', icon: UserCircle, enabled: true },
   { to: '/guru/payouts', label: 'Payouts', icon: Wallet, enabled: true },
-  { to: '/guru/cohorts', label: 'Cohorts', icon: GraduationCap, enabled: true },
+  { to: '/guru/cohorts', label: 'Classes', icon: GraduationCap, enabled: true },
   { to: '/guru/students', label: 'Students', icon: Users, enabled: true },
   { to: '/guru/content', label: 'Content', icon: BookOpen, enabled: true },
   { to: '/guru/sessions', label: 'Sessions', icon: Video, enabled: true },

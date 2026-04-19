@@ -18,7 +18,7 @@ import StrategyDetailPage from "./pages/StrategyDetailPage";
 import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Learning from "./pages/Learning";
-import Coaching from "./pages/Coaching";
+import ClassesPage from "./pages/ClassesPage";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -36,11 +36,11 @@ import GuruSessionsPage from "./pages/guru/GuruSessionsPage";
 import GuruSessionFormPage from "./pages/guru/GuruSessionFormPage";
 import GuruSessionLivePage from "./pages/guru/GuruSessionLivePage";
 import GuruPayoutsPage from "./pages/guru/GuruPayoutsPage";
-import CoachingCohortPage from "./pages/CoachingCohortPage";
-import CoachesDirectoryPage from "./pages/CoachesDirectoryPage";
-import CoachesProfilePage from "./pages/CoachesProfilePage";
-import CoachingContentPage from "./pages/CoachingContentPage";
-import CoachingSessionPage from "./pages/CoachingSessionPage";
+import ClassDetailPage from "./pages/ClassDetailPage";
+import GurusDirectoryPage from "./pages/GurusDirectoryPage";
+import GuruPublicProfileExternalPage from "./pages/GuruPublicProfilePage";
+import ClassContentPage from "./pages/ClassContentPage";
+import ClassSessionPage from "./pages/ClassSessionPage";
 import EnrollmentSuccessPage from "./pages/EnrollmentSuccessPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
 import Tier1Learning from "./pages/learning/Tier1";
@@ -87,12 +87,12 @@ const App = () => (
               <Route path="/learning/tier2/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/learning/tier3" element={<LayoutRoute><Tier3Learning /></LayoutRoute>} />
               <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
-              <Route path="/coaching" element={<LayoutRoute><Coaching /></LayoutRoute>} />
-              <Route path="/coaching/:cohortId/content/:contentId" element={<LayoutRoute><CoachingContentPage /></LayoutRoute>} />
-              <Route path="/coaching/:cohortId/session/:sessionId" element={<ProtectedRoute><CoachingSessionPage /></ProtectedRoute>} />
-              <Route path="/coaching/:cohortId" element={<LayoutRoute><CoachingCohortPage /></LayoutRoute>} />
-              <Route path="/coaches" element={<LayoutRoute><CoachesDirectoryPage /></LayoutRoute>} />
-              <Route path="/coaches/:guruId" element={<LayoutRoute><CoachesProfilePage /></LayoutRoute>} />
+              <Route path="/classes" element={<LayoutRoute><ClassesPage /></LayoutRoute>} />
+              <Route path="/classes/:classId/content/:contentId" element={<LayoutRoute><ClassContentPage /></LayoutRoute>} />
+              <Route path="/classes/:classId/session/:sessionId" element={<ProtectedRoute><ClassSessionPage /></ProtectedRoute>} />
+              <Route path="/classes/:classId" element={<LayoutRoute><ClassDetailPage /></LayoutRoute>} />
+              <Route path="/gurus" element={<LayoutRoute><GurusDirectoryPage /></LayoutRoute>} />
+              <Route path="/gurus/:guruId" element={<LayoutRoute><GuruPublicProfileExternalPage /></LayoutRoute>} />
               <Route path="/checkout/success" element={<ProtectedRoute><EnrollmentSuccessPage /></ProtectedRoute>} />
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
