@@ -158,7 +158,7 @@ const pricing = [
     guru: true,
     features: [
       "Everything in Expert",
-      "Guru dashboard & cohort management",
+      "Guru dashboard & class management",
       "Publish educational content",
       "Student progress tracking",
       "Live session broadcasting",
@@ -273,7 +273,7 @@ export default function Landing() {
             <div>
               <p className="text-white font-semibold text-sm">Are you a trading educator?</p>
               <p className="text-gray-400 text-sm">
-                Run your entire coaching business inside TradingGYM — cohorts, live sessions, and Stripe payouts.{" "}
+                Run your entire coaching business inside TradingGYM — classes, live sessions, and Stripe payouts.{" "}
                 <span className="text-blue-400 font-medium">You keep 80%.</span>
               </p>
             </div>

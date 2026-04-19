@@ -23,12 +23,12 @@ import { loadTimeframeData, type Timeframe } from '@/lib/chartData';
 const BROADCAST_TF_MAP: Record<string, Timeframe> = {
   '1': '1m',
   '5': '5m',
-  '15': '5m', // fallback — no 15m CSV
+  '15': '5m',
   '30': '30m',
   '60': '1h',
   '1H': '1h',
-  '240': '1h', // fallback
-  '4H': '1h', // fallback
+  '240': '1h',
+  '4H': '1h',
   '1D': '1D',
   D: '1D',
 };
@@ -37,12 +37,12 @@ function resolveTimeframe(tf: string): Timeframe {
   return BROADCAST_TF_MAP[tf] ?? '5m';
 }
 
-export default function CoachingSessionPage() {
-  const { cohortId, sessionId } = useParams<{ cohortId: string; sessionId: string }>();
+export default function ClassSessionPage() {
+  const { classId, sessionId } = useParams<{ classId: string; sessionId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
-  const { sessions, isLoading: sessionsLoading } = useCohortSessions(cohortId);
+  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
+  const { sessions, isLoading: sessionsLoading } = useCohortSessions(classId);
 
   const session = sessions.find((s) => s.id === sessionId) ?? null;
 
@@ -56,7 +56,6 @@ export default function CoachingSessionPage() {
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const loadedTfRef = useRef<Timeframe | null>(null);
 
-  // Poll session status every 10s for auto-redirect on end
   const statusQuery = useQuery({
     queryKey: ['session-status-poll', sessionId],
     queryFn: async (): Promise<{ status: string } | null> => {
@@ -76,12 +75,11 @@ export default function CoachingSessionPage() {
   useEffect(() => {
     if (statusQuery.data?.status === 'ended') {
       toast.info('This session has ended');
-      const t = setTimeout(() => navigate(`/coaching/${cohortId}`), 3000);
+      const t = setTimeout(() => navigate(`/classes/${classId}`), 3000);
       return () => clearTimeout(t);
     }
-  }, [statusQuery.data?.status, cohortId, navigate]);
+  }, [statusQuery.data?.status, classId, navigate]);
 
-  // Attendance tracking — unchanged from P25
   useEffect(() => {
     if (!user?.id || !sessionId || !session || session.status !== 'live') return;
     let cancelled = false;
@@ -110,7 +108,6 @@ export default function CoachingSessionPage() {
     };
   }, [user?.id, sessionId, session]);
 
-  // Init read-only chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
     const container = chartContainerRef.current;
@@ -154,7 +151,6 @@ export default function CoachingSessionPage() {
     };
   }, []);
 
-  // Apply broadcast state
   useEffect(() => {
     if (!chartState || !chartRef.current || !seriesRef.current) return;
     const tf = resolveTimeframe(chartState.timeframe);
@@ -190,14 +186,14 @@ export default function CoachingSessionPage() {
     );
   }
 
-  if (!enrolled) return <Navigate to="/coaching" replace />;
+  if (!enrolled) return <Navigate to="/classes" replace />;
   if (!session) {
     toast.error('This session is not currently live');
-    return <Navigate to={`/coaching/${cohortId}`} replace />;
+    return <Navigate to={`/classes/${classId}`} replace />;
   }
   if (session.status !== 'live') {
     toast.error('This session is not currently live');
-    return <Navigate to={`/coaching/${cohortId}`} replace />;
+    return <Navigate to={`/classes/${classId}`} replace />;
   }
 
   return (
@@ -214,7 +210,7 @@ export default function CoachingSessionPage() {
           LIVE
         </Badge>
         <Button asChild variant="outline" size="sm">
-          <Link to={`/coaching/${cohortId}`}>Leave Session</Link>
+          <Link to={`/classes/${classId}`}>Leave Session</Link>
         </Button>
       </header>
 
@@ -225,7 +221,7 @@ export default function CoachingSessionPage() {
             <div className="text-center">
               <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground mb-3" />
               <p className="text-sm text-muted-foreground">
-                Waiting for your coach to share their chart…
+                Waiting for your Guru to share their chart…
               </p>
             </div>
           </div>
@@ -239,7 +235,7 @@ export default function CoachingSessionPage() {
 
       <footer className="border-t border-border bg-card px-6 py-3">
         <p className="text-xs text-muted-foreground">
-          Audio/video: Join your coach's Discord or Zoom for audio
+          Audio/video: Join your Guru's Discord or Zoom for audio
         </p>
       </footer>
     </div>

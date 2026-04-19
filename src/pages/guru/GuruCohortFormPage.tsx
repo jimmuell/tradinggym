@@ -32,15 +32,15 @@ const DEFAULT_FORM: CohortFormData = {
 const TIPS = [
   {
     title: 'Pricing tip',
-    body: 'Most successful cohorts charge $49–$149/mo. Start lower to build reviews.',
+    body: 'Most successful classes charge $49–$149/mo. Start lower to build reviews.',
   },
   {
     title: 'Win rate gate',
-    body: 'The default 70% ensures only students demonstrating real skill can progress. You can lower this for beginner cohorts.',
+    body: 'The default 70% ensures only students demonstrating real skill can progress. You can lower this for beginner classes.',
   },
   {
     title: 'Draft vs Active',
-    body: 'Keep your cohort in Draft while you build out content. Set to Active when ready for enrollment.',
+    body: 'Keep your class in Draft while you build out content. Set to Active when ready for enrollment.',
   },
 ];
 
@@ -110,7 +110,7 @@ export default function GuruCohortFormPage() {
     try {
       if (isNew) {
         await createCohort.mutateAsync(form);
-        toast.success('Cohort created');
+        toast.success('Class created');
         navigate('/guru/cohorts');
       } else if (id) {
         await updateCohort.mutateAsync({ id, data: form });
@@ -131,10 +131,10 @@ export default function GuruCohortFormPage() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Cohorts
+            Back to Classes
           </Link>
           <h1 className="mt-2 text-2xl font-bold tracking-tight">
-            {isNew ? 'New Cohort' : 'Edit Cohort'}
+            {isNew ? 'New Class' : 'Edit Class'}
           </h1>
         </div>
 
@@ -146,7 +146,7 @@ export default function GuruCohortFormPage() {
               <CardContent className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="space-y-1.5">
-                    <Label htmlFor="name">Cohort name</Label>
+                    <Label htmlFor="name">Class name</Label>
                     <Input
                       id="name"
                       value={form.name}
@@ -311,7 +311,7 @@ export default function GuruCohortFormPage() {
                       className="bg-amber-500 text-amber-950 hover:bg-amber-400"
                     >
                       {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-                      {isNew ? 'Create Cohort' : 'Save Changes'}
+                      {isNew ? 'Create Class' : 'Save Changes'}
                     </Button>
                   </div>
                 </form>

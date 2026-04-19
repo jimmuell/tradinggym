@@ -96,7 +96,7 @@ export default function GuruSessionFormPage() {
           <Card>
             <CardContent className="space-y-3 p-6">
               <div>
-                <p className="text-xs text-muted-foreground">Cohort</p>
+                <p className="text-xs text-muted-foreground">Class</p>
                 <p className="text-sm">
                   {cohorts.find((c) => c.id === existing.cohort_id)?.name ?? '—'}
                 </p>
@@ -124,7 +124,7 @@ export default function GuruSessionFormPage() {
 
   const validate = (): string | null => {
     if (title.trim().length < 3) return 'Title must be at least 3 characters';
-    if (!cohortId) return 'Please select a cohort';
+    if (!cohortId) return 'Please select a class';
     if (!date || !time) return 'Date and time are required';
     if (description.length > 300) return 'Description must be 300 characters or less';
     const scheduled = new Date(`${date}T${time}`);
@@ -190,15 +190,15 @@ export default function GuruSessionFormPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cohort">Cohort</Label>
+                <Label htmlFor="cohort">Class</Label>
                 <Select value={cohortId} onValueChange={setCohortId} disabled={cohortsLoading}>
                   <SelectTrigger id="cohort">
-                    <SelectValue placeholder="Select a cohort" />
+                    <SelectValue placeholder="Select a class" />
                   </SelectTrigger>
                   <SelectContent>
                     {activeCohorts.length === 0 ? (
                       <div className="p-3 text-sm text-muted-foreground">
-                        No active cohorts. Create one first.
+                        No active classes. Create one first.
                       </div>
                     ) : (
                       activeCohorts.map((c) => (

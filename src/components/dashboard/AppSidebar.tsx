@@ -42,6 +42,7 @@ const LOCK_MESSAGES: Record<string, string> = {
   coaching: 'Coach accounts only',
 };
 
+
 const navItems = [
   { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, feature: null },
   { title: 'Learning', url: '/learning', icon: BookOpenCheck, feature: null },
@@ -49,8 +50,8 @@ const navItems = [
   { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
-  { title: 'Coaching', url: '/coaching', icon: GraduationCap, feature: 'coaching' },
-  { title: 'Find a Guru', url: '/coaches', icon: Users, feature: null, hideAtFoundation: true },
+  { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: 'coaching' },
+  { title: 'Find a Guru', url: '/gurus', icon: Users, feature: null, hideAtFoundation: true },
   { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
 ];
 

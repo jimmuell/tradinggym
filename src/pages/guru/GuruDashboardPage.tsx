@@ -66,7 +66,7 @@ export default function GuruDashboardPage() {
       value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeStudents,
     },
     {
-      label: 'Active Cohorts',
+      label: 'Active Classes',
       icon: Layers,
       value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeCohorts,
     },

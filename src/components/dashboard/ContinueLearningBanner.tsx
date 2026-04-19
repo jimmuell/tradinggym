@@ -31,10 +31,10 @@ const BANNER_CONTENT: Record<TierState, { label?: string; heading: string; subte
     link: '/learning/tier3',
   },
   coach: {
-    heading: 'Coach Dashboard',
-    subtext: 'Manage your students and cohorts.',
-    buttonText: 'Go to Coaching',
-    link: '/coaching',
+    heading: 'Guru Dashboard',
+    subtext: 'Manage your students and classes.',
+    buttonText: 'Go to Classes',
+    link: '/classes',
   },
 };
 

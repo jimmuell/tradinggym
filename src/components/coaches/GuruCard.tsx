@@ -58,7 +58,7 @@ export function GuruCard({ guru }: { guru: PublicGuru }) {
         )}
 
         <Button asChild className="mt-auto w-full">
-          <Link to={`/coaches/${guru.id}`}>View Profile</Link>
+          <Link to={`/gurus/${guru.id}`}>View Profile</Link>
         </Button>
       </CardContent>
     </Card>

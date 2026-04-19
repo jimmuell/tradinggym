@@ -5,19 +5,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import HelpSheet from '@/components/HelpSheet';
 import { useStudentEnrollments } from '@/hooks/useStudentEnrollments';
 
-export default function Coaching() {
+export default function ClassesPage() {
   const { enrollments, isLoading } = useStudentEnrollments();
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Coaching</h1>
+          <h1 className="text-2xl font-bold text-foreground">My Classes</h1>
           <p className="text-muted-foreground">
-            Lessons, posts, and blueprints from your coaches.
+            Lessons, posts, and blueprints from your Gurus.
           </p>
         </div>
-        <HelpSheet pageName="Coaching" />
+        <HelpSheet pageName="Classes" />
       </div>
 
       {isLoading ? (
@@ -30,9 +30,9 @@ export default function Coaching() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <GraduationCap className="h-10 w-10 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold">No cohorts yet</h3>
+            <h3 className="text-lg font-semibold">No classes yet</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              You haven't joined any coaching cohorts. Ask your coach for an enrollment link.
+              You haven't joined any classes. Ask your Guru for an enrollment link.
             </p>
           </CardContent>
         </Card>
@@ -50,7 +50,7 @@ export default function Coaching() {
                   {contentCount} {contentCount === 1 ? 'piece' : 'pieces'} of content
                 </div>
                 <Link
-                  to={`/coaching/${cohort.id}`}
+                  to={`/classes/${cohort.id}`}
                   className="mt-4 inline-flex items-center text-sm font-medium text-primary hover:underline"
                 >
                   View Content

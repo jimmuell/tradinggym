@@ -27,10 +27,10 @@ function fmtDate(iso: string | null): string {
   });
 }
 
-export default function CoachingContentPage() {
-  const { cohortId, contentId } = useParams<{ cohortId: string; contentId: string }>();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
-  const { content, isLoading: contentLoading } = useCohortContent(cohortId);
+export default function ClassContentPage() {
+  const { classId, contentId } = useParams<{ classId: string; contentId: string }>();
+  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
+  const { content, isLoading: contentLoading } = useCohortContent(classId);
 
   if (enrLoading || contentLoading) {
     return (
@@ -42,17 +42,17 @@ export default function CoachingContentPage() {
     );
   }
 
-  if (!enrolled) return <Navigate to="/coaching" replace />;
+  if (!enrolled) return <Navigate to="/classes" replace />;
 
   const item = content.find((c) => c.id === contentId);
   if (!item || item.is_draft) {
-    return <Navigate to={`/coaching/${cohortId}`} replace />;
+    return <Navigate to={`/classes/${classId}`} replace />;
   }
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <Link
-        to={`/coaching/${cohortId}`}
+        to={`/classes/${classId}`}
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
