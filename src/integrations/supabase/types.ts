@@ -97,11 +97,11 @@ export type Database = {
           },
         ]
       }
-      cohort_enrollments: {
+      class_enrollments: {
         Row: {
           billing_starts_at: string | null
           cancelled_at: string | null
-          cohort_id: string
+          class_id: string
           commission_rate: number | null
           discount_applied: boolean | null
           enrolled_at: string
@@ -116,7 +116,7 @@ export type Database = {
         Insert: {
           billing_starts_at?: string | null
           cancelled_at?: string | null
-          cohort_id: string
+          class_id: string
           commission_rate?: number | null
           discount_applied?: boolean | null
           enrolled_at?: string
@@ -131,7 +131,7 @@ export type Database = {
         Update: {
           billing_starts_at?: string | null
           cancelled_at?: string | null
-          cohort_id?: string
+          class_id?: string
           commission_rate?: number | null
           discount_applied?: boolean | null
           enrolled_at?: string
@@ -146,14 +146,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "cohort_enrollments_cohort_id_fkey"
-            columns: ["cohort_id"]
+            columns: ["class_id"]
             isOneToOne: false
-            referencedRelation: "cohorts"
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
         ]
       }
-      cohorts: {
+      classes: {
         Row: {
           created_at: string
           description: string | null
@@ -254,7 +254,7 @@ export type Database = {
       guru_content: {
         Row: {
           body: string
-          cohort_id: string
+          class_id: string
           content_type: string
           created_at: string
           guru_id: string
@@ -266,7 +266,7 @@ export type Database = {
         }
         Insert: {
           body?: string
-          cohort_id: string
+          class_id: string
           content_type?: string
           created_at?: string
           guru_id: string
@@ -278,7 +278,7 @@ export type Database = {
         }
         Update: {
           body?: string
-          cohort_id?: string
+          class_id?: string
           content_type?: string
           created_at?: string
           guru_id?: string
@@ -291,9 +291,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "guru_content_cohort_id_fkey"
-            columns: ["cohort_id"]
+            columns: ["class_id"]
             isOneToOne: false
-            referencedRelation: "cohorts"
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
           {
@@ -462,7 +462,7 @@ export type Database = {
       }
       live_sessions: {
         Row: {
-          cohort_id: string
+          class_id: string
           created_at: string
           description: string | null
           guru_id: string
@@ -474,7 +474,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          cohort_id: string
+          class_id: string
           created_at?: string
           description?: string | null
           guru_id: string
@@ -486,7 +486,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          cohort_id?: string
+          class_id?: string
           created_at?: string
           description?: string | null
           guru_id?: string
@@ -500,9 +500,9 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "live_sessions_cohort_id_fkey"
-            columns: ["cohort_id"]
+            columns: ["class_id"]
             isOneToOne: false
-            referencedRelation: "cohorts"
+            referencedRelation: "classes"
             referencedColumns: ["id"]
           },
           {
