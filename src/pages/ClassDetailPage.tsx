@@ -63,7 +63,7 @@ export default function ClassDetailPage() {
     );
   }
 
-  if (!enrolled) return <Navigate to="/classes" replace />;
+  if (!enrLoading && !enrolled) return <Navigate to="/classes" replace />;
 
   return (
     <div className="p-6 space-y-6">
