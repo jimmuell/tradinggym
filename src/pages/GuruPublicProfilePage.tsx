@@ -18,7 +18,7 @@ import { useEnrollWithGuru } from '@/hooks/useEnrollWithGuru';
 import { usePublicGuru } from '@/hooks/usePublicGurus';
 import { getTierDisplayName } from '@/lib/tierUtils';
 
-export default function CoachesProfilePage() {
+export default function GuruPublicProfilePage() {
   const { guruId } = useParams<{ guruId: string }>();
   const [searchParams] = useSearchParams();
   const referralCode = searchParams.get('ref') ?? undefined;
@@ -38,7 +38,7 @@ export default function CoachesProfilePage() {
       {
         onSuccess: (result) => {
           toast({
-            title: 'Welcome to the cohort!',
+            title: 'Welcome to the class!',
             description: result.enrollment_type === 'referred'
               ? 'First month free credit applied.'
               : 'Your enrollment is confirmed.',
@@ -79,14 +79,14 @@ export default function CoachesProfilePage() {
   if (!guru) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Coach not found</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Guru not found</h1>
         <p className="text-muted-foreground mb-6">
           This profile is unavailable or no longer public.
         </p>
         <Button asChild variant="outline">
-          <Link to="/coaches">
+          <Link to="/gurus">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Coaches
+            Back to Gurus
           </Link>
         </Button>
       </div>
@@ -99,23 +99,22 @@ export default function CoachesProfilePage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/coaches">
+        <Link to="/gurus">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          All coaches
+          All Gurus
         </Link>
       </Button>
 
-      {/* Hero */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
         <Avatar className="h-24 w-24 shrink-0">
-          {guru.avatar_url && <AvatarImage src={guru.avatar_url} alt={guru.display_name ?? 'Coach'} />}
+          {guru.avatar_url && <AvatarImage src={guru.avatar_url} alt={guru.display_name ?? 'Guru'} />}
           <AvatarFallback className="bg-muted text-muted-foreground text-2xl">
             {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <h1 className="text-3xl font-bold text-foreground">
-            {guru.display_name ?? 'Unnamed Coach'}
+            {guru.display_name ?? 'Unnamed Guru'}
           </h1>
           {guru.tagline && (
             <p className="text-muted-foreground mt-1">{guru.tagline}</p>
@@ -145,7 +144,6 @@ export default function CoachesProfilePage() {
         </Card>
       )}
 
-      {/* Bio */}
       {guru.bio && guru.bio.trim().length > 0 && (
         <section className="mb-6">
           <h2 className="text-lg font-semibold text-foreground mb-2">About</h2>
@@ -153,7 +151,6 @@ export default function CoachesProfilePage() {
         </section>
       )}
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <StatCard label="Win Rate" value={guru.win_rate !== null ? `${guru.win_rate}%` : '—'} />
         <StatCard label="Total Trades" value={guru.total_trades.toLocaleString()} />
@@ -164,7 +161,6 @@ export default function CoachesProfilePage() {
         />
       </div>
 
-      {/* CTA */}
       <div className="flex justify-center">
         {!isAuthed ? (
           <Button asChild size="lg">
@@ -176,11 +172,11 @@ export default function CoachesProfilePage() {
               <TooltipTrigger asChild>
                 <span tabIndex={0}>
                   <Button size="lg" disabled>
-                    Join Cohort
+                    Join Class
                   </Button>
                 </span>
               </TooltipTrigger>
-              <TooltipContent>Complete Foundation to enroll with a Coach.</TooltipContent>
+              <TooltipContent>Complete Foundation to enroll with a Guru.</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
@@ -191,7 +187,7 @@ export default function CoachesProfilePage() {
                 Enrolling…
               </>
             ) : (
-              'Join Cohort'
+              'Join Class'
             )}
           </Button>
         )}

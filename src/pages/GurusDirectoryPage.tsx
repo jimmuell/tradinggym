@@ -6,7 +6,7 @@ import { usePublicGurus } from '@/hooks/usePublicGurus';
 import { GuruCard } from '@/components/coaches/GuruCard';
 import { GuruCardSkeleton } from '@/components/coaches/GuruCardSkeleton';
 
-export default function CoachesDirectoryPage() {
+export default function GurusDirectoryPage() {
   const { currentTier } = useTier();
   const isLocked = currentTier === 'foundation';
   const { data: gurus, isLoading } = usePublicGurus();
@@ -51,7 +51,7 @@ export default function CoachesDirectoryPage() {
         </div>
       ) : (
         <div className="text-center py-16 text-muted-foreground">
-          No coaches available yet — check back soon.
+          No Gurus available yet — check back soon.
         </div>
       )}
     </div>

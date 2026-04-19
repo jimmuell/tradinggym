@@ -39,11 +39,11 @@ function preview(body: string, n = 150): string {
   return stripped.length <= n ? stripped : stripped.slice(0, n) + '…';
 }
 
-export default function CoachingCohortPage() {
-  const { cohortId } = useParams<{ cohortId: string }>();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(cohortId);
-  const { content, isLoading: contentLoading } = useCohortContent(cohortId);
-  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useCohortSessions(cohortId);
+export default function ClassDetailPage() {
+  const { classId } = useParams<{ classId: string }>();
+  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
+  const { content, isLoading: contentLoading } = useCohortContent(classId);
+  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useCohortSessions(classId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
@@ -63,16 +63,16 @@ export default function CoachingCohortPage() {
     );
   }
 
-  if (!enrolled) return <Navigate to="/coaching" replace />;
+  if (!enrolled) return <Navigate to="/classes" replace />;
 
   return (
     <div className="p-6 space-y-6">
       <Link
-        to="/coaching"
+        to="/classes"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        My Cohorts
+        My Classes
       </Link>
 
       {liveSession && (
@@ -86,7 +86,7 @@ export default function CoachingCohortPage() {
               </div>
             </div>
             <Button asChild className="bg-green-600 text-white hover:bg-green-500">
-              <Link to={`/coaching/${cohortId}/session/${liveSession.id}`}>Join Session →</Link>
+              <Link to={`/classes/${classId}/session/${liveSession.id}`}>Join Session →</Link>
             </Button>
           </CardContent>
         </Card>
@@ -120,7 +120,7 @@ export default function CoachingCohortPage() {
             <BookOpen className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No content yet</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Your coach hasn't published anything in this category yet.
+              Your Guru hasn't published anything in this category yet.
             </p>
           </CardContent>
         </Card>
@@ -142,7 +142,7 @@ export default function CoachingCohortPage() {
               <CardContent className="pt-0">
                 <p className="text-sm text-muted-foreground">{preview(item.body)}</p>
                 <Link
-                  to={`/coaching/${cohortId}/content/${item.id}`}
+                  to={`/classes/${classId}/content/${item.id}`}
                   className="mt-3 inline-flex items-center text-sm font-medium text-primary hover:underline"
                 >
                   Read →
