@@ -9,7 +9,6 @@ interface EnrollInput {
 interface EnrollResult {
   success: boolean;
   enrollment_id: string;
-  // Edge function still returns cohort_id in its payload (Prompt 3 will rename)
   class_id: string;
   plan: 'pro' | 'expert';
   enrollment_type: 'organic' | 'referred';
