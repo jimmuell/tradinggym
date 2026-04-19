@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 import { useGuruContent } from '@/hooks/useGuruContent';
 import type { ContentType, GuruContent } from '@/types/guru';
 
@@ -62,7 +62,7 @@ function fmtDate(iso: string | null): string {
 export default function GuruContentPage() {
   const navigate = useNavigate();
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
-  const { cohorts, isLoading: cohortsLoading } = useGuruCohorts();
+  const { classes, isLoading: classesLoading } = useGuruClasses();
   const {
     content,
     isLoading: contentLoading,
@@ -71,23 +71,23 @@ export default function GuruContentPage() {
     unpublishContent,
   } = useGuruContent();
 
-  const [cohortFilter, setCohortFilter] = useState<string>('all');
+  const [classFilter, setClassFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [confirmDelete, setConfirmDelete] = useState<GuruContent | null>(null);
 
-  const cohortName = useMemo(() => {
+  const className = useMemo(() => {
     const m = new Map<string, string>();
-    cohorts.forEach((c) => m.set(c.id, c.name));
+    classes.forEach((c) => m.set(c.id, c.name));
     return m;
-  }, [cohorts]);
+  }, [classes]);
 
   const filtered = useMemo(() => {
     return content.filter((c) => {
-      if (cohortFilter !== 'all' && c.cohort_id !== cohortFilter) return false;
+      if (classFilter !== 'all' && c.class_id !== classFilter) return false;
       if (typeFilter !== 'all' && c.content_type !== typeFilter) return false;
       return true;
     });
-  }, [content, cohortFilter, typeFilter]);
+  }, [content, classFilter, typeFilter]);
 
   if (profileLoading) {
     return (
@@ -102,7 +102,7 @@ export default function GuruContentPage() {
     return <Navigate to="/guru" replace />;
   }
 
-  const isLoading = cohortsLoading || contentLoading;
+  const isLoading = classesLoading || contentLoading;
 
   return (
     <GuruLayout>
@@ -110,7 +110,7 @@ export default function GuruContentPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Content</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Lessons, posts, and blueprints for your cohorts
+            Lessons, posts, and blueprints for your classes
           </p>
         </div>
         <Button onClick={() => navigate('/guru/content/new')}>
@@ -120,13 +120,13 @@ export default function GuruContentPage() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <Select value={cohortFilter} onValueChange={setCohortFilter}>
+        <Select value={classFilter} onValueChange={setClassFilter}>
           <SelectTrigger className="w-full sm:w-64">
-            <SelectValue placeholder="Filter by cohort" />
+            <SelectValue placeholder="Filter by class" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All cohorts</SelectItem>
-            {cohorts.map((c) => (
+            <SelectItem value="all">All classes</SelectItem>
+            {classes.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
               </SelectItem>
@@ -170,7 +170,7 @@ export default function GuruContentPage() {
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Cohort</TableHead>
+                <TableHead>Class</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Published</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -190,7 +190,7 @@ export default function GuruContentPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {cohortName.get(item.cohort_id) ?? '—'}
+                    {className.get(item.class_id) ?? '—'}
                   </TableCell>
                   <TableCell>
                     {item.is_draft ? (

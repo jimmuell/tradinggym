@@ -2,55 +2,55 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import type {
-  Cohort,
-  CohortEnrollment,
+  Class,
+  ClassEnrollment,
   EnrolledStudent,
   StudentProfile,
   StudentStats,
   StudentTrade,
 } from '@/types/guru';
 
-interface UseCohortStudentsResult {
+interface UseClassStudentsResult {
   students: EnrolledStudent[];
-  cohorts: Cohort[];
+  classes: Class[];
   isLoading: boolean;
 }
 
 /**
- * Fetches all students enrolled in any of the current guru's cohorts.
- * Optionally filterable by a specific cohortId in the consumer.
+ * Fetches all students enrolled in any of the current guru's classes.
+ * Optionally filterable by a specific classId in the consumer.
  */
-export function useCohortStudents(): UseCohortStudentsResult {
+export function useClassStudents(): UseClassStudentsResult {
   const { data: guruProfile } = useGuruProfile();
   const guruId = guruProfile?.id;
 
   const query = useQuery({
-    queryKey: ['cohort-students', guruId],
+    queryKey: ['class-students', guruId],
     enabled: !!guruId,
     queryFn: async () => {
-      if (!guruId) return { students: [] as EnrolledStudent[], cohorts: [] as Cohort[] };
+      if (!guruId) return { students: [] as EnrolledStudent[], classes: [] as Class[] };
 
-      // 1. All cohorts owned by this guru
-      const { data: cohortRows, error: cohortErr } = await supabase
-        .from('cohorts')
+      // 1. All classes owned by this guru
+      const { data: classRows, error: classErr } = await supabase
+        .from('classes')
         .select('*')
         .eq('guru_id', guruId);
-      if (cohortErr) throw cohortErr;
-      const cohorts = (cohortRows ?? []) as Cohort[];
-      const cohortIds = cohorts.map((c) => c.id);
-      if (cohortIds.length === 0) {
-        return { students: [], cohorts };
+      if (classErr) throw classErr;
+      const classes = (classRows ?? []) as Class[];
+      const classIds = classes.map((c) => c.id);
+      if (classIds.length === 0) {
+        return { students: [], classes };
       }
 
-      // 2. All enrollments for those cohorts
+      // 2. All enrollments for those classes
       const { data: enrollRows, error: enrollErr } = await supabase
-        .from('cohort_enrollments')
+        .from('class_enrollments')
         .select('*')
-        .in('cohort_id', cohortIds);
+        .in('class_id', classIds);
       if (enrollErr) throw enrollErr;
-      const enrollments = (enrollRows ?? []) as CohortEnrollment[];
+      const enrollments = (enrollRows ?? []) as ClassEnrollment[];
       if (enrollments.length === 0) {
-        return { students: [], cohorts };
+        return { students: [], classes };
       }
 
       // 3. Profiles for those students (via security definer fn)
@@ -62,8 +62,8 @@ export function useCohortStudents(): UseCohortStudentsResult {
       ((profileRows ?? []) as StudentProfile[]).forEach((p) => {
         profileMap.set(p.user_id, p);
       });
-      const cohortMap = new Map<string, Cohort>();
-      cohorts.forEach((c) => cohortMap.set(c.id, c));
+      const classMap = new Map<string, Class>();
+      classes.forEach((c) => classMap.set(c.id, c));
 
       // 4. Trade aggregates per student via secure RPC
       const studentIds = Array.from(new Set(enrollments.map((e) => e.student_id)));
@@ -92,8 +92,8 @@ export function useCohortStudents(): UseCohortStudentsResult {
       const students: EnrolledStudent[] = enrollments
         .map((enrollment) => {
           const profile = profileMap.get(enrollment.student_id);
-          const cohort = cohortMap.get(enrollment.cohort_id);
-          if (!profile || !cohort) return null;
+          const classItem = classMap.get(enrollment.class_id);
+          if (!profile || !classItem) return null;
           const agg = statsByStudent.get(enrollment.student_id) ?? {
             wins: 0,
             losses: 0,
@@ -107,19 +107,19 @@ export function useCohortStudents(): UseCohortStudentsResult {
             losses: agg.losses,
             net_pnl: agg.pnl,
             win_rate,
-            meets_win_rate_gate: win_rate >= cohort.win_rate_gate,
+            meets_win_rate_gate: win_rate >= classItem.win_rate_gate,
           };
-          return { enrollment, profile, cohort, stats };
+          return { enrollment, profile, class: classItem, stats };
         })
         .filter((x): x is EnrolledStudent => x !== null);
 
-      return { students, cohorts };
+      return { students, classes };
     },
   });
 
   return {
     students: query.data?.students ?? [],
-    cohorts: query.data?.cohorts ?? [],
+    classes: query.data?.classes ?? [],
     isLoading: query.isLoading,
   };
 }
