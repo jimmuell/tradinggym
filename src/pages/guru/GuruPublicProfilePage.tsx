@@ -213,12 +213,22 @@ export default function GuruPublicProfilePage() {
                 When enabled, your profile appears in the /coaches directory.
                 Students can find and view your profile.
               </p>
-              <Switch
-                checked={isPublic}
-                disabled={toggleIsPublic.isPending}
-                onCheckedChange={handleToggle}
-                aria-label="Go public"
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={cn(
+                    'text-xs font-medium uppercase tracking-wide',
+                    isPublic ? 'text-primary' : 'text-muted-foreground',
+                  )}
+                >
+                  {isPublic ? 'Public' : 'Private'}
+                </span>
+                <Switch
+                  checked={isPublic}
+                  disabled={toggleIsPublic.isPending}
+                  onCheckedChange={handleToggle}
+                  aria-label="Go public"
+                />
+              </div>
             </div>
 
             {showTaglineWarning && (
