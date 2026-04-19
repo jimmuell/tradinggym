@@ -9,16 +9,19 @@ export default function EnrollmentSuccessPage() {
   const [params] = useSearchParams();
   const [showContent, setShowContent] = useState(false);
 
+  const cohortId = params.get('cohort_id');
+
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 1500);
-    const redirect = setTimeout(() => navigate('/classes'), 4000);
+    const redirect = setTimeout(
+      () => navigate(cohortId ? `/classes/${cohortId}` : '/classes'),
+      4000
+    );
     return () => {
       clearTimeout(t);
       clearTimeout(redirect);
     };
-  }, [navigate]);
-
-  const cohortId = params.get('cohort_id');
+  }, [navigate, cohortId]);
 
   if (!showContent) {
     return (
@@ -40,7 +43,7 @@ export default function EnrollmentSuccessPage() {
           </div>
           <h1 className="text-2xl font-bold text-foreground">You're enrolled!</h1>
           <p className="text-muted-foreground">
-            Your Guru access is ready. We're taking you to your classes.
+            Your Guru access is ready. We're taking you to your class.
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <Button asChild>
