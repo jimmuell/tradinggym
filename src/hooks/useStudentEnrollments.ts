@@ -56,8 +56,15 @@ export function useStudentEnrollments() {
       const result = enrollments
         .map((enr) => {
           const classItem = (classes ?? []).find((c) => c.id === enr.class_id);
+          const guru = classItem ? (gurus ?? []).find((g) => g.id === classItem.guru_id) : undefined;
+          console.log('[useStudentEnrollments] map step:', {
+            enrollmentId: enr.id,
+            classId: enr.class_id,
+            classFound: !!classItem,
+            guruId: classItem?.guru_id,
+            guruFound: !!guru,
+          });
           if (!classItem) return null;
-          const guru = (gurus ?? []).find((g) => g.id === classItem.guru_id);
           if (!guru) return null;
           return {
             enrollment: enr as ClassEnrollment,
