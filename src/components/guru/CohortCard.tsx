@@ -75,7 +75,7 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
 
           <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
             <Button asChild variant="outline" size="sm">
-              <Link to={`/guru/cohorts/${cohort.id}`}>Edit</Link>
+              <Link to={`/guru/classes/${cohort.id}`}>Edit</Link>
             </Button>
             {cohort.status === 'draft' && (
               <Button

@@ -85,7 +85,7 @@ export default function GuruStudentsPage() {
                 Create a cohort first before managing students.
               </p>
               <Button asChild className="bg-amber-500 text-amber-950 hover:bg-amber-400">
-                <Link to="/guru/cohorts">Go to Cohorts</Link>
+                <Link to="/guru/classes">Go to Classes</Link>
               </Button>
             </CardContent>
           </Card>

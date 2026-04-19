@@ -36,7 +36,7 @@ export default function GuruCohortsPage() {
             </p>
           </div>
           <Button asChild className="bg-amber-500 text-amber-950 hover:bg-amber-400">
-            <Link to="/guru/cohorts/new">
+            <Link to="/guru/classes/new">
               <Plus className="h-4 w-4" />
               New Class
             </Link>
@@ -58,7 +58,7 @@ export default function GuruCohortsPage() {
               Create your first class to start enrolling students.
             </p>
             <Button asChild className="mt-6 bg-amber-500 text-amber-950 hover:bg-amber-400">
-              <Link to="/guru/cohorts/new">
+              <Link to="/guru/classes/new">
                 <Plus className="h-4 w-4" />
                 Create Class
               </Link>
