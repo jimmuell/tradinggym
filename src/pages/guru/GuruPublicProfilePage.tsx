@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader2, ExternalLink, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import {
   useUpdateGuruPublicProfile,
@@ -53,14 +54,17 @@ export default function GuruPublicProfilePage() {
   const [bio, setBio] = useState('');
   const [instrument, setInstrument] = useState('MES');
   const [strategy, setStrategy] = useState('ORB');
+  const hydratedRef = useRef(false);
 
-  // Hydrate form when profile loads
+  // Hydrate form ONCE when profile first loads, to avoid clobbering
+  // in-flight user edits when React Query refetches after mutations.
   useEffect(() => {
-    if (!ext) return;
+    if (!ext || hydratedRef.current) return;
     setTagline(ext.tagline ?? '');
     setBio(ext.bio ?? '');
     setInstrument(ext.primary_instrument ?? 'MES');
     setStrategy(ext.primary_strategy ?? 'ORB');
+    hydratedRef.current = true;
   }, [ext]);
 
   const isPublic = ext?.is_public === true;
@@ -210,12 +214,22 @@ export default function GuruPublicProfilePage() {
                 When enabled, your profile appears in the /coaches directory.
                 Students can find and view your profile.
               </p>
-              <Switch
-                checked={isPublic}
-                disabled={toggleIsPublic.isPending}
-                onCheckedChange={handleToggle}
-                aria-label="Go public"
-              />
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={cn(
+                    'text-xs font-medium uppercase tracking-wide',
+                    isPublic ? 'text-primary' : 'text-muted-foreground',
+                  )}
+                >
+                  {isPublic ? 'Public' : 'Private'}
+                </span>
+                <Switch
+                  checked={isPublic}
+                  disabled={toggleIsPublic.isPending}
+                  onCheckedChange={handleToggle}
+                  aria-label="Go public"
+                />
+              </div>
             </div>
 
             {showTaglineWarning && (
