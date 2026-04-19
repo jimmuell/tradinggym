@@ -100,9 +100,9 @@ const App = () => (
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
-              <Route path="/guru/cohorts/new" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
-              <Route path="/guru/cohorts/:id" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
-              <Route path="/guru/cohorts" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
+              <Route path="/guru/classes/new" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
+              <Route path="/guru/classes/:id" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
+              <Route path="/guru/classes" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
               <Route path="/guru/students/:studentId" element={<ProtectedRoute><GuruStudentDetailPage /></ProtectedRoute>} />
               <Route path="/guru/students" element={<ProtectedRoute><GuruStudentsPage /></ProtectedRoute>} />
               <Route path="/guru/content/new" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
