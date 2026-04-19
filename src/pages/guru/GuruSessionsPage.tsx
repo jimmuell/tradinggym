@@ -7,20 +7,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 import SessionCard from '@/components/guru/SessionCard';
 
 export default function GuruSessionsPage() {
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
   const { upcomingSessions, pastSessions, isLoading } = useGuruSessions();
-  const { cohorts } = useGuruCohorts();
+  const { classes } = useGuruClasses();
   const [showPast, setShowPast] = useState(false);
 
-  const cohortName = useMemo(() => {
+  const className = useMemo(() => {
     const map = new Map<string, string>();
-    cohorts.forEach((c) => map.set(c.id, c.name));
-    return (id: string) => map.get(id) ?? 'Unknown cohort';
-  }, [cohorts]);
+    classes.forEach((c) => map.set(c.id, c.name));
+    return (id: string) => map.get(id) ?? 'Unknown class';
+  }, [classes]);
 
   if (profileLoading) {
     return (
@@ -41,7 +41,7 @@ export default function GuruSessionsPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Live Sessions</h1>
             <p className="text-sm text-muted-foreground">
-              Schedule and manage live trading sessions for your cohorts
+              Schedule and manage live trading sessions for your classes
             </p>
           </div>
           <Button asChild>
@@ -74,7 +74,7 @@ export default function GuruSessionsPage() {
           ) : (
             <div className="space-y-3">
               {upcomingSessions.map((s) => (
-                <SessionCard key={s.id} session={s} cohortName={cohortName(s.cohort_id)} />
+                <SessionCard key={s.id} session={s} className={className(s.class_id)} />
               ))}
             </div>
           )}
@@ -100,7 +100,7 @@ export default function GuruSessionsPage() {
               ) : (
                 <div className="space-y-3">
                   {pastSessions.map((s) => (
-                    <SessionCard key={s.id} session={s} cohortName={cohortName(s.cohort_id)} />
+                    <SessionCard key={s.id} session={s} className={className(s.class_id)} />
                   ))}
                 </div>
               )}

@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
-import type { LiveSession, Cohort } from '@/types/guru';
+import type { LiveSession, Class } from '@/types/guru';
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -31,10 +31,10 @@ function formatDate(iso: string): string {
 
 interface Props {
   session: LiveSession;
-  cohortName: string;
+  className: string;
 }
 
-export default function SessionCard({ session, cohortName }: Props) {
+export default function SessionCard({ session, className }: Props) {
   const navigate = useNavigate();
   const { startSession, endSession, deleteSession } = useGuruSessions();
   const [confirm, setConfirm] = useState<'start' | 'end' | 'delete' | null>(null);
@@ -88,7 +88,7 @@ export default function SessionCard({ session, cohortName }: Props) {
                 Ended
               </Badge>
             )}
-            <span className="text-xs text-muted-foreground">{cohortName}</span>
+            <span className="text-xs text-muted-foreground">{className}</span>
           </div>
           <h3 className="font-semibold truncate">{session.title}</h3>
           <p className="text-xs text-muted-foreground">{formatDate(session.scheduled_at)}</p>
@@ -151,7 +151,7 @@ export default function SessionCard({ session, cohortName }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Start this session?</AlertDialogTitle>
             <AlertDialogDescription>
-              Students in {cohortName} will be able to join immediately. Make sure you're ready.
+              Students in {className} will be able to join immediately. Make sure you're ready.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -212,4 +212,4 @@ export default function SessionCard({ session, cohortName }: Props) {
   );
 }
 
-export type { Cohort };
+export type { Class };

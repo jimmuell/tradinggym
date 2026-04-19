@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 import { useSessionBroadcast } from '@/hooks/useSessionBroadcast';
 import { loadTimeframeData, type Timeframe } from '@/lib/chartData';
 
@@ -57,7 +57,7 @@ export default function GuruSessionLivePage() {
   const navigate = useNavigate();
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
   const { sessions, isLoading: sessionsLoading, endSession } = useGuruSessions();
-  const { cohorts } = useGuruCohorts();
+  const { classes } = useGuruClasses();
   const [now, setNow] = useState(Date.now());
   const [confirmEnd, setConfirmEnd] = useState(false);
 
@@ -187,7 +187,7 @@ export default function GuruSessionLivePage() {
   if (session.guru_id !== guruProfile.id) return <Navigate to="/guru/sessions" replace />;
   if (session.status !== 'live') return <Navigate to="/guru/sessions" replace />;
 
-  const cohortName = cohorts.find((c) => c.id === session.cohort_id)?.name ?? '—';
+  const className = classes.find((c) => c.id === session.class_id)?.name ?? '—';
   const duration = formatDuration(now - new Date(session.scheduled_at).getTime());
   const studentCount = Math.max(0, presenceCount - 1);
   const studentUsers = presenceUsers.filter((u) => u.role === 'viewer');
@@ -213,7 +213,7 @@ export default function GuruSessionLivePage() {
       <header className="flex items-center justify-between gap-4 border-b border-border bg-card px-6 py-3">
         <div className="min-w-0 flex-1">
           <h1 className="font-semibold truncate">{session.title}</h1>
-          <p className="text-xs text-muted-foreground">{cohortName}</p>
+          <p className="text-xs text-muted-foreground">{className}</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30">

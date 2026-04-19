@@ -89,7 +89,7 @@ const features = [
   {
     icon: Users,
     title: "Guru Platform",
-    desc: "Run your entire trading education business inside TradingGYM — cohorts, content, live sessions, and Stripe payouts.",
+    desc: "Run your entire trading education business inside TradingGYM — classes, content, live sessions, and Stripe payouts.",
   },
   {
     icon: Shield,

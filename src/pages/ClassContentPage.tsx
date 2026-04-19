@@ -2,8 +2,8 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useStudentCohort } from '@/hooks/useStudentEnrollments';
-import { useCohortContent } from '@/hooks/useCohortContent';
+import { useStudentClass } from '@/hooks/useStudentEnrollments';
+import { useClassContent } from '@/hooks/useClassContent';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -29,8 +29,8 @@ function fmtDate(iso: string | null): string {
 
 export default function ClassContentPage() {
   const { classId, contentId } = useParams<{ classId: string; contentId: string }>();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
-  const { content, isLoading: contentLoading } = useCohortContent(classId);
+  const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
+  const { content, isLoading: contentLoading } = useClassContent(classId);
 
   if (enrLoading || contentLoading) {
     return (
@@ -56,7 +56,7 @@ export default function ClassContentPage() {
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        Back to {enrolled.cohort.name}
+        Back to {enrolled.class.name}
       </Link>
 
       <div className="space-y-3">

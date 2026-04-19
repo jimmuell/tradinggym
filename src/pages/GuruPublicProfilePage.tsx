@@ -44,7 +44,7 @@ export default function GuruPublicProfilePage() {
               : 'Your enrollment is confirmed.',
           });
           // Navigate directly to the class — skip /checkout/success to avoid query param loss
-          navigate(`/classes/${result.cohort_id}`);
+          navigate(`/classes/${result.class_id}`);
         },
         onError: (err) => {
           toast({

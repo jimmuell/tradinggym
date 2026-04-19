@@ -33,7 +33,7 @@ export function useGuruContent() {
         .from('guru_content')
         .insert({
           guru_id: guruId,
-          cohort_id: data.cohort_id,
+          class_id: data.class_id,
           title: data.title,
           body: data.body,
           content_type: data.content_type,

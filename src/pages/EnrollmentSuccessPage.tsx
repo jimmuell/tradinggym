@@ -8,7 +8,8 @@ export default function EnrollmentSuccessPage() {
   const [params] = useSearchParams();
   const [showContent, setShowContent] = useState(false);
 
-  const cohortId = params.get('cohort_id');
+  // Edge function (until Prompt 3) emits cohort_id; accept either key for backwards compatibility
+  const classId = params.get('class_id') ?? params.get('cohort_id');
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 1500);
@@ -39,7 +40,7 @@ export default function EnrollmentSuccessPage() {
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <Button asChild>
-              <Link to={cohortId ? `/classes/${cohortId}` : '/classes'}>
+              <Link to={classId ? `/classes/${classId}` : '/classes'}>
                 Go to My Classes
               </Link>
             </Button>

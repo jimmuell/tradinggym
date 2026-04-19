@@ -19,13 +19,13 @@ import {
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { toast } from 'sonner';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 import { useGuruContent } from '@/hooks/useGuruContent';
 import type { ContentFormData, ContentType } from '@/types/guru';
 
 const TYPE_HELP: Record<ContentType, string> = {
   lesson: 'Structured educational content with a clear learning objective',
-  post: 'Updates, commentary, or quick insights for your cohort',
+  post: 'Updates, commentary, or quick insights for your class',
   blueprint: 'A step-by-step trading setup or strategy walkthrough',
 };
 
@@ -35,7 +35,7 @@ export default function GuruContentFormPage() {
   const isNew = !id || id === 'new';
 
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
-  const { cohorts, isLoading: cohortsLoading } = useGuruCohorts();
+  const { classes, isLoading: classesLoading } = useGuruClasses();
   const {
     content,
     isLoading: contentLoading,
@@ -54,7 +54,7 @@ export default function GuruContentFormPage() {
     title: '',
     body: '',
     content_type: 'post',
-    cohort_id: '',
+    class_id: '',
     is_draft: true,
   });
 
@@ -64,13 +64,13 @@ export default function GuruContentFormPage() {
         title: editing.title,
         body: editing.body,
         content_type: editing.content_type,
-        cohort_id: editing.cohort_id,
+        class_id: editing.class_id,
         is_draft: editing.is_draft,
       });
-    } else if (isNew && cohorts.length > 0 && !form.cohort_id) {
-      setForm((f) => ({ ...f, cohort_id: cohorts[0].id }));
+    } else if (isNew && classes.length > 0 && !form.class_id) {
+      setForm((f) => ({ ...f, class_id: classes[0].id }));
     }
-  }, [editing, isNew, cohorts, form.cohort_id]);
+  }, [editing, isNew, classes, form.class_id]);
 
   if (profileLoading) {
     return (
@@ -91,8 +91,8 @@ export default function GuruContentFormPage() {
 
   const titleValid = form.title.trim().length >= 3;
   const bodyValid = form.body.trim().length >= 10;
-  const cohortValid = !!form.cohort_id;
-  const valid = titleValid && bodyValid && cohortValid;
+  const classValid = !!form.class_id;
+  const valid = titleValid && bodyValid && classValid;
   const submitting = createContent.isPending || updateContent.isPending;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -167,26 +167,26 @@ export default function GuruContentFormPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cohort">Cohort</Label>
+                <Label htmlFor="class">Class</Label>
                 <Select
-                  value={form.cohort_id}
-                  onValueChange={(v) => setForm({ ...form, cohort_id: v })}
-                  disabled={cohortsLoading || cohorts.length === 0}
+                  value={form.class_id}
+                  onValueChange={(v) => setForm({ ...form, class_id: v })}
+                  disabled={classesLoading || classes.length === 0}
                 >
-                  <SelectTrigger id="cohort">
-                    <SelectValue placeholder="Select a cohort" />
+                  <SelectTrigger id="class">
+                    <SelectValue placeholder="Select a class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cohorts.map((c) => (
+                    {classes.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {cohorts.length === 0 && !cohortsLoading && (
+                {classes.length === 0 && !classesLoading && (
                   <p className="text-xs text-muted-foreground">
-                    Create a cohort first before publishing content.
+                    Create a class first before publishing content.
                   </p>
                 )}
               </div>

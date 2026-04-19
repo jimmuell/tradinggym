@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useCohortStudents } from '@/hooks/useCohortStudents';
+import { useClassStudents } from '@/hooks/useClassStudents';
 import type { EnrolledStudent } from '@/types/guru';
 import { cn } from '@/lib/utils';
 
@@ -39,13 +39,13 @@ function statusBadgeClass(status: string): string {
 export default function GuruStudentsPage() {
   const navigate = useNavigate();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
-  const { students, cohorts, isLoading } = useCohortStudents();
-  const [selectedCohort, setSelectedCohort] = useState<string>('all');
+  const { students, classes, isLoading } = useClassStudents();
+  const [selectedClass, setSelectedClass] = useState<string>('all');
 
   const filtered = useMemo<EnrolledStudent[]>(() => {
-    if (selectedCohort === 'all') return students;
-    return students.filter((s) => s.enrollment.cohort_id === selectedCohort);
-  }, [students, selectedCohort]);
+    if (selectedClass === 'all') return students;
+    return students.filter((s) => s.enrollment.class_id === selectedClass);
+  }, [students, selectedClass]);
 
   if (loadingProfile) {
     return (
@@ -67,7 +67,7 @@ export default function GuruStudentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Students</h1>
           <p className="text-sm text-muted-foreground">
-            All enrolled students across your cohorts
+            All enrolled students across your classes
           </p>
         </div>
 
@@ -76,13 +76,13 @@ export default function GuruStudentsPage() {
             <Skeleton className="h-10 w-full max-w-md" />
             <Skeleton className="h-32 w-full" />
           </div>
-        ) : cohorts.length === 0 ? (
+        ) : classes.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <GraduationCap className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-1 text-lg font-semibold">No cohorts yet</h3>
+              <h3 className="mb-1 text-lg font-semibold">No classes yet</h3>
               <p className="mb-4 text-sm text-muted-foreground">
-                Create a cohort first before managing students.
+                Create a class first before managing students.
               </p>
               <Button asChild className="bg-amber-500 text-amber-950 hover:bg-amber-400">
                 <Link to="/guru/classes">Go to Classes</Link>
@@ -91,11 +91,11 @@ export default function GuruStudentsPage() {
           </Card>
         ) : (
           <>
-            <Tabs value={selectedCohort} onValueChange={setSelectedCohort}>
+            <Tabs value={selectedClass} onValueChange={setSelectedClass}>
               <TabsList>
                 <TabsTrigger value="all">All ({students.length})</TabsTrigger>
-                {cohorts.map((c) => {
-                  const count = students.filter((s) => s.enrollment.cohort_id === c.id).length;
+                {classes.map((c) => {
+                  const count = students.filter((s) => s.enrollment.class_id === c.id).length;
                   return (
                     <TabsTrigger key={c.id} value={c.id}>
                       {c.name} ({count})
@@ -111,7 +111,7 @@ export default function GuruStudentsPage() {
                   <Users className="mb-4 h-12 w-12 text-muted-foreground" />
                   <h3 className="mb-1 text-lg font-semibold">No students yet</h3>
                   <p className="text-sm text-muted-foreground">
-                    Students will appear here once they enroll in your cohort.
+                    Students will appear here once they enroll in your class.
                   </p>
                 </CardContent>
               </Card>
@@ -124,7 +124,7 @@ export default function GuruStudentsPage() {
                       <thead className="border-b border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
                         <tr>
                           <th className="px-4 py-3 text-left font-medium">Student</th>
-                          <th className="px-4 py-3 text-left font-medium">Cohort</th>
+                          <th className="px-4 py-3 text-left font-medium">Class</th>
                           <th className="px-4 py-3 text-left font-medium">Enrolled</th>
                           <th className="px-4 py-3 text-right font-medium">Trades</th>
                           <th className="px-4 py-3 text-right font-medium">Win Rate</th>
@@ -152,7 +152,7 @@ export default function GuruStudentsPage() {
                               </td>
                               <td className="px-4 py-3">
                                 <Badge variant="outline" className="font-normal">
-                                  {s.cohort.name}
+                                  {s.class.name}
                                 </Badge>
                               </td>
                               <td className="px-4 py-3 text-muted-foreground">
@@ -164,7 +164,7 @@ export default function GuruStudentsPage() {
                               <td
                                 className={cn(
                                   'px-4 py-3 text-right tabular-nums font-medium',
-                                  winRateColor(s.stats.win_rate, s.cohort.win_rate_gate),
+                                  winRateColor(s.stats.win_rate, s.class.win_rate_gate),
                                 )}
                               >
                                 {s.stats.win_rate.toFixed(1)}%
@@ -215,9 +215,9 @@ export default function GuruStudentsPage() {
                             </Avatar>
                             <div className="flex-1">
                               <div className="font-medium">{s.profile.display_name}</div>
-                              <div className="text-xs text-muted-foreground">{s.cohort.name}</div>
+                              <div className="text-xs text-muted-foreground">{s.class.name}</div>
                             </div>
-                            <span className={cn('text-sm font-medium', winRateColor(s.stats.win_rate, s.cohort.win_rate_gate))}>
+                            <span className={cn('text-sm font-medium', winRateColor(s.stats.win_rate, s.class.win_rate_gate))}>
                               {s.stats.win_rate.toFixed(0)}%
                             </span>
                           </div>

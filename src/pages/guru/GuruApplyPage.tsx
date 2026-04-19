@@ -244,7 +244,7 @@ export default function GuruApplyPage() {
                 </p>
                 <ul className="space-y-2">
                   <li className="flex gap-2">
-                    <span className="text-amber-400">•</span> Run your own cohorts
+                    <span className="text-amber-400">•</span> Run your own classes
                   </li>
                   <li className="flex gap-2">
                     <span className="text-amber-400">•</span> Publish lessons and blueprints

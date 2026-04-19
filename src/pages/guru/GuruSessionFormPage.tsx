@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
 
 function toDateInput(iso: string): { date: string; time: string } {
@@ -35,7 +35,7 @@ export default function GuruSessionFormPage() {
   const isNew = id === 'new';
 
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
-  const { cohorts, isLoading: cohortsLoading } = useGuruCohorts();
+  const { classes, isLoading: classesLoading } = useGuruClasses();
   const { sessions, isLoading: sessionsLoading, createSession, updateSession } = useGuruSessions();
 
   const existing = useMemo(
@@ -45,7 +45,7 @@ export default function GuruSessionFormPage() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [cohortId, setCohortId] = useState('');
+  const [classId, setClassId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
 
@@ -53,7 +53,7 @@ export default function GuruSessionFormPage() {
     if (existing) {
       setTitle(existing.title);
       setDescription(existing.description ?? '');
-      setCohortId(existing.cohort_id);
+      setClassId(existing.class_id);
       const { date: d, time: t } = toDateInput(existing.scheduled_at);
       setDate(d);
       setTime(t);
@@ -74,7 +74,7 @@ export default function GuruSessionFormPage() {
   if (!isNew && !existing) return <Navigate to="/guru/sessions" replace />;
 
   const isEnded = existing?.status === 'ended';
-  const activeCohorts = cohorts.filter((c) => c.status === 'active');
+  const activeClasses = classes.filter((c) => c.status === 'active');
 
   if (isEnded && existing) {
     return (
@@ -98,7 +98,7 @@ export default function GuruSessionFormPage() {
               <div>
                 <p className="text-xs text-muted-foreground">Class</p>
                 <p className="text-sm">
-                  {cohorts.find((c) => c.id === existing.cohort_id)?.name ?? '—'}
+                  {classes.find((c) => c.id === existing.class_id)?.name ?? '—'}
                 </p>
               </div>
               <div>
@@ -124,7 +124,7 @@ export default function GuruSessionFormPage() {
 
   const validate = (): string | null => {
     if (title.trim().length < 3) return 'Title must be at least 3 characters';
-    if (!cohortId) return 'Please select a class';
+    if (!classId) return 'Please select a class';
     if (!date || !time) return 'Date and time are required';
     if (description.length > 300) return 'Description must be 300 characters or less';
     const scheduled = new Date(`${date}T${time}`);
@@ -140,7 +140,7 @@ export default function GuruSessionFormPage() {
       return;
     }
     const scheduled_at = new Date(`${date}T${time}`).toISOString();
-    const payload = { title: title.trim(), description: description.trim(), cohort_id: cohortId, scheduled_at };
+    const payload = { title: title.trim(), description: description.trim(), class_id: classId, scheduled_at };
     try {
       if (isNew) {
         await createSession.mutateAsync(payload);
@@ -190,18 +190,18 @@ export default function GuruSessionFormPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cohort">Class</Label>
-                <Select value={cohortId} onValueChange={setCohortId} disabled={cohortsLoading}>
-                  <SelectTrigger id="cohort">
+                <Label htmlFor="class">Class</Label>
+                <Select value={classId} onValueChange={setClassId} disabled={classesLoading}>
+                  <SelectTrigger id="class">
                     <SelectValue placeholder="Select a class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {activeCohorts.length === 0 ? (
+                    {activeClasses.length === 0 ? (
                       <div className="p-3 text-sm text-muted-foreground">
                         No active classes. Create one first.
                       </div>
                     ) : (
-                      activeCohorts.map((c) => (
+                      activeClasses.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.name}
                         </SelectItem>
