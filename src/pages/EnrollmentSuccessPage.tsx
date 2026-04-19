@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function EnrollmentSuccessPage() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const [showContent, setShowContent] = useState(false);
 
@@ -13,15 +12,8 @@ export default function EnrollmentSuccessPage() {
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 1500);
-    const redirect = setTimeout(
-      () => navigate(cohortId ? `/classes/${cohortId}` : '/classes'),
-      4000
-    );
-    return () => {
-      clearTimeout(t);
-      clearTimeout(redirect);
-    };
-  }, [navigate, cohortId]);
+    return () => clearTimeout(t);
+  }, []);
 
   if (!showContent) {
     return (
@@ -43,7 +35,7 @@ export default function EnrollmentSuccessPage() {
           </div>
           <h1 className="text-2xl font-bold text-foreground">You're enrolled!</h1>
           <p className="text-muted-foreground">
-            Your Guru access is ready. We're taking you to your class.
+            Your Guru access is ready. Click below to go to your class.
           </p>
           <div className="flex flex-col gap-2 pt-2">
             <Button asChild>
