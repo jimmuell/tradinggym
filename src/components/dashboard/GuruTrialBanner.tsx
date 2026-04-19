@@ -50,7 +50,7 @@ export function GuruTrialBanner() {
               You qualify for a free 30-day Guru Trial
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              TradingGYM Gurus run their coaching business inside the platform — cohorts,
+              TradingGYM Gurus run their coaching business inside the platform — classes,
               live sessions, student progress, and automated payouts. Expert members get 30
               days free.
             </p>
