@@ -11,3 +11,13 @@ export function getTierDisplayName(tierState: string): string {
 }
 
 export const TIER_ORDER = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
+
+export function getPlanDisplayName(planState: string): string {
+  switch (planState) {
+    case 'starter': return 'Starter (Free)';
+    case 'pro':     return 'Pro ($29/mo)';
+    case 'expert':  return 'Expert ($49/mo)';
+    case 'guru':    return 'Guru ($99/mo)';
+    default:        return 'Starter (Free)';
+  }
+}

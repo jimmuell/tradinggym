@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export type TierState = 'foundation' | 'tier1' | 'tier2' | 'tier3' | 'coach';
+export type PlanState = 'starter' | 'pro' | 'expert' | 'guru';
 
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
+const PLAN_VALUES: PlanState[] = ['starter', 'pro', 'expert', 'guru'];
 
 const FEATURE_TIER_MAP: Record<string, TierState> = {
   simulator: 'tier1',
@@ -17,17 +19,21 @@ const FEATURE_TIER_MAP: Record<string, TierState> = {
 
 interface TierContextType {
   currentTier: TierState;
+  planState: PlanState;
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
+  setPlanState: (plan: PlanState) => Promise<void>;
   loading: boolean;
 }
 
 const TierContext = createContext<TierContextType>({
   currentTier: 'foundation',
+  planState: 'starter',
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
+  setPlanState: async () => {},
   loading: true,
 });
 
@@ -37,6 +43,7 @@ export const useTier = () => useContext(TierContext);
 export function TierProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [currentTier, setCurrentTier] = useState<TierState>('foundation');
+  const [planState, setPlanStateLocal] = useState<PlanState>('starter');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,15 +52,19 @@ export function TierProvider({ children }: { children: ReactNode }) {
 
     supabase
       .from('profiles')
-      .select('tier_state')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .select('tier_state, plan_state' as any)
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) {
-          const tier = (data?.tier_state as TierState) || 'foundation';
-          setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
-          setLoading(false);
-        }
+        if (cancelled) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const row = data as any;
+        const tier = (row?.tier_state as TierState) || 'foundation';
+        const plan = (row?.plan_state as PlanState) || 'starter';
+        setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
+        setPlanStateLocal(PLAN_VALUES.includes(plan) ? plan : 'starter');
+        setLoading(false);
       });
 
     return () => { cancelled = true; };
@@ -72,7 +83,6 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [isUnlocked],
   );
 
-  // Empty dep array is intentional — setTierState only updates local React state
   const setTierState = useCallback(
     async (tier: TierState) => {
       setCurrentTier(tier);
@@ -80,8 +90,17 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const setPlanState = useCallback(
+    async (plan: PlanState) => {
+      setPlanStateLocal(plan);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.rpc as any)('update_own_plan_state', { new_plan_state: plan });
+    },
+    [],
+  );
+
   return (
-    <TierContext.Provider value={{ currentTier, isUnlocked, canAccess, setTierState, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, setPlanState, loading }}>
       {children}
     </TierContext.Provider>
   );
