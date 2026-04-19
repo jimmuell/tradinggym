@@ -22,6 +22,7 @@ export function useStudentEnrollments() {
         .select('*')
         .eq('student_id', user.id)
         .eq('status', 'active');
+      console.log('[useStudentEnrollments] enrollments:', { rows: enrollments, error: eErr });
       if (eErr) throw eErr;
       if (!enrollments || enrollments.length === 0) return [];
 
@@ -30,6 +31,7 @@ export function useStudentEnrollments() {
         .from('classes')
         .select('*')
         .in('id', classIds);
+      console.log('[useStudentEnrollments] classes:', { classIds, rows: classes, error: cErr });
       if (cErr) throw cErr;
 
       const guruIds = Array.from(new Set((classes ?? []).map((c) => c.guru_id)));
