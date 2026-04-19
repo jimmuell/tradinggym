@@ -88,16 +88,16 @@ serve(async (req) => {
       return json({ error: "guru_unavailable", message: "Coach not available" }, 404);
     }
 
-    // Default cohort
-    const { data: cohort } = await admin
-      .from("cohorts")
+    // Default class
+    const { data: classItem } = await admin
+      .from("classes")
       .select("id")
       .eq("guru_id", guruId)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
-    if (!cohort) {
-      return json({ error: "no_cohort", message: "Coach has not set up a cohort yet." }, 400);
+    if (!classItem) {
+      return json({ error: "no_class", message: "Coach has not set up a class yet." }, 400);
     }
 
     // Verify Stripe subscription (Pro or Expert)
@@ -152,7 +152,7 @@ serve(async (req) => {
 
       // Check: student hasn't already used this code
       const { data: priorUse } = await admin
-        .from("cohort_enrollments")
+        .from("class_enrollments")
         .select("id")
         .eq("student_id", user.id)
         .eq("referral_code", referralCode)
@@ -174,11 +174,11 @@ serve(async (req) => {
       }
     }
 
-    // Idempotency: if already active enrollment in this cohort, return it
+    // Idempotency: if already active enrollment in this class, return it
     const { data: existing } = await admin
-      .from("cohort_enrollments")
+      .from("class_enrollments")
       .select("id, status")
-      .eq("cohort_id", cohort.id)
+      .eq("class_id", classItem.id)
       .eq("student_id", user.id)
       .maybeSingle();
 
@@ -188,7 +188,7 @@ serve(async (req) => {
       log("already enrolled", { enrollmentId });
     } else {
       const insertPayload = {
-        cohort_id: cohort.id,
+        class_id: classItem.id,
         student_id: user.id,
         enrollment_type: enrollmentType,
         referral_code: appliedReferralCode,
@@ -202,7 +202,7 @@ serve(async (req) => {
 
       if (existing) {
         const { error: updErr } = await admin
-          .from("cohort_enrollments")
+          .from("class_enrollments")
           .update(insertPayload)
           .eq("id", existing.id);
         if (updErr) {
@@ -212,7 +212,7 @@ serve(async (req) => {
         enrollmentId = existing.id;
       } else {
         const { data: created, error: insErr } = await admin
-          .from("cohort_enrollments")
+          .from("class_enrollments")
           .insert(insertPayload)
           .select("id")
           .single();
@@ -283,7 +283,7 @@ serve(async (req) => {
     return json({
       success: true,
       enrollment_id: enrollmentId,
-      cohort_id: cohort.id,
+      class_id: classItem.id,
       plan: planTier,
       enrollment_type: enrollmentType,
     });
