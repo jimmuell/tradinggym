@@ -9,16 +9,19 @@ export default function EnrollmentSuccessPage() {
   const [params] = useSearchParams();
   const [showContent, setShowContent] = useState(false);
 
+  const cohortId = params.get('cohort_id');
+
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 1500);
-    const redirect = setTimeout(() => navigate('/classes'), 4000);
+    const redirect = setTimeout(
+      () => navigate(cohortId ? `/classes/${cohortId}` : '/classes'),
+      4000
+    );
     return () => {
       clearTimeout(t);
       clearTimeout(redirect);
     };
-  }, [navigate]);
-
-  const cohortId = params.get('cohort_id');
+  }, [navigate, cohortId]);
 
   if (!showContent) {
     return (
