@@ -4,12 +4,12 @@ import GuruLayout from '@/layouts/GuruLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
-import CohortCard from '@/components/guru/CohortCard';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
+import ClassCard from '@/components/guru/ClassCard';
 
-export default function GuruCohortsPage() {
+export default function GuruClassesPage() {
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
-  const { cohorts, isLoading } = useGuruCohorts();
+  const { classes, isLoading } = useGuruClasses();
 
   if (loadingProfile) {
     return (
@@ -48,7 +48,7 @@ export default function GuruCohortsPage() {
             <Skeleton className="h-48" />
             <Skeleton className="h-48" />
           </div>
-        ) : cohorts.length === 0 ? (
+        ) : classes.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card/50 px-6 py-16 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <GraduationCap className="h-8 w-8 text-muted-foreground" />
@@ -66,8 +66,8 @@ export default function GuruCohortsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {cohorts.map((c) => (
-              <CohortCard key={c.id} cohort={c} />
+            {classes.map((c) => (
+              <ClassCard key={c.id} classItem={c} />
             ))}
           </div>
         )}

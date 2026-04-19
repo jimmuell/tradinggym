@@ -1,33 +1,33 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import type { Cohort, CohortFormData } from '@/types/guru';
+import type { Class, ClassFormData } from '@/types/guru';
 
-export function useGuruCohorts() {
+export function useGuruClasses() {
   const { data: guruProfile } = useGuruProfile();
   const qc = useQueryClient();
   const guruId = guruProfile?.id;
 
   const query = useQuery({
-    queryKey: ['cohorts', guruId],
-    queryFn: async (): Promise<Cohort[]> => {
+    queryKey: ['classes', guruId],
+    queryFn: async (): Promise<Class[]> => {
       if (!guruId) return [];
       const { data, error } = await supabase
-        .from('cohorts')
+        .from('classes')
         .select('*')
         .eq('guru_id', guruId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Cohort[];
+      return (data ?? []) as Class[];
     },
     enabled: !!guruId,
   });
 
-  const createCohort = useMutation({
-    mutationFn: async (data: CohortFormData): Promise<Cohort> => {
+  const createClass = useMutation({
+    mutationFn: async (data: ClassFormData): Promise<Class> => {
       if (!guruId) throw new Error('No guru profile');
       const { data: row, error } = await supabase
-        .from('cohorts')
+        .from('classes')
         .insert({
           guru_id: guruId,
           name: data.name,
@@ -40,21 +40,21 @@ export function useGuruCohorts() {
         .select('*')
         .single();
       if (error) throw error;
-      return row as Cohort;
+      return row as Class;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cohorts', guruId] });
+      qc.invalidateQueries({ queryKey: ['classes', guruId] });
     },
   });
 
-  const updateCohort = useMutation({
+  const updateClass = useMutation({
     mutationFn: async ({
       id,
       data,
     }: {
       id: string;
-      data: Partial<CohortFormData>;
-    }): Promise<Cohort> => {
+      data: Partial<ClassFormData>;
+    }): Promise<Class> => {
       const payload = {
         ...data,
         ...('description' in data
@@ -62,34 +62,34 @@ export function useGuruCohorts() {
           : {}),
       };
       const { data: row, error } = await supabase
-        .from('cohorts')
+        .from('classes')
         .update(payload as never)
         .eq('id', id)
         .select('*')
         .single();
       if (error) throw error;
-      return row as Cohort;
+      return row as Class;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cohorts', guruId] });
+      qc.invalidateQueries({ queryKey: ['classes', guruId] });
     },
   });
 
-  const deleteCohort = useMutation({
+  const deleteClass = useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from('cohorts').delete().eq('id', id);
+      const { error } = await supabase.from('classes').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cohorts', guruId] });
+      qc.invalidateQueries({ queryKey: ['classes', guruId] });
     },
   });
 
   return {
-    cohorts: query.data ?? [],
+    classes: query.data ?? [],
     isLoading: query.isLoading,
-    createCohort,
-    updateCohort,
-    deleteCohort,
+    createClass,
+    updateClass,
+    deleteClass,
   };
 }

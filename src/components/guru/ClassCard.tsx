@@ -15,22 +15,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
-import type { Cohort } from '@/types/guru';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
+import type { Class } from '@/types/guru';
 
-const STATUS_STYLES: Record<Cohort['status'], string> = {
+const STATUS_STYLES: Record<Class['status'], string> = {
   draft: 'bg-muted text-muted-foreground border border-border',
   active: 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30',
   closed: 'bg-destructive/15 text-destructive border border-destructive/30',
 };
 
-export default function CohortCard({ cohort }: { cohort: Cohort }) {
-  const { deleteCohort } = useGuruCohorts();
+export default function ClassCard({ classItem }: { classItem: Class }) {
+  const { deleteClass } = useGuruClasses();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const onDelete = async () => {
     try {
-      await deleteCohort.mutateAsync(cohort.id);
+      await deleteClass.mutateAsync(classItem.id);
       toast.success('Class deleted');
       setConfirmOpen(false);
     } catch {
@@ -39,23 +39,23 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
   };
 
   const priceLabel =
-    cohort.price_monthly === 0 ? 'Free' : `$${cohort.price_monthly.toFixed(2)}/mo`;
+    classItem.price_monthly === 0 ? 'Free' : `$${classItem.price_monthly.toFixed(2)}/mo`;
   const maxLabel =
-    cohort.max_students == null ? 'Unlimited' : String(cohort.max_students);
+    classItem.max_students == null ? 'Unlimited' : String(classItem.max_students);
 
   return (
     <>
       <Card className="flex flex-col">
         <CardContent className="flex flex-1 flex-col gap-4 p-5">
           <div className="flex items-start justify-between gap-3">
-            <h3 className="text-lg font-semibold leading-tight">{cohort.name}</h3>
-            <Badge className={`${STATUS_STYLES[cohort.status]} capitalize`}>
-              {cohort.status}
+            <h3 className="text-lg font-semibold leading-tight">{classItem.name}</h3>
+            <Badge className={`${STATUS_STYLES[classItem.status]} capitalize`}>
+              {classItem.status}
             </Badge>
           </div>
 
           <p className="line-clamp-2 min-h-[2.5rem] text-sm text-muted-foreground">
-            {cohort.description || 'No description'}
+            {classItem.description || 'No description'}
           </p>
 
           <div className="grid grid-cols-3 gap-3 text-xs">
@@ -65,7 +65,7 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
             </div>
             <div>
               <div className="text-muted-foreground">Win-rate gate</div>
-              <div className="font-medium text-foreground">{cohort.win_rate_gate}%</div>
+              <div className="font-medium text-foreground">{classItem.win_rate_gate}%</div>
             </div>
             <div>
               <div className="text-muted-foreground">Max students</div>
@@ -75,9 +75,9 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
 
           <div className="mt-auto flex items-center justify-between border-t border-border pt-3">
             <Button asChild variant="outline" size="sm">
-              <Link to={`/guru/classes/${cohort.id}`}>Edit</Link>
+              <Link to={`/guru/classes/${classItem.id}`}>Edit</Link>
             </Button>
-            {cohort.status === 'draft' && (
+            {classItem.status === 'draft' && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -101,16 +101,16 @@ export default function CohortCard({ cohort }: { cohort: Cohort }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteCohort.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteClass.isPending}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 onDelete();
               }}
-              disabled={deleteCohort.isPending}
+              disabled={deleteClass.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteCohort.isPending ? (
+              {deleteClass.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 'Delete'

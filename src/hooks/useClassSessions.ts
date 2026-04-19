@@ -2,20 +2,20 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { LiveSession } from '@/types/guru';
 
-export function useCohortSessions(cohortId: string | undefined) {
+export function useClassSessions(classId: string | undefined) {
   const query = useQuery({
-    queryKey: ['cohort-sessions', cohortId],
+    queryKey: ['class-sessions', classId],
     queryFn: async (): Promise<LiveSession[]> => {
-      if (!cohortId) return [];
+      if (!classId) return [];
       const { data, error } = await supabase
         .from('live_sessions')
         .select('*')
-        .eq('cohort_id', cohortId)
+        .eq('class_id', classId)
         .order('scheduled_at', { ascending: true });
       if (error) throw error;
       return (data ?? []) as LiveSession[];
     },
-    enabled: !!cohortId,
+    enabled: !!classId,
   });
 
   const sessions = query.data ?? [];

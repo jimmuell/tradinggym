@@ -17,10 +17,10 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile } from '@/hooks/useGuruData';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
-import type { CohortFormData, CohortStatus } from '@/types/guru';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
+import type { ClassFormData, ClassStatus } from '@/types/guru';
 
-const DEFAULT_FORM: CohortFormData = {
+const DEFAULT_FORM: ClassFormData = {
   name: '',
   description: '',
   price_monthly: 0,
@@ -44,36 +44,36 @@ const TIPS = [
   },
 ];
 
-export default function GuruCohortFormPage() {
+export default function GuruClassFormPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const isNew = location.pathname.endsWith('/new') || id === 'new' || !id;
   const navigate = useNavigate();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
-  const { cohorts, isLoading: loadingCohorts, createCohort, updateCohort } =
-    useGuruCohorts();
+  const { classes, isLoading: loadingClasses, createClass, updateClass } =
+    useGuruClasses();
 
-  const existingCohort = useMemo(
-    () => (isNew ? null : cohorts.find((c) => c.id === id) ?? null),
-    [isNew, cohorts, id],
+  const existingClass = useMemo(
+    () => (isNew ? null : classes.find((c) => c.id === id) ?? null),
+    [isNew, classes, id],
   );
 
-  const [form, setForm] = useState<CohortFormData>(DEFAULT_FORM);
-  const [originalStatus, setOriginalStatus] = useState<CohortStatus>('draft');
+  const [form, setForm] = useState<ClassFormData>(DEFAULT_FORM);
+  const [originalStatus, setOriginalStatus] = useState<ClassStatus>('draft');
 
   useEffect(() => {
-    if (!isNew && existingCohort) {
+    if (!isNew && existingClass) {
       setForm({
-        name: existingCohort.name,
-        description: existingCohort.description ?? '',
-        price_monthly: Number(existingCohort.price_monthly),
-        win_rate_gate: existingCohort.win_rate_gate,
-        max_students: existingCohort.max_students,
-        status: existingCohort.status,
+        name: existingClass.name,
+        description: existingClass.description ?? '',
+        price_monthly: Number(existingClass.price_monthly),
+        win_rate_gate: existingClass.win_rate_gate,
+        max_students: existingClass.max_students,
+        status: existingClass.status,
       });
-      setOriginalStatus(existingCohort.status);
+      setOriginalStatus(existingClass.status);
     }
-  }, [isNew, existingCohort]);
+  }, [isNew, existingClass]);
 
   if (loadingProfile) {
     return (
@@ -89,12 +89,12 @@ export default function GuruCohortFormPage() {
     return <Navigate to="/guru" replace />;
   }
 
-  if (!isNew && !loadingCohorts && !existingCohort) {
+  if (!isNew && !loadingClasses && !existingClass) {
     return <Navigate to="/guru/classes" replace />;
   }
 
-  const isLoading = !isNew && loadingCohorts;
-  const pending = createCohort.isPending || updateCohort.isPending;
+  const isLoading = !isNew && loadingClasses;
+  const pending = createClass.isPending || updateClass.isPending;
   const showStatusWarning =
     !isNew && originalStatus === 'active' && form.status !== 'active';
 
@@ -110,11 +110,11 @@ export default function GuruCohortFormPage() {
     if (!formValid) return;
     try {
       if (isNew) {
-        await createCohort.mutateAsync(form);
+        await createClass.mutateAsync(form);
         toast.success('Class created');
         navigate('/guru/classes');
       } else if (id) {
-        await updateCohort.mutateAsync({ id, data: form });
+        await updateClass.mutateAsync({ id, data: form });
         toast.success('Changes saved');
         setOriginalStatus(form.status);
       }
@@ -266,7 +266,7 @@ export default function GuruCohortFormPage() {
                       <Select
                         value={form.status}
                         onValueChange={(v) =>
-                          setForm({ ...form, status: v as CohortStatus })
+                          setForm({ ...form, status: v as ClassStatus })
                         }
                       >
                         <SelectTrigger id="status">
