@@ -113,7 +113,6 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                if (item.hideAtFoundation && currentTier === 'foundation') return null;
                 const locked = item.feature ? !canAccess(item.feature) : false;
 
                 return (
