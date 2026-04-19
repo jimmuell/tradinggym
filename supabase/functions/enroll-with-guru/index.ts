@@ -78,10 +78,10 @@ serve(async (req) => {
       );
     }
 
-    // Load Guru
+    // Load Guru — also fetch referral_code to validate against
     const { data: guru } = await admin
       .from("guru_profiles")
-      .select("id, is_public, status")
+      .select("id, is_public, status, referral_code, referral_discount_pct")
       .eq("id", guruId)
       .maybeSingle();
     if (!guru || !guru.is_public || guru.status !== "active") {
@@ -138,19 +138,19 @@ serve(async (req) => {
       : "expert";
     log("subscription matched", { sub: matched.id, plan: planTier });
 
-    // Resolve referral
+    // Resolve referral — validate against guru_profiles.referral_code (source of truth)
     let enrollmentType: "organic" | "referred" = "organic";
     let commissionRate: number | null = 20;
     let appliedReferralCode: string | null = null;
     let discountApplied = false;
 
     if (referralCode) {
-      const { data: ref } = await admin
-        .from("guru_referrals")
-        .select("id, guru_id, redeemed_at")
-        .eq("referral_code", referralCode)
-        .maybeSingle();
+      // Check: code matches this Guru's referral code on guru_profiles
+      const codeMatchesGuru =
+        guru.referral_code &&
+        guru.referral_code.toUpperCase() === referralCode.toUpperCase();
 
+      // Check: student hasn't already used this code
       const { data: priorUse } = await admin
         .from("cohort_enrollments")
         .select("id")
@@ -158,13 +158,19 @@ serve(async (req) => {
         .eq("referral_code", referralCode)
         .maybeSingle();
 
-      if (ref && ref.guru_id === guruId && !ref.redeemed_at && !priorUse) {
+      if (codeMatchesGuru && !priorUse) {
         enrollmentType = "referred";
-        commissionRate = 50;
+        commissionRate = null; // month 1 free — no commission
         appliedReferralCode = referralCode;
         discountApplied = true;
+        log("referral valid", { referralCode, guruReferralCode: guru.referral_code });
       } else {
-        log("referral invalid — proceeding organic", { referralCode });
+        log("referral invalid — proceeding organic", {
+          referralCode,
+          guruReferralCode: guru.referral_code,
+          codeMatchesGuru,
+          priorUse: !!priorUse,
+        });
       }
     }
 
@@ -232,17 +238,17 @@ serve(async (req) => {
     });
     log("subscription tagged", { sub: matched.id });
 
-    // Update student's profile attribution (service role bypasses RLS)
-    await admin
-      .from("profiles")
-      .update({
-        referral_source: enrollmentType,
-        referred_by_guru_id: guruId,
-      })
-      .eq("user_id", user.id);
-
-    // Apply month-1-free as a customer balance credit (negative balance = credit)
+    // Update student's profile attribution ONLY for referred enrollments
     if (enrollmentType === "referred") {
+      await admin
+        .from("profiles")
+        .update({
+          referral_source: "referred",
+          referred_by_guru_id: guruId,
+        })
+        .eq("user_id", user.id);
+
+      // Apply month-1-free as a customer balance credit (negative balance = credit)
       try {
         const subItem = matched.items.data.find(
           (it) => it.price.id === proPriceId || it.price.id === expertPriceId,
@@ -257,7 +263,7 @@ serve(async (req) => {
           log("balance credit applied", { amount: unitAmount });
         }
 
-        // Mark referral as redeemed immediately (no webhook needed for attribution flow)
+        // Mark referral as redeemed in guru_referrals if a row exists for this code
         await admin
           .from("guru_referrals")
           .update({
