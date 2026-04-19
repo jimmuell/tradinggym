@@ -750,6 +750,10 @@ export type Database = {
         }[]
       }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
+      student_is_enrolled_in_class: {
+        Args: { _class_id: string }
+        Returns: boolean
+      }
       update_own_profile: {
         Args: { p_avatar_url?: string; p_display_name?: string }
         Returns: undefined

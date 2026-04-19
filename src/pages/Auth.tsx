@@ -10,13 +10,17 @@ import { lovable } from '@/integrations/lovable/index';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirm, setSignupConfirm] = useState('');
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupConfirm, setShowSignupConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session } = useAuth();
@@ -103,13 +107,23 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Password</Label>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showLoginPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
@@ -147,23 +161,43 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Password</Label>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showSignupPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      aria-label={showSignupPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Confirm Password</Label>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    value={signupConfirm}
-                    onChange={(e) => setSignupConfirm(e.target.value)}
-                    className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showSignupConfirm ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={signupConfirm}
+                      onChange={(e) => setSignupConfirm(e.target.value)}
+                      className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupConfirm((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      aria-label={showSignupConfirm ? 'Hide password' : 'Show password'}
+                    >
+                      {showSignupConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
