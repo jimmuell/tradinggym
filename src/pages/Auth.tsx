@@ -107,13 +107,23 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-300">Password</Label>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500"
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showLoginPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      className="bg-[#2a2e39] border-[#363a45] text-white placeholder:text-gray-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((v) => !v)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
