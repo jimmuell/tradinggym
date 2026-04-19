@@ -99,29 +99,47 @@ export type Database = {
       }
       cohort_enrollments: {
         Row: {
+          billing_starts_at: string | null
           cancelled_at: string | null
           cohort_id: string
+          commission_rate: number | null
+          discount_applied: boolean | null
           enrolled_at: string
+          enrollment_type: string | null
           id: string
+          referral_code: string | null
           status: string
+          stripe_customer_id: string | null
           stripe_subscription_id: string | null
           student_id: string
         }
         Insert: {
+          billing_starts_at?: string | null
           cancelled_at?: string | null
           cohort_id: string
+          commission_rate?: number | null
+          discount_applied?: boolean | null
           enrolled_at?: string
+          enrollment_type?: string | null
           id?: string
+          referral_code?: string | null
           status?: string
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           student_id: string
         }
         Update: {
+          billing_starts_at?: string | null
           cancelled_at?: string | null
           cohort_id?: string
+          commission_rate?: number | null
+          discount_applied?: boolean | null
           enrolled_at?: string
+          enrollment_type?: string | null
           id?: string
+          referral_code?: string | null
           status?: string
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           student_id?: string
         }
@@ -503,6 +521,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          referral_source: string | null
+          referred_by_guru_id: string | null
           tier_state: string
           updated_at: string
           user_id: string
@@ -513,6 +533,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          referral_source?: string | null
+          referred_by_guru_id?: string | null
           tier_state?: string
           updated_at?: string
           user_id: string
@@ -523,11 +545,21 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          referral_source?: string | null
+          referred_by_guru_id?: string | null
           tier_state?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_guru_id_fkey"
+            columns: ["referred_by_guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strategies: {
         Row: {
