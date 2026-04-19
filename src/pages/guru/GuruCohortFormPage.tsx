@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import GuruLayout from '@/layouts/GuruLayout';
@@ -46,7 +46,8 @@ const TIPS = [
 
 export default function GuruCohortFormPage() {
   const { id } = useParams<{ id: string }>();
-  const isNew = id === 'new';
+  const location = useLocation();
+  const isNew = location.pathname.endsWith('/new') || id === 'new' || !id;
   const navigate = useNavigate();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { cohorts, isLoading: loadingCohorts, createCohort, updateCohort } =
