@@ -1,7 +1,7 @@
 export type GuruStatus = 'pending' | 'active' | 'suspended';
 export type ApplicationStatus = 'pending' | 'approved' | 'rejected';
 export type YearsExperience = 'under_1' | '1_3' | '3_5' | '5_10' | 'over_10';
-export type CohortStatus = 'draft' | 'active' | 'closed';
+export type ClassStatus = 'draft' | 'active' | 'closed';
 
 export interface GuruProfile {
   id: string;
@@ -42,7 +42,7 @@ export interface ApplicationFormData {
   existing_presence?: string;
 }
 
-export interface Cohort {
+export interface Class {
   id: string;
   guru_id: string;
   name: string;
@@ -50,20 +50,20 @@ export interface Cohort {
   price_monthly: number;
   win_rate_gate: number;
   max_students: number | null;
-  status: CohortStatus;
+  status: ClassStatus;
   stripe_product_id: string | null;
   stripe_price_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface CohortFormData {
+export interface ClassFormData {
   name: string;
   description: string;
   price_monthly: number;
   win_rate_gate: number;
   max_students: number | null;
-  status: CohortStatus;
+  status: ClassStatus;
 }
 
 export const YEARS_EXPERIENCE_OPTIONS: { value: YearsExperience; label: string }[] = [
@@ -76,9 +76,9 @@ export const YEARS_EXPERIENCE_OPTIONS: { value: YearsExperience; label: string }
 
 export type EnrollmentStatus = 'active' | 'paused' | 'cancelled';
 
-export interface CohortEnrollment {
+export interface ClassEnrollment {
   id: string;
-  cohort_id: string;
+  class_id: string;
   student_id: string;
   status: EnrollmentStatus;
   stripe_subscription_id: string | null;
@@ -103,9 +103,9 @@ export interface StudentStats {
 }
 
 export interface EnrolledStudent {
-  enrollment: CohortEnrollment;
+  enrollment: ClassEnrollment;
   profile: StudentProfile;
-  cohort: Cohort;
+  class: Class;
   stats: StudentStats;
 }
 
@@ -128,7 +128,7 @@ export type ContentType = 'lesson' | 'post' | 'blueprint';
 export interface GuruContent {
   id: string;
   guru_id: string;
-  cohort_id: string;
+  class_id: string;
   title: string;
   body: string;
   content_type: ContentType;
@@ -142,7 +142,7 @@ export interface ContentFormData {
   title: string;
   body: string;
   content_type: ContentType;
-  cohort_id: string;
+  class_id: string;
   is_draft: boolean;
 }
 
@@ -151,7 +151,7 @@ export type SessionStatus = 'scheduled' | 'live' | 'ended';
 export interface LiveSession {
   id: string;
   guru_id: string;
-  cohort_id: string;
+  class_id: string;
   title: string;
   description: string | null;
   scheduled_at: string;
@@ -164,7 +164,7 @@ export interface LiveSession {
 export interface SessionFormData {
   title: string;
   description: string;
-  cohort_id: string;
+  class_id: string;
   scheduled_at: string;
 }
 
@@ -175,4 +175,3 @@ export interface SessionAttendance {
   joined_at: string;
   left_at: string | null;
 }
-

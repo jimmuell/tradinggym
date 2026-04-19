@@ -38,10 +38,10 @@ export default function ClassesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {enrollments.map(({ cohort, guru, contentCount }) => (
-            <Card key={cohort.id} className="flex flex-col">
+          {enrollments.map(({ class: classItem, guru, contentCount }) => (
+            <Card key={classItem.id} className="flex flex-col">
               <CardHeader>
-                <CardTitle className="text-base">{cohort.name}</CardTitle>
+                <CardTitle className="text-base">{classItem.name}</CardTitle>
                 <CardDescription>Taught by {guru.display_name}</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col justify-between">
@@ -50,7 +50,7 @@ export default function ClassesPage() {
                   {contentCount} {contentCount === 1 ? 'piece' : 'pieces'} of content
                 </div>
                 <Link
-                  to={`/classes/${cohort.id}`}
+                  to={`/classes/${classItem.id}`}
                   className="mt-4 inline-flex items-center text-sm font-medium text-primary hover:underline"
                 >
                   View Content

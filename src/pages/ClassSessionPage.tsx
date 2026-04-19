@@ -15,8 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useStudentCohort } from '@/hooks/useStudentEnrollments';
-import { useCohortSessions } from '@/hooks/useCohortSessions';
+import { useStudentClass } from '@/hooks/useStudentEnrollments';
+import { useClassSessions } from '@/hooks/useClassSessions';
 import { useSessionBroadcast } from '@/hooks/useSessionBroadcast';
 import { loadTimeframeData, type Timeframe } from '@/lib/chartData';
 
@@ -41,8 +41,8 @@ export default function ClassSessionPage() {
   const { classId, sessionId } = useParams<{ classId: string; sessionId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
-  const { sessions, isLoading: sessionsLoading } = useCohortSessions(classId);
+  const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
+  const { sessions, isLoading: sessionsLoading } = useClassSessions(classId);
 
   const session = sessions.find((s) => s.id === sessionId) ?? null;
 
@@ -202,7 +202,7 @@ export default function ClassSessionPage() {
         <div className="min-w-0 flex-1">
           <h1 className="font-semibold truncate">{session.title}</h1>
           <p className="text-xs text-muted-foreground truncate">
-            Viewing {enrolled.guru.display_name}'s chart · {enrolled.cohort.name}
+            Viewing {enrolled.guru.display_name}'s chart · {enrolled.class.name}
           </p>
         </div>
         <Badge variant="outline" className="bg-green-500/15 text-green-400 border-green-500/30">

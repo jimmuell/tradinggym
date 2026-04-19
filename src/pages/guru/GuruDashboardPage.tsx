@@ -7,14 +7,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useGuruProfile, useGuruApplication } from '@/hooks/useGuruData';
 import { useGuruDashboardStats } from '@/hooks/useGuruDashboardStats';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
-import { useGuruCohorts } from '@/hooks/useGuruCohorts';
+import { useGuruClasses } from '@/hooks/useGuruClasses';
 
 export default function GuruDashboardPage() {
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp } = useGuruApplication();
-  const { activeStudents, activeCohorts, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
+  const { activeStudents, activeClasses, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
   const { sessions, upcomingSessions, isLoading: loadingSessions } = useGuruSessions();
-  const { cohorts } = useGuruCohorts();
+  const { classes } = useGuruClasses();
   const liveSession = sessions.find((s) => s.status === 'live') ?? null;
 
   if (loadingProfile || loadingApp) {
@@ -68,7 +68,7 @@ export default function GuruDashboardPage() {
     {
       label: 'Active Classes',
       icon: Layers,
-      value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeCohorts,
+      value: loadingStats ? <Skeleton className="h-7 w-10" /> : activeClasses,
     },
     { label: "This Month's Revenue", icon: DollarSign, value: '—' },
     { label: 'Avg Student Win Rate', icon: TrendingUp, value: '—' },
@@ -110,7 +110,7 @@ export default function GuruDashboardPage() {
                     Session Live
                   </p>
                   <p className="font-medium truncate mt-1">
-                    {liveSession.title} — {cohorts.find((c) => c.id === liveSession.cohort_id)?.name ?? '—'}
+                    {liveSession.title} — {classes.find((c) => c.id === liveSession.class_id)?.name ?? '—'}
                   </p>
                 </div>
                 <Button asChild className="bg-green-600 text-white hover:bg-green-500">
@@ -145,7 +145,7 @@ export default function GuruDashboardPage() {
                   <div className="min-w-0">
                     <p className="font-medium truncate">{upcomingSessions[0].title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {cohorts.find((c) => c.id === upcomingSessions[0].cohort_id)?.name ?? '—'} ·{' '}
+                      {classes.find((c) => c.id === upcomingSessions[0].class_id)?.name ?? '—'} ·{' '}
                       {new Date(upcomingSessions[0].scheduled_at).toLocaleString(undefined, {
                         weekday: 'short',
                         month: 'short',

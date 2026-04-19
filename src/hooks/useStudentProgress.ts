@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuruProfile } from '@/hooks/useGuruData';
 import type {
-  Cohort,
-  CohortEnrollment,
+  Class,
+  ClassEnrollment,
   StudentProfile,
   StudentStats,
   StudentTrade,
@@ -11,7 +11,7 @@ import type {
 
 interface UseStudentProgressResult {
   profile: StudentProfile | null;
-  enrollment: (CohortEnrollment & { cohort: Cohort }) | null;
+  enrollment: (ClassEnrollment & { class: Class }) | null;
   trades: StudentTrade[];
   stats: StudentStats | null;
   streak: number;
@@ -29,28 +29,28 @@ export function useStudentProgress(studentId: string | undefined): UseStudentPro
     queryFn: async () => {
       if (!guruId || !studentId) return null;
 
-      // Verify enrollment in this guru's cohorts
-      const { data: cohortRows, error: cohortErr } = await supabase
-        .from('cohorts')
+      // Verify enrollment in this guru's classes
+      const { data: classRows, error: classErr } = await supabase
+        .from('classes')
         .select('*')
         .eq('guru_id', guruId);
-      if (cohortErr) throw cohortErr;
-      const cohorts = (cohortRows ?? []) as Cohort[];
-      if (cohorts.length === 0) return null;
+      if (classErr) throw classErr;
+      const classes = (classRows ?? []) as Class[];
+      if (classes.length === 0) return null;
 
       const { data: enrollRows, error: enrollErr } = await supabase
-        .from('cohort_enrollments')
+        .from('class_enrollments')
         .select('*')
         .eq('student_id', studentId)
         .in(
-          'cohort_id',
-          cohorts.map((c) => c.id),
+          'class_id',
+          classes.map((c) => c.id),
         );
       if (enrollErr) throw enrollErr;
-      const enrollments = (enrollRows ?? []) as CohortEnrollment[];
+      const enrollments = (enrollRows ?? []) as unknown as ClassEnrollment[];
       if (enrollments.length === 0) return null;
       const enrollment = enrollments[0];
-      const cohort = cohorts.find((c) => c.id === enrollment.cohort_id)!;
+      const classItem = classes.find((c) => c.id === enrollment.class_id)!;
 
       // Profile via RPC
       const { data: profileRows, error: pErr } = await supabase.rpc('get_guru_student_profiles');
@@ -86,7 +86,7 @@ export function useStudentProgress(studentId: string | undefined): UseStudentPro
         losses,
         net_pnl: pnl,
         win_rate,
-        meets_win_rate_gate: win_rate >= cohort.win_rate_gate,
+        meets_win_rate_gate: win_rate >= classItem.win_rate_gate,
       };
 
       // Streak: consecutive same-result count from most recent
@@ -104,7 +104,7 @@ export function useStudentProgress(studentId: string | undefined): UseStudentPro
 
       return {
         profile,
-        enrollment: { ...enrollment, cohort },
+        enrollment: { ...enrollment, class: classItem },
         trades,
         stats,
         streak,

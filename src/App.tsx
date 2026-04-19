@@ -26,8 +26,8 @@ import FoundationLearning from "./pages/learning/Foundation";
 import GuruApplyPage from "./pages/guru/GuruApplyPage";
 import GuruDashboardPage from "./pages/guru/GuruDashboardPage";
 import GuruPublicProfilePage from "./pages/guru/GuruPublicProfilePage";
-import GuruCohortsPage from "./pages/guru/GuruCohortsPage";
-import GuruCohortFormPage from "./pages/guru/GuruCohortFormPage";
+import GuruClassesPage from "./pages/guru/GuruClassesPage";
+import GuruClassFormPage from "./pages/guru/GuruClassFormPage";
 import GuruStudentsPage from "./pages/guru/GuruStudentsPage";
 import GuruStudentDetailPage from "./pages/guru/GuruStudentDetailPage";
 import GuruContentPage from "./pages/guru/GuruContentPage";
@@ -100,9 +100,9 @@ const App = () => (
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
-              <Route path="/guru/classes/new" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
-              <Route path="/guru/classes/:id" element={<ProtectedRoute><GuruCohortFormPage /></ProtectedRoute>} />
-              <Route path="/guru/classes" element={<ProtectedRoute><GuruCohortsPage /></ProtectedRoute>} />
+              <Route path="/guru/classes/new" element={<ProtectedRoute><GuruClassFormPage /></ProtectedRoute>} />
+              <Route path="/guru/classes/:id" element={<ProtectedRoute><GuruClassFormPage /></ProtectedRoute>} />
+              <Route path="/guru/classes" element={<ProtectedRoute><GuruClassesPage /></ProtectedRoute>} />
               <Route path="/guru/students/:studentId" element={<ProtectedRoute><GuruStudentDetailPage /></ProtectedRoute>} />
               <Route path="/guru/students" element={<ProtectedRoute><GuruStudentsPage /></ProtectedRoute>} />
               <Route path="/guru/content/new" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />

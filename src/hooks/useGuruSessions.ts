@@ -40,7 +40,7 @@ export function useGuruSessions() {
         .from('live_sessions')
         .insert({
           guru_id: guruId,
-          cohort_id: data.cohort_id,
+          class_id: data.class_id,
           title: data.title,
           description: data.description || null,
           scheduled_at: data.scheduled_at,

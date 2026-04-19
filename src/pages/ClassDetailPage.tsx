@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { useStudentCohort } from '@/hooks/useStudentEnrollments';
-import { useCohortContent } from '@/hooks/useCohortContent';
-import { useCohortSessions } from '@/hooks/useCohortSessions';
+import { useStudentClass } from '@/hooks/useStudentEnrollments';
+import { useClassContent } from '@/hooks/useClassContent';
+import { useClassSessions } from '@/hooks/useClassSessions';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -41,9 +41,9 @@ function preview(body: string, n = 150): string {
 
 export default function ClassDetailPage() {
   const { classId } = useParams<{ classId: string }>();
-  const { enrolled, isLoading: enrLoading } = useStudentCohort(classId);
-  const { content, isLoading: contentLoading } = useCohortContent(classId);
-  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useCohortSessions(classId);
+  const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
+  const { content, isLoading: contentLoading } = useClassContent(classId);
+  const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useClassSessions(classId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
@@ -93,7 +93,7 @@ export default function ClassDetailPage() {
       )}
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{enrolled.cohort.name}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{enrolled.class.name}</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Taught by {enrolled.guru.display_name}
         </p>

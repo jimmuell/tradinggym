@@ -6,35 +6,35 @@ export function useGuruDashboardStats(guruProfileId: string | undefined) {
     queryKey: ['guru-dashboard-stats', guruProfileId],
     enabled: !!guruProfileId,
     queryFn: async () => {
-      if (!guruProfileId) return { activeStudents: 0, activeCohorts: 0 };
+      if (!guruProfileId) return { activeStudents: 0, activeClasses: 0 };
 
-      const { data: cohortRows, error: cErr } = await supabase
-        .from('cohorts')
+      const { data: classRows, error: cErr } = await supabase
+        .from('classes')
         .select('id, status')
         .eq('guru_id', guruProfileId);
       if (cErr) throw cErr;
-      const cohorts = cohortRows ?? [];
-      const activeCohorts = cohorts.filter((c) => c.status === 'active').length;
-      const cohortIds = cohorts.map((c) => c.id);
+      const classes = classRows ?? [];
+      const activeClasses = classes.filter((c) => c.status === 'active').length;
+      const classIds = classes.map((c) => c.id);
 
       let activeStudents = 0;
-      if (cohortIds.length > 0) {
+      if (classIds.length > 0) {
         const { count, error: eErr } = await supabase
-          .from('cohort_enrollments')
+          .from('class_enrollments')
           .select('*', { count: 'exact', head: true })
-          .in('cohort_id', cohortIds)
+          .in('class_id', classIds)
           .eq('status', 'active');
         if (eErr) throw eErr;
         activeStudents = count ?? 0;
       }
 
-      return { activeStudents, activeCohorts };
+      return { activeStudents, activeClasses };
     },
   });
 
   return {
     activeStudents: query.data?.activeStudents ?? 0,
-    activeCohorts: query.data?.activeCohorts ?? 0,
+    activeClasses: query.data?.activeClasses ?? 0,
     isLoading: query.isLoading,
   };
 }

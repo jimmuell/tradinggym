@@ -39,7 +39,7 @@ export default function GuruStudentDetailPage() {
   if (notFound) return <Navigate to="/guru/students" replace />;
 
   const initial = profile?.display_name?.charAt(0).toUpperCase() ?? '?';
-  const gate = enrollment?.cohort.win_rate_gate ?? 0;
+  const gate = enrollment?.class.win_rate_gate ?? 0;
   const meetsGate = stats?.meets_win_rate_gate ?? false;
 
   return (
@@ -83,7 +83,7 @@ export default function GuruStudentDetailPage() {
                     <div className="space-y-1 border-t border-border pt-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Class</span>
-                        <span className="font-medium">{enrollment.cohort.name}</span>
+                        <span className="font-medium">{enrollment.class.name}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Enrolled</span>

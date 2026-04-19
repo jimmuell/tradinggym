@@ -9,7 +9,8 @@ interface EnrollInput {
 interface EnrollResult {
   success: boolean;
   enrollment_id: string;
-  cohort_id: string;
+  // Edge function still returns cohort_id in its payload (Prompt 3 will rename)
+  class_id: string;
   plan: 'pro' | 'expert';
   enrollment_type: 'organic' | 'referred';
 }
@@ -29,7 +30,15 @@ export function useEnrollWithGuru() {
         } catch { /* ignore */ }
         throw new Error(parsed?.message || error.message || 'Enrollment failed');
       }
-      return data as EnrollResult;
+      // Edge function (until Prompt 3) returns { cohort_id }; normalize to class_id
+      const raw = data as Record<string, unknown>;
+      return {
+        success: raw.success as boolean,
+        enrollment_id: raw.enrollment_id as string,
+        class_id: (raw.class_id ?? raw.cohort_id) as string,
+        plan: raw.plan as 'pro' | 'expert',
+        enrollment_type: raw.enrollment_type as 'organic' | 'referred',
+      };
     },
   });
 }
