@@ -6,9 +6,7 @@ export type ClassStatus = 'draft' | 'active' | 'closed';
 export interface GuruProfile {
   id: string;
   user_id: string;
-  display_name: string;
   bio: string | null;
-  avatar_url: string | null;
   slug: string | null;
   stripe_account_id: string | null;
   status: GuruStatus;
