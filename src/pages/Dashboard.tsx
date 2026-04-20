@@ -10,13 +10,14 @@ import {
 } from '@/components/ui/tooltip';
 import {
   DollarSign, TrendingUp, Target, TrendingDown, BarChart3,
-  RotateCcw, LineChart, Info,
+  RotateCcw, LineChart, Info, GraduationCap, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
 import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
