@@ -10,13 +10,14 @@ import {
 } from '@/components/ui/tooltip';
 import {
   DollarSign, TrendingUp, Target, TrendingDown, BarChart3,
-  RotateCcw, LineChart, Info,
+  RotateCcw, LineChart, Info, GraduationCap, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
 import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
@@ -35,6 +36,21 @@ const STAT_TOOLTIPS: Record<string, string> = {
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentTier } = useTier();
+  const navigate = useNavigate();
+
+  const { data: enrollments } = useQuery({
+    queryKey: ['student_enrollments_count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('class_enrollments')
+        .select('id, class_id')
+        .eq('student_id', user.id)
+        .eq('status', 'active');
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+  });
 
   const { data: trades, isLoading } = useQuery({
     queryKey: ['trades', user?.id],
@@ -160,6 +176,27 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+
+        {/* My Classes quick link */}
+        {enrollments && enrollments.length > 0 && (
+          <Card
+            className="cursor-pointer hover:border-amber-500/40 transition-colors"
+            onClick={() => navigate('/classes')}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-md bg-amber-500/15 flex items-center justify-center shrink-0">
+                <GraduationCap className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">My Classes</p>
+                <p className="text-xs text-muted-foreground">
+                  {enrollments.length} active {enrollments.length === 1 ? 'class' : 'classes'}
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tier Progress */}
         <TierProgressCard currentTier={currentTier} />
