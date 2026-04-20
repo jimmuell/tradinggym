@@ -67,6 +67,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { canAccess } = useTier();
+  const { data: guruProfile } = useGuruProfile();
+  const isActiveGuru = guruProfile?.status === 'active';
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
