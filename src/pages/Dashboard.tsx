@@ -36,6 +36,21 @@ const STAT_TOOLTIPS: Record<string, string> = {
 export default function Dashboard() {
   const { user } = useAuth();
   const { currentTier } = useTier();
+  const navigate = useNavigate();
+
+  const { data: enrollments } = useQuery({
+    queryKey: ['student_enrollments_count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('class_enrollments')
+        .select('id, class_id')
+        .eq('student_id', user.id)
+        .eq('status', 'active');
+      return data ?? [];
+    },
+    enabled: !!user?.id,
+  });
 
   const { data: trades, isLoading } = useQuery({
     queryKey: ['trades', user?.id],
