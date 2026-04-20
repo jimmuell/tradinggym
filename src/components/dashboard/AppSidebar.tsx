@@ -153,6 +153,34 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isActiveGuru && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
+              {!collapsed && 'Guru'}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/guru"
+                      className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                        location.pathname.startsWith('/guru')
+                          ? 'bg-amber-500/15 text-amber-500 font-medium'
+                          : 'text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10'
+                      }`}
+                      activeClassName=""
+                    >
+                      <Crown className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Guru Dashboard</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="bg-sidebar p-3">
