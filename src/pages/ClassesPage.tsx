@@ -42,7 +42,7 @@ export default function ClassesPage() {
             <Card key={classItem.id} className="flex flex-col">
               <CardHeader>
                 <CardTitle className="text-base">{classItem.name}</CardTitle>
-                <CardDescription>Taught by {guru.display_name}</CardDescription>
+                <CardDescription>Taught by {guru.display_name ?? 'Guru'}</CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

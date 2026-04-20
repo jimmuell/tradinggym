@@ -22,7 +22,6 @@ export function useStudentEnrollments() {
         .select('*')
         .eq('student_id', user.id)
         .eq('status', 'active');
-      console.log('[useStudentEnrollments] enrollments:', { rows: enrollments, error: eErr });
       if (eErr) throw eErr;
       if (!enrollments || enrollments.length === 0) return [];
 
@@ -31,7 +30,6 @@ export function useStudentEnrollments() {
         .from('classes')
         .select('*')
         .in('id', classIds);
-      console.log('[useStudentEnrollments] classes:', { classIds, rows: classes, error: cErr });
       if (cErr) throw cErr;
 
       const guruIds = Array.from(new Set((classes ?? []).map((c) => c.guru_id)));
@@ -43,9 +41,7 @@ export function useStudentEnrollments() {
 
       const guruUserIds = (guruRows ?? []).map((g) => g.user_id);
       const { data: guruProfileRows, error: gpErr } = await supabase
-        .from('profiles')
-        .select('user_id, display_name, avatar_url')
-        .in('user_id', guruUserIds);
+        .rpc('get_profiles_by_user_ids', { user_ids: guruUserIds });
       if (gpErr) throw gpErr;
 
       const gurus = (guruRows ?? []).map((g) => {
@@ -73,13 +69,6 @@ export function useStudentEnrollments() {
         .map((enr) => {
           const classItem = (classes ?? []).find((c) => c.id === enr.class_id);
           const guru = classItem ? (gurus ?? []).find((g) => g.id === classItem.guru_id) : undefined;
-          console.log('[useStudentEnrollments] map step:', {
-            enrollmentId: enr.id,
-            classId: enr.class_id,
-            classFound: !!classItem,
-            guruId: classItem?.guru_id,
-            guruFound: !!guru,
-          });
           if (!classItem) return null;
           if (!guru) return null;
           return {
@@ -90,7 +79,6 @@ export function useStudentEnrollments() {
           } as StudentEnrolledClass;
         })
         .filter((x): x is StudentEnrolledClass => x !== null);
-      console.log('[useStudentEnrollments] mapped result:', result);
       return result;
     },
     enabled: !!user?.id,
@@ -105,12 +93,5 @@ export function useStudentEnrollments() {
 export function useStudentClass(classId: string | undefined) {
   const { enrollments, isLoading } = useStudentEnrollments();
   const match = enrollments.find((e) => e.class.id === classId) ?? null;
-  console.log('[useStudentClass] lookup:', {
-    requestedClassId: classId,
-    enrollmentCount: enrollments.length,
-    enrollmentClassIds: enrollments.map((e) => e.class.id),
-    matched: !!match,
-    isLoading,
-  });
   return { enrolled: match, isLoading };
 }
