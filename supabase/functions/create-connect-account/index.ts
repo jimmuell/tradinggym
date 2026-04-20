@@ -90,6 +90,6 @@ serve(async (req) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[CREATE-CONNECT-ACCOUNT] ERROR:", msg);
-    return json({ error: "internal", message: "Could not start Stripe onboarding." }, 500);
+    return json({ error: "stripe_error", message: msg }, 500);
   }
 });
