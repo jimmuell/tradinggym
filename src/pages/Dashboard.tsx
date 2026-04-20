@@ -177,6 +177,27 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* My Classes quick link */}
+        {enrollments && enrollments.length > 0 && (
+          <Card
+            className="cursor-pointer hover:border-amber-500/40 transition-colors"
+            onClick={() => navigate('/classes')}
+          >
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-10 w-10 rounded-md bg-amber-500/15 flex items-center justify-center shrink-0">
+                <GraduationCap className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">My Classes</p>
+                <p className="text-xs text-muted-foreground">
+                  {enrollments.length} active {enrollments.length === 1 ? 'class' : 'classes'}
+                </p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tier Progress */}
         <TierProgressCard currentTier={currentTier} />
 
