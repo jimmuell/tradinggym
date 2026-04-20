@@ -139,7 +139,7 @@ serve(async (req) => {
     log("subscription matched", { sub: matched.id, plan: planTier });
 
     // Resolve referral — validate against guru_profiles.referral_code (source of truth)
-    let enrollmentType: "organic" | "referred" = "organic";
+    let enrollmentType: "organic" | "referred" | "expert_trial" = "organic";
     let commissionRate: number | null = 20;
     let appliedReferralCode: string | null = null;
     let discountApplied = false;
@@ -174,6 +174,22 @@ serve(async (req) => {
       }
     }
 
+    // Expert trial: Expert sub created within last 30 days + no referral code
+    let trialExpiresAt: string | null = null;
+    if (enrollmentType === "organic" && planTier === "expert") {
+      const subCreated = new Date((matched as unknown as { created: number }).created * 1000);
+      const daysSinceCreation = (Date.now() - subCreated.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceCreation <= 30) {
+        enrollmentType = "expert_trial";
+        commissionRate = null; // no commission during trial
+        trialExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        log("expert trial eligible", {
+          daysSinceCreation: Math.round(daysSinceCreation),
+          trialExpiresAt,
+        });
+      }
+    }
+
     // Idempotency: if already active enrollment in this class, return it
     const { data: existing } = await admin
       .from("class_enrollments")
@@ -194,10 +210,12 @@ serve(async (req) => {
         referral_code: appliedReferralCode,
         commission_rate: commissionRate,
         discount_applied: discountApplied,
-        status: "active",
+        status: enrollmentType === "expert_trial" ? "trial" : "active",
         stripe_subscription_id: matched.id,
         stripe_customer_id: customer.id,
-        billing_starts_at: new Date().toISOString(),
+        billing_starts_at:
+          enrollmentType === "expert_trial" ? null : new Date().toISOString(),
+        trial_expires_at: trialExpiresAt,
       };
 
       if (existing) {
@@ -234,6 +252,7 @@ serve(async (req) => {
         commission_rate: String(commissionRate ?? ""),
         referral_code: appliedReferralCode ?? "",
         student_id: user.id,
+        trial_expires_at: trialExpiresAt ?? "",
       },
     });
     log("subscription tagged", { sub: matched.id });

@@ -11,7 +11,7 @@ interface EnrollResult {
   enrollment_id: string;
   class_id: string;
   plan: 'pro' | 'expert';
-  enrollment_type: 'organic' | 'referred';
+  enrollment_type: 'organic' | 'referred' | 'expert_trial';
 }
 
 export function useEnrollWithGuru() {
@@ -36,7 +36,7 @@ export function useEnrollWithGuru() {
         enrollment_id: raw.enrollment_id as string,
         class_id: (raw.class_id ?? raw.cohort_id) as string,
         plan: raw.plan as 'pro' | 'expert',
-        enrollment_type: raw.enrollment_type as 'organic' | 'referred',
+        enrollment_type: raw.enrollment_type as 'organic' | 'referred' | 'expert_trial',
       };
     },
   });

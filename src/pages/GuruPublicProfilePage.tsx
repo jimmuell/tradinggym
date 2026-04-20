@@ -39,12 +39,15 @@ export default function GuruPublicProfilePage() {
       {
         onSuccess: (result) => {
           toast({
-            title: 'Welcome to the class!',
+            title: result.enrollment_type === 'expert_trial'
+              ? '30-day trial started!'
+              : 'Welcome to the class!',
             description: result.enrollment_type === 'referred'
               ? 'First month free credit applied.'
-              : 'Your enrollment is confirmed.',
+              : result.enrollment_type === 'expert_trial'
+                ? 'Your Expert trial is active. Coaching is free for 30 days.'
+                : 'Your enrollment is confirmed.',
           });
-          // Navigate directly to the class — skip /checkout/success to avoid query param loss
           navigate(`/classes/${result.class_id}`);
         },
         onError: (err) => {
@@ -146,6 +149,20 @@ export default function GuruPublicProfilePage() {
         </Card>
       )}
 
+      {isAuthed && planState === 'expert' && !referralCode && (
+        <Card className="mb-6 border-primary/50 bg-primary/5">
+          <CardContent className="p-4 flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-primary shrink-0" />
+            <div>
+              <div className="font-semibold text-foreground">Expert perk — 30-day coaching trial</div>
+              <div className="text-sm text-muted-foreground">
+                As an Expert subscriber, your first 30 days of coaching are free.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {guru.bio && guru.bio.trim().length > 0 && (
         <section className="mb-6">
           <h2 className="text-lg font-semibold text-foreground mb-2">About</h2>
@@ -200,6 +217,11 @@ export default function GuruPublicProfilePage() {
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Enrolling…
+              </>
+            ) : planState === 'expert' ? (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Start Free 30-Day Trial
               </>
             ) : (
               'Join Class'

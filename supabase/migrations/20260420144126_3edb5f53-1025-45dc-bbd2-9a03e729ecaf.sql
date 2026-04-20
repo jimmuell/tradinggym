@@ -1,0 +1,1 @@
+ALTER TABLE public.class_enrollments ADD COLUMN trial_expires_at timestamptz;
