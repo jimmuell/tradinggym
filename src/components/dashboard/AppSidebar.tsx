@@ -12,11 +12,13 @@ import {
   CandlestickChart,
   Lock,
   Users,
+  Crown,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
+import { useGuruProfile } from '@/hooks/useGuruData';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
