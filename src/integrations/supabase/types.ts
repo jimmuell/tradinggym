@@ -310,10 +310,8 @@ export type Database = {
       }
       guru_profiles: {
         Row: {
-          avatar_url: string | null
           bio: string | null
           created_at: string
-          display_name: string
           id: string
           is_public: boolean
           primary_instrument: string | null
@@ -333,10 +331,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          display_name: string
           id?: string
           is_public?: boolean
           primary_instrument?: string | null
@@ -356,10 +352,8 @@ export type Database = {
           user_id: string
         }
         Update: {
-          avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          display_name?: string
           id?: string
           is_public?: boolean
           primary_instrument?: string | null
