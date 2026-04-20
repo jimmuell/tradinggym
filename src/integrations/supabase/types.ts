@@ -711,6 +711,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_profiles_by_user_ids: {
+        Args: { user_ids: string[] }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+        }[]
+      }
       get_public_guru_directory: {
         Args: never
         Returns: {
