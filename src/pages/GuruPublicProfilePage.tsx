@@ -181,6 +181,19 @@ export default function GuruPublicProfilePage() {
               <TooltipContent>Complete Foundation to enroll with a Guru.</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        ) : isStarter ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span tabIndex={0}>
+                  <Button size="lg" disabled>
+                    Join Class
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>Pro or Expert subscription required to enroll.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         ) : (
           <Button size="lg" onClick={handleJoin} disabled={enroll.isPending}>
             {enroll.isPending ? (
