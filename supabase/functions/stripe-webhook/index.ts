@@ -75,6 +75,45 @@ serve(async (req) => {
           })
           .eq("id", enrollmentId);
         log("enrollment synced", { enrollmentId });
+
+        // Expert trial expiration check
+        const { data: trialEnrollment } = await admin
+          .from("class_enrollments")
+          .select("id, enrollment_type, trial_expires_at, status")
+          .eq("id", enrollmentId)
+          .maybeSingle();
+
+        if (
+          trialEnrollment &&
+          trialEnrollment.enrollment_type === "expert_trial" &&
+          trialEnrollment.status === "trial" &&
+          trialEnrollment.trial_expires_at
+        ) {
+          const trialEnd = new Date(trialEnrollment.trial_expires_at);
+          if (new Date() > trialEnd) {
+            await admin
+              .from("class_enrollments")
+              .update({
+                enrollment_type: "organic",
+                status: "active",
+                commission_rate: 20,
+                billing_starts_at: new Date().toISOString(),
+                trial_expires_at: null,
+              })
+              .eq("id", trialEnrollment.id);
+
+            await stripe.subscriptions.update(sub.id, {
+              metadata: {
+                ...(sub.metadata ?? {}),
+                enrollment_type: "organic",
+                commission_rate: "20",
+                trial_expires_at: "",
+              },
+            });
+
+            log("expert trial converted to organic", { enrollmentId: trialEnrollment.id });
+          }
+        }
         break;
       }
 
