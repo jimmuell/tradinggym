@@ -9,6 +9,8 @@ export interface GuruProfile {
   bio: string | null;
   slug: string | null;
   stripe_account_id: string | null;
+  stripe_connect_status: 'not_started' | 'pending' | 'active' | 'restricted';
+  stripe_onboarding_complete: boolean;
   status: GuruStatus;
   trial_ends_at: string | null;
   trial_dismissed_count: number;
