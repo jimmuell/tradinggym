@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { ClassEnrollment, Class, GuruProfile } from '@/types/guru';
+import type { ClassEnrollment, Class } from '@/types/guru';
 
 export interface StudentEnrolledClass {
   enrollment: ClassEnrollment;
   class: Class;
-  guru: Pick<GuruProfile, 'id' | 'display_name' | 'avatar_url'>;
+  guru: { id: string; display_name: string | null; avatar_url: string | null };
   contentCount: number;
 }
 
@@ -35,11 +35,27 @@ export function useStudentEnrollments() {
       if (cErr) throw cErr;
 
       const guruIds = Array.from(new Set((classes ?? []).map((c) => c.guru_id)));
-      const { data: gurus, error: gErr } = await supabase
+      const { data: guruRows, error: gErr } = await supabase
         .from('guru_profiles')
-        .select('id, display_name, avatar_url')
+        .select('id, user_id')
         .in('id', guruIds);
       if (gErr) throw gErr;
+
+      const guruUserIds = (guruRows ?? []).map((g) => g.user_id);
+      const { data: guruProfileRows, error: gpErr } = await supabase
+        .from('profiles')
+        .select('user_id, display_name, avatar_url')
+        .in('user_id', guruUserIds);
+      if (gpErr) throw gpErr;
+
+      const gurus = (guruRows ?? []).map((g) => {
+        const p = (guruProfileRows ?? []).find((pr) => pr.user_id === g.user_id);
+        return {
+          id: g.id,
+          display_name: p?.display_name ?? null,
+          avatar_url: p?.avatar_url ?? null,
+        };
+      });
 
       const { data: contentRows, error: ctErr } = await supabase
         .from('guru_content')

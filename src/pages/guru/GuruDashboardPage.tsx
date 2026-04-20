@@ -8,10 +8,27 @@ import { useGuruProfile, useGuruApplication } from '@/hooks/useGuruData';
 import { useGuruDashboardStats } from '@/hooks/useGuruDashboardStats';
 import { useGuruSessions } from '@/hooks/useGuruSessions';
 import { useGuruClasses } from '@/hooks/useGuruClasses';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function GuruDashboardPage() {
+  const { user } = useAuth();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp } = useGuruApplication();
+  const { data: userProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
   const { activeStudents, activeClasses, isLoading: loadingStats } = useGuruDashboardStats(guruProfile?.id);
   const { sessions, upcomingSessions, isLoading: loadingSessions } = useGuruSessions();
   const { classes } = useGuruClasses();
@@ -80,7 +97,7 @@ export default function GuruDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Guru Dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Welcome, {guruProfile?.display_name}
+            Welcome, {userProfile?.display_name ?? 'Guru'}
           </p>
         </div>
 
