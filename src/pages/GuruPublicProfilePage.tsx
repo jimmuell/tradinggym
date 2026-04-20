@@ -24,11 +24,12 @@ export default function GuruPublicProfilePage() {
   const referralCode = searchParams.get('ref') ?? undefined;
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentTier } = useTier();
+  const { currentTier, planState } = useTier();
   const { data: guru, isLoading } = usePublicGuru(guruId);
   const enroll = useEnrollWithGuru();
 
   const isFoundation = currentTier === 'foundation';
+  const isStarter = planState === 'starter';
   const isAuthed = !!user;
 
   const handleJoin = () => {
