@@ -112,6 +112,7 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           student_id: string
+          trial_expires_at: string | null
         }
         Insert: {
           billing_starts_at?: string | null
@@ -127,6 +128,7 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           student_id: string
+          trial_expires_at?: string | null
         }
         Update: {
           billing_starts_at?: string | null
@@ -142,6 +144,7 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           student_id?: string
+          trial_expires_at?: string | null
         }
         Relationships: [
           {
