@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,10 +28,18 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session } = useAuth();
+  const [searchParams] = useSearchParams();
+  const intendedPlan = searchParams.get('plan');
 
   useEffect(() => {
-    if (session) navigate('/dashboard', { replace: true });
-  }, [session, navigate]);
+    if (session) {
+      if (intendedPlan && ['pro', 'expert', 'guru'].includes(intendedPlan)) {
+        navigate(`/pricing?highlight=${intendedPlan}`, { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [session, navigate, intendedPlan]);
 
   const handleLogin = async () => {
     setLoading(true);

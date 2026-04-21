@@ -108,6 +108,7 @@ const tiers = [
 const pricing = [
   {
     name: "Starter",
+    planKey: null as string | null,
     price: "$0",
     period: "/forever",
     highlight: false,
@@ -121,6 +122,7 @@ const pricing = [
   },
   {
     name: "Pro",
+    planKey: "pro" as string | null,
     price: "$29",
     period: "/mo",
     highlight: true,
@@ -136,6 +138,7 @@ const pricing = [
   },
   {
     name: "Expert",
+    planKey: "expert" as string | null,
     price: "$49",
     period: "/mo",
     highlight: false,
@@ -152,6 +155,7 @@ const pricing = [
   },
   {
     name: "Guru",
+    planKey: "guru" as string | null,
     price: "$99",
     period: "/mo",
     highlight: false,
@@ -442,7 +446,7 @@ export default function Landing() {
                       </li>
                     ))}
                   </ul>
-                  <Link to="/auth">
+                  <Link to={p.planKey ? `/auth?plan=${p.planKey}` : "/auth"}>
                     <Button
                       className={`w-full ${
                         p.guru
