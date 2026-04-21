@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
+import FinancialDisclaimer from '@/components/FinancialDisclaimer';
 
 export default function Simulator() {
   const { user } = useAuth();
@@ -116,6 +117,9 @@ export default function Simulator() {
                 onInstrumentChange={handleInstrumentChange}
               />
             </div>
+          </div>
+          <div className="px-3 pt-2">
+            <FinancialDisclaimer />
           </div>
           <SimulatorHintBanner />
           <div className="flex flex-1 overflow-hidden">
