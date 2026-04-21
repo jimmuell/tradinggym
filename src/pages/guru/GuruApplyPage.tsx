@@ -71,8 +71,8 @@ export default function GuruApplyPage() {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    if (guruProfile?.status === 'active') navigate('/guru');
-  }, [guruProfile, navigate]);
+    if (guruProfile?.status === 'active' && planState === 'guru') navigate('/guru');
+  }, [guruProfile, planState, navigate]);
 
   if (authLoading || loadingProfile || loadingApp) {
     return (
