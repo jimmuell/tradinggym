@@ -65,9 +65,11 @@ serve(async (req) => {
 
         const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
         const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+        const guruPriceId = Deno.env.get("STRIPE_TEST_GURU_PRICE_ID");
         let newPlan = "starter";
         if (priceId === proPriceId) newPlan = "pro";
         else if (priceId === expertPriceId) newPlan = "expert";
+        else if (priceId === guruPriceId) newPlan = "guru";
 
         await admin.rpc("sync_plan_state", {
           p_user_id: userId,
@@ -90,9 +92,11 @@ serve(async (req) => {
             const updatedPriceId = sub.items.data[0]?.price?.id;
             const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
             const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+            const guruPriceId = Deno.env.get("STRIPE_TEST_GURU_PRICE_ID");
             let syncedPlan: string | null = null;
             if (updatedPriceId === proPriceId) syncedPlan = "pro";
             else if (updatedPriceId === expertPriceId) syncedPlan = "expert";
+            else if (updatedPriceId === guruPriceId) syncedPlan = "guru";
             if (syncedPlan && sub.status === "active") {
               await admin.rpc("sync_plan_state", {
                 p_user_id: updatedUserId,
@@ -173,9 +177,11 @@ serve(async (req) => {
           const updatedPriceId = sub.items.data[0]?.price?.id;
           const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
           const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+          const guruPriceId = Deno.env.get("STRIPE_TEST_GURU_PRICE_ID");
           let syncedPlan: string | null = null;
           if (updatedPriceId === proPriceId) syncedPlan = "pro";
           else if (updatedPriceId === expertPriceId) syncedPlan = "expert";
+          else if (updatedPriceId === guruPriceId) syncedPlan = "guru";
           if (syncedPlan && sub.status === "active") {
             await admin.rpc("sync_plan_state", {
               p_user_id: updatedUserId,

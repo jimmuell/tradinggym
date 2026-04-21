@@ -28,6 +28,7 @@ serve(async (req) => {
 
     const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
     const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+    const guruPriceId = Deno.env.get("STRIPE_TEST_GURU_PRICE_ID");
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "unauthorized" }, 401);
@@ -44,10 +45,13 @@ serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const priceId = body?.priceId as string | undefined;
-    if (!priceId || (priceId !== proPriceId && priceId !== expertPriceId)) {
+    if (!priceId || (priceId !== proPriceId && priceId !== expertPriceId && priceId !== guruPriceId)) {
       return json({ error: "invalid_price", message: "Invalid priceId" }, 400);
     }
-    const planName = priceId === proPriceId ? "pro" : "expert";
+    let planName = "starter";
+    if (priceId === proPriceId) planName = "pro";
+    else if (priceId === expertPriceId) planName = "expert";
+    else if (priceId === guruPriceId) planName = "guru";
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",

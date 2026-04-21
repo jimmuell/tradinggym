@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTier } from '@/contexts/TierContext';
+import { useCreateCheckout } from '@/hooks/useCreateCheckout';
 import { useGuruProfile, useGuruApplication } from '@/hooks/useGuruData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,8 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { YEARS_EXPERIENCE_OPTIONS, type YearsExperience } from '@/types/guru';
+
+const GURU_PRICE_ID = 'price_REPLACE_WITH_GURU_PRICE_ID';
 
 const formSchema = z.object({
   full_name: z.string().trim().min(2, 'Full name must be at least 2 characters').max(100),
@@ -292,6 +296,8 @@ function ApplicationStatusView({
   application: import('@/types/guru').GuruApplication;
 }) {
   const navigate = useNavigate();
+  const { planState } = useTier();
+  const checkout = useCreateCheckout();
   const status = application.status;
 
   const config =
@@ -307,7 +313,10 @@ function ApplicationStatusView({
             badge: 'Approved',
             badgeClass: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
             title: 'You\u2019re in',
-            body: 'Your Guru account is active.',
+            body:
+              planState === 'guru'
+                ? 'Your Guru account is active.'
+                : 'Your application is approved! Subscribe to the Guru plan ($99/mo) to activate your dashboard.',
           }
         : {
             badge: 'Not Approved',
@@ -330,7 +339,23 @@ function ApplicationStatusView({
               {application.reviewer_notes}
             </p>
           )}
-          {status === 'approved' && (
+          {status === 'approved' && planState !== 'guru' && (
+            <Button
+              onClick={() => checkout.mutate(GURU_PRICE_ID)}
+              disabled={checkout.isPending}
+              className="bg-amber-500 text-amber-950 hover:bg-amber-400"
+            >
+              {checkout.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Redirecting…
+                </>
+              ) : (
+                'Subscribe — $99/mo'
+              )}
+            </Button>
+          )}
+          {status === 'approved' && planState === 'guru' && (
             <Button
               onClick={() => navigate('/guru')}
               className="bg-amber-500 text-amber-950 hover:bg-amber-400"

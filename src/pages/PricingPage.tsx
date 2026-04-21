@@ -10,7 +10,10 @@ import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 const PLAN_PRICE_MAP: Record<string, string> = {
   pro: 'price_1TNtx3LMQSLv70CqmRJaPHCu',
   expert: 'price_1THXB1LMQSLv70CqYTehlVba',
+  guru: 'price_REPLACE_WITH_GURU_PRICE_ID',
 };
+
+const GURU_PRICE_ID = PLAN_PRICE_MAP.guru;
 
 const PLAN_RANK: Record<PlanState, number> = {
   starter: 0,
@@ -178,6 +181,84 @@ export default function PricingPage() {
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {/* Guru — For Educators */}
+        {!loading && (
+          <div className="mt-12 max-w-2xl mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-foreground">For Educators</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Run your trading education business inside TradingGYM.
+              </p>
+            </div>
+            <Card
+              className={`bg-card border transition-all ${
+                planState === 'guru'
+                  ? 'border-green-500/50 shadow-lg shadow-green-500/10'
+                  : 'border-amber-500/40 shadow-lg shadow-amber-500/10'
+              }`}
+            >
+              <CardContent className="p-8 flex flex-col">
+                {planState === 'guru' ? (
+                  <Badge className="self-start bg-green-500/10 text-green-500 border-green-500/20 mb-4">
+                    Current Plan
+                  </Badge>
+                ) : (
+                  <Badge className="self-start bg-amber-500/10 text-amber-400 border-amber-500/20 mb-4">
+                    For Educators
+                  </Badge>
+                )}
+
+                <h3 className="text-lg font-semibold text-foreground">Guru</h3>
+                <div className="mt-3 mb-4">
+                  <span className="text-4xl font-bold text-foreground">$99</span>
+                  <span className="text-muted-foreground text-sm">/mo</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Run your entire trading education business inside TradingGYM. You keep 80% of student revenue.
+                </p>
+
+                <ul className="space-y-3 mb-8">
+                  {[
+                    'Everything in Expert',
+                    'Guru dashboard & class management',
+                    'Publish educational content',
+                    'Student progress tracking',
+                    'Live session broadcasting',
+                    'Stripe Connect payouts',
+                    'Keep 80% of student revenue',
+                  ].map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="h-4 w-4 shrink-0 mt-0.5 text-amber-400" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {planState === 'guru' ? (
+                  <Button disabled className="w-full bg-secondary text-muted-foreground">
+                    Current Plan
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => GURU_PRICE_ID && checkout.mutate(GURU_PRICE_ID)}
+                    disabled={checkout.isPending}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950"
+                  >
+                    {checkout.isPending && checkout.variables === GURU_PRICE_ID ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Redirecting…
+                      </>
+                    ) : (
+                      'Subscribe to Guru — $99/mo'
+                    )}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           </div>
         )}
 
