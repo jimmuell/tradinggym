@@ -483,35 +483,50 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <img
-              src="/favicon.png"
-              alt="TradingGYM logo"
-              width={28}
-              height={28}
-              loading="lazy"
-              className="h-7 w-7 rounded-md shrink-0"
-            />
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-white leading-none">
-                Trading<span className="text-blue-500">GYM</span>
-              </span>
-              <span className="text-[9px] tracking-[0.2em] uppercase font-medium mt-1">
-                <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
-              </span>
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+            {/* Logo + tagline */}
+            <div className="flex items-center gap-2.5 justify-center md:justify-start">
+              <img
+                src="/favicon.png"
+                alt="TradingGYM logo"
+                width={28}
+                height={28}
+                loading="lazy"
+                className="h-7 w-7 rounded-md shrink-0"
+              />
+              <div className="flex flex-col">
+                <span className="text-lg font-bold text-white leading-none">
+                  Trading<span className="text-blue-500">GYM</span>
+                </span>
+                <span className="text-[9px] tracking-[0.2em] uppercase font-medium mt-1">
+                  <span className="text-blue-500">No Pain</span> <span className="text-white">No Gain</span>
+                </span>
+              </div>
             </div>
+
+            {/* Links */}
+            <div className="flex items-center justify-center gap-6 text-sm text-gray-400">
+              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <span className="text-gray-700">·</span>
+              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            </div>
+
+            {/* Copyright */}
+            <p className="text-gray-600 text-xs text-center md:text-right">
+              © {new Date().getFullYear()} TradingGYM
+            </p>
           </div>
-          <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <Link to="/terms" className="hover:text-white">Terms of Service</Link>
-            <span className="text-gray-700">·</span>
-            <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
+
+          {/* Disclaimers */}
+          <div className="mt-10 pt-6 border-t border-white/5 space-y-2 text-center">
+            <p className="text-gray-500 text-xs">
+              Focused exclusively on MES (Micro E-mini S&P 500) futures.
+            </p>
+            <p className="text-gray-600 text-xs max-w-3xl mx-auto leading-relaxed">
+              TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
+            </p>
           </div>
-          <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradingGYM. All rights reserved.</p>
-          <p className="text-gray-600 text-xs text-center w-full mt-2">
-            TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
-          </p>
         </div>
       </footer>
     </div>

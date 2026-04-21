@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
+import LegalModal from '@/components/LegalModal';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -23,6 +24,7 @@ export default function Auth() {
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
   const [tosAccepted, setTosAccepted] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session } = useAuth();
@@ -223,9 +225,21 @@ export default function Auth() {
                     />
                     <span>
                       I agree to the{' '}
-                      <Link to="/terms" target="_blank" className="text-blue-400 hover:underline">Terms of Service</Link>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setLegalModal('terms'); }}
+                        className="text-blue-400 underline hover:text-blue-300"
+                      >
+                        Terms of Service
+                      </button>
                       {' '}and{' '}
-                      <Link to="/privacy" target="_blank" className="text-blue-400 hover:underline">Privacy Policy</Link>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.preventDefault(); setLegalModal('privacy'); }}
+                        className="text-blue-400 underline hover:text-blue-300"
+                      >
+                        Privacy Policy
+                      </button>
                     </span>
                   </label>
                   <label className="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
@@ -256,6 +270,11 @@ export default function Auth() {
           </TabsContent>
         </Tabs>
       </div>
+      <LegalModal
+        open={legalModal !== null}
+        onOpenChange={(open) => { if (!open) setLegalModal(null); }}
+        type={legalModal ?? 'terms'}
+      />
     </div>
   );
 }
