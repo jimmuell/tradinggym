@@ -1,20 +1,75 @@
-import { Bell, Monitor, Lock, Trash2 } from 'lucide-react';
+import { Bell, Monitor, Lock, Trash2, CreditCard, ExternalLink, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettings, type AppTheme } from '@/contexts/SettingsContext';
+import { useTier } from '@/contexts/TierContext';
+import { useCustomerPortal } from '@/hooks/useCustomerPortal';
+import { getPlanDisplayName } from '@/lib/tierUtils';
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
+  const { planState } = useTier();
+  const portal = useCustomerPortal();
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-10">
       <h1 className="text-3xl font-bold text-foreground mb-8">Settings</h1>
 
       <div className="grid gap-6 max-w-2xl">
+        {/* Billing & Subscription */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <CreditCard className="h-5 w-5" /> Billing & Subscription
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Manage your plan and payment details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm text-foreground font-medium">
+                Current Plan: {getPlanDisplayName(planState)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {planState === 'starter'
+                  ? 'Upgrade to unlock advanced features.'
+                  : 'Manage your subscription, payment method, or download invoices.'}
+              </p>
+            </div>
+            <div>
+              {planState === 'starter' ? (
+                <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
+                  <Link to="/pricing">View Plans</Link>
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => portal.mutate(`${window.location.origin}/settings`)}
+                  disabled={portal.isPending}
+                  className="border-border text-foreground hover:bg-accent"
+                >
+                  {portal.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Opening…
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Manage Subscription
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Appearance */}
         <Card className="bg-card border-border">
           <CardHeader>

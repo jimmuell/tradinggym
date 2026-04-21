@@ -1,10 +1,11 @@
-import { Check, Loader2 } from 'lucide-react';
+import { Check, ExternalLink, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTier, PlanState } from '@/contexts/TierContext';
 import { useCreateCheckout } from '@/hooks/useCreateCheckout';
+import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 
 const PLAN_PRICE_MAP: Record<string, string> = {
   pro: 'price_1TNtx3LMQSLv70CqmRJaPHCu',
@@ -77,6 +78,7 @@ const PLANS: PlanCard[] = [
 export default function PricingPage() {
   const { planState, loading } = useTier();
   const checkout = useCreateCheckout();
+  const portal = useCustomerPortal();
 
   const currentRank = PLAN_RANK[planState] ?? 0;
 
@@ -179,9 +181,33 @@ export default function PricingPage() {
           </div>
         )}
 
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Stripe Checkout will open in this window. You can cancel any time.
-        </p>
+        <div className="flex flex-col items-center gap-3 mt-8">
+          {planState !== 'starter' && (
+            <Button
+              variant="ghost"
+              onClick={() => portal.mutate()}
+              disabled={portal.isPending}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              {portal.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Opening…
+                </>
+              ) : (
+                <>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Manage Subscription
+                </>
+              )}
+            </Button>
+          )}
+          <p className="text-center text-xs text-muted-foreground">
+            {planState === 'starter'
+              ? 'Stripe Checkout will open in this window. You can cancel any time.'
+              : 'Update payment method, change plan, or cancel in the billing portal.'}
+          </p>
+        </div>
       </div>
     </div>
   );
