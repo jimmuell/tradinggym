@@ -13,6 +13,7 @@ import {
   Lock,
   Users,
   Crown,
+  Sparkles,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -66,9 +67,10 @@ export function AppSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { signOut, user } = useAuth();
-  const { canAccess } = useTier();
+  const { canAccess, planState } = useTier();
   const { data: guruProfile } = useGuruProfile();
   const isActiveGuru = guruProfile?.status === 'active';
+  const showPricingLink = planState !== 'guru';
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -219,6 +221,25 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               );
             })}
+            {showPricingLink && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/pricing"
+                    end
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                      isActive('/pricing')
+                        ? 'bg-sidebar-accent text-blue-400 font-medium'
+                        : 'text-blue-400 hover:text-blue-300 hover:bg-sidebar-accent/50'
+                    }`}
+                    activeClassName=""
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Upgrade</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </div>
         <div className="border-t border-sidebar-border pt-3">

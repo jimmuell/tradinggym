@@ -166,6 +166,24 @@ serve(async (req) => {
             log("expert trial converted to organic", { enrollmentId: trialEnrollment.id });
           }
         }
+
+        // Sync plan_state on subscription changes (upgrade/downgrade)
+        const updatedUserId = meta.supabase_user_id;
+        if (updatedUserId) {
+          const updatedPriceId = sub.items.data[0]?.price?.id;
+          const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
+          const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+          let syncedPlan: string | null = null;
+          if (updatedPriceId === proPriceId) syncedPlan = "pro";
+          else if (updatedPriceId === expertPriceId) syncedPlan = "expert";
+          if (syncedPlan && sub.status === "active") {
+            await admin.rpc("sync_plan_state", {
+              p_user_id: updatedUserId,
+              p_plan_state: syncedPlan,
+            });
+            log("plan synced via sub update", { userId: updatedUserId, syncedPlan });
+          }
+        }
         break;
       }
 
@@ -178,6 +196,15 @@ serve(async (req) => {
             .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
             .eq("id", meta.enrollment_id);
           log("enrollment cancelled", { enrollmentId: meta.enrollment_id });
+        }
+        // Sync plan_state back to starter when subscription is cancelled
+        const deletedUserId = meta.supabase_user_id;
+        if (deletedUserId) {
+          await admin.rpc("sync_plan_state", {
+            p_user_id: deletedUserId,
+            p_plan_state: "starter",
+          });
+          log("plan downgraded to starter", { userId: deletedUserId });
         }
         break;
       }
