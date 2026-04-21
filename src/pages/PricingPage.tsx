@@ -1,4 +1,5 @@
-import { Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Check, ExternalLink, Loader2, Info } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,6 +83,8 @@ export default function PricingPage() {
   const { planState, loading } = useTier();
   const checkout = useCreateCheckout();
   const portal = useCustomerPortal();
+  const [searchParams] = useSearchParams();
+  const highlightPlan = searchParams.get('highlight') as PlanState | null;
 
   const currentRank = PLAN_RANK[planState] ?? 0;
 
@@ -97,6 +100,16 @@ export default function PricingPage() {
           </p>
         </div>
 
+        {highlightPlan && planState === 'starter' && (
+          <div className="mb-8 max-w-3xl mx-auto rounded-lg border border-blue-500/30 bg-blue-500/10 px-4 py-3 flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-foreground">
+              You selected the <span className="font-semibold capitalize">{highlightPlan}</span> plan.
+              Click the upgrade button below to subscribe.
+            </p>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid md:grid-cols-3 gap-6">
             {[0, 1, 2].map((i) => (
@@ -109,6 +122,7 @@ export default function PricingPage() {
               const isCurrent = p.key === planState;
               const isLower = PLAN_RANK[p.key] < currentRank;
               const isUpgrade = PLAN_RANK[p.key] > currentRank;
+              const isHighlighted = highlightPlan === p.key && planState === 'starter';
               const priceId = PLAN_PRICE_MAP[p.key];
               const pending = checkout.isPending && checkout.variables === priceId;
 
@@ -118,6 +132,8 @@ export default function PricingPage() {
                   className={`bg-card border transition-all ${
                     isCurrent
                       ? 'border-green-500/50 shadow-lg shadow-green-500/10'
+                      : isHighlighted
+                      ? 'border-blue-500/60 shadow-lg shadow-blue-500/20 ring-2 ring-blue-500/30'
                       : p.highlight
                       ? 'border-blue-500/40 shadow-lg shadow-blue-500/10'
                       : 'border-border'
@@ -197,6 +213,8 @@ export default function PricingPage() {
               className={`bg-card border transition-all ${
                 planState === 'guru'
                   ? 'border-green-500/50 shadow-lg shadow-green-500/10'
+                  : highlightPlan === 'guru' && planState === 'starter'
+                  ? 'border-amber-500/60 shadow-lg shadow-amber-500/20 ring-2 ring-amber-500/30'
                   : 'border-amber-500/40 shadow-lg shadow-amber-500/10'
               }`}
             >

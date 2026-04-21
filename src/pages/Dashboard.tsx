@@ -12,13 +12,16 @@ import {
 import {
   DollarSign, TrendingUp, Target, TrendingDown, BarChart3,
   RotateCcw, LineChart, Info, GraduationCap, ChevronRight,
+  CreditCard, ExternalLink, Sparkles, Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
+import { getPlanDisplayName } from '@/lib/tierUtils';
+import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
 import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
@@ -36,8 +39,9 @@ const STAT_TOOLTIPS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { currentTier } = useTier();
+  const { currentTier, planState } = useTier();
   const navigate = useNavigate();
+  const portal = useCustomerPortal();
 
   const { data: enrollments } = useQuery({
     queryKey: ['student_enrollments_count', user?.id],
@@ -116,6 +120,51 @@ export default function Dashboard() {
     <TooltipProvider>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
         <FinancialDisclaimer />
+
+        {/* Subscription Status */}
+        <Card>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-10 w-10 rounded-md bg-primary/15 flex items-center justify-center shrink-0">
+              <CreditCard className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {getPlanDisplayName(planState)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {planState === 'starter'
+                  ? 'Upgrade to unlock all strategy tiers, AI ingestion, and more.'
+                  : `You're on the ${getPlanDisplayName(planState)} plan. Manage your subscription anytime.`}
+              </p>
+            </div>
+            {planState === 'starter' ? (
+              <Link to="/pricing" className="shrink-0">
+                <Button size="sm" className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Upgrade
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => portal.mutate(`${window.location.origin}/dashboard`)}
+                disabled={portal.isPending}
+                className="shrink-0 gap-2"
+              >
+                {portal.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <ExternalLink className="h-4 w-4" />
+                    Manage
+                  </>
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div />
