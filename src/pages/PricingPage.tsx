@@ -7,8 +7,8 @@ import { useTier, PlanState } from '@/contexts/TierContext';
 import { useCreateCheckout } from '@/hooks/useCreateCheckout';
 
 const PLAN_PRICE_MAP: Record<string, string> = {
-  pro: import.meta.env.VITE_STRIPE_PRO_PRICE_ID ?? '',
-  expert: import.meta.env.VITE_STRIPE_EXPERT_PRICE_ID ?? '',
+  pro: 'price_XXXXX',      // ← paste your STRIPE_TEST_PRO_PRICE_ID value here
+  expert: 'price_XXXXX',   // ← paste your STRIPE_TEST_EXPERT_PRICE_ID value here
 };
 
 const PLAN_RANK: Record<PlanState, number> = {
