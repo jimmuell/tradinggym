@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import { IChartApi, ISeriesApi } from 'lightweight-charts';
 import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
+import FinancialDisclaimer from '@/components/FinancialDisclaimer';
 
 export default function Simulator() {
   const { user } = useAuth();

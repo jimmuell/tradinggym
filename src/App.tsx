@@ -11,6 +11,8 @@ import DevTierSwitcher from "@/components/dev/DevTierSwitcher";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
 import Landing from "./pages/Landing";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import Simulator from "./pages/Simulator";
 import Dashboard from "./pages/Dashboard";
 import Strategies from "./pages/Strategies";
@@ -73,6 +75,8 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/simulator" element={<ProtectedRoute><TierProvider><><Simulator /><DevTierSwitcher /></></TierProvider></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
