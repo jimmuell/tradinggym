@@ -42,35 +42,37 @@ export default function LegalModal({ open, onOpenChange, type }: LegalModalProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] max-h-[85vh] h-[85vh] flex flex-col overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Last updated: {LEGAL_LAST_UPDATED}</DialogDescription>
         </DialogHeader>
-        <div className="relative flex-1 min-h-0">
+        <div className="relative flex-1 min-h-0 overflow-hidden">
           <div
             ref={scrollRef}
-            className="overflow-y-auto scrollbar-hide pr-2 h-full space-y-5"
+            className="overflow-y-auto scrollbar-hide h-full px-6 pb-6 space-y-5"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {sections.map((s, i) => (
               <section key={s.title}>
-                <h3 className="text-base font-semibold text-foreground mb-1">
+                <h3 className="text-base font-semibold text-foreground mb-1 break-words">
                   {i + 1}. {s.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed break-words whitespace-pre-wrap">
+                  {s.body}
+                </p>
               </section>
             ))}
-            <div className="pointer-events-none sticky bottom-0 h-8 bg-gradient-to-t from-background to-transparent" />
           </div>
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent" />
           {showIndicator && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1.5 py-2 text-[11px] text-muted-foreground/50 tracking-wide">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex items-center justify-center gap-1.5 py-2 text-[11px] text-muted-foreground/60 tracking-wide">
               <ChevronDown className="h-3 w-3 animate-bounce" />
               Scroll for more
             </div>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="px-6 pb-6 pt-2 shrink-0 border-t border-border/50">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>
