@@ -521,6 +521,7 @@ export type Database = {
           plan_state: string
           referral_source: string | null
           referred_by_guru_id: string | null
+          stripe_customer_id: string | null
           tier_state: string
           updated_at: string
           user_id: string
@@ -534,6 +535,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          stripe_customer_id?: string | null
           tier_state?: string
           updated_at?: string
           user_id: string
@@ -547,6 +549,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          stripe_customer_id?: string | null
           tier_state?: string
           updated_at?: string
           user_id?: string
@@ -761,6 +764,14 @@ export type Database = {
       student_is_enrolled_in_class: {
         Args: { _class_id: string }
         Returns: boolean
+      }
+      sync_plan_state: {
+        Args: {
+          p_plan_state: string
+          p_stripe_customer_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       update_own_plan_state: {
         Args: { new_plan_state: string }

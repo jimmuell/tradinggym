@@ -42,6 +42,7 @@ import GuruPublicProfileExternalPage from "./pages/GuruPublicProfilePage";
 import ClassContentPage from "./pages/ClassContentPage";
 import ClassSessionPage from "./pages/ClassSessionPage";
 import EnrollmentSuccessPage from "./pages/EnrollmentSuccessPage";
+import PricingPage from "./pages/PricingPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
@@ -97,6 +98,7 @@ const App = () => (
               <Route path="/analytics" element={<LayoutRoute><Analytics /></LayoutRoute>} />
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
+              <Route path="/pricing" element={<LayoutRoute><PricingPage /></LayoutRoute>} />
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />

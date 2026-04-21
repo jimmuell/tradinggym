@@ -1,4 +1,4 @@
-import { useTier, TierState, PlanState } from '@/contexts/TierContext';
+import { useTier, TierState } from '@/contexts/TierContext';
 import { useState, useRef, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -10,15 +10,8 @@ const TIERS: { label: string; value: TierState }[] = [
   { label: 'Coach', value: 'coach' },
 ];
 
-const PLANS: { label: string; value: PlanState }[] = [
-  { label: 'Starter', value: 'starter' },
-  { label: 'Pro', value: 'pro' },
-  { label: 'Expert', value: 'expert' },
-  { label: 'Guru', value: 'guru' },
-];
-
 function DevTierSwitcherInner() {
-  const { currentTier, planState, setTierState, setPlanState } = useTier();
+  const { currentTier, setTierState } = useTier();
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -73,24 +66,11 @@ function DevTierSwitcherInner() {
               <span className={labelCls}>DEV</span>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="text-xs">Development only — switches plan/tier state for testing. Not visible in production.</p>
+              <p className="text-xs">Development only — switches learning tier for testing. Not visible in production.</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <span className="text-slate-500 text-[10px]">PLAN &amp; LEARNING (independent)</span>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <span className={labelCls}>PLAN</span>
-        {PLANS.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => { if (!didDrag.current) setPlanState(value); }}
-            className={planState === value ? activeBtn : inactiveBtn}
-          >
-            {label}
-          </button>
-        ))}
+        <span className="text-slate-500 text-[10px]">LEARNING TIER (dev only)</span>
       </div>
 
       <div className="flex items-center gap-1">

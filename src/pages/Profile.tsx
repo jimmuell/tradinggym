@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { UserCircle, Mail, Calendar, Shield, Upload, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -142,7 +143,14 @@ export default function Profile() {
               </div>
               <div className="flex-1">
                 <p className="text-foreground font-medium">{user?.email ?? 'trader@example.com'}</p>
-                <p className="text-sm text-muted-foreground">Plan: {getPlanDisplayName(planState)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Plan: {getPlanDisplayName(planState)}
+                  {(planState === 'starter' || planState === 'pro') && (
+                    <Link to="/pricing" className="ml-2 text-blue-400 underline hover:text-blue-300">
+                      Upgrade
+                    </Link>
+                  )}
+                </p>
                 <p className="text-sm text-muted-foreground">Learning Tier: {getTierDisplayName(currentTier)}</p>
                 <div className="mt-2">
                   <input

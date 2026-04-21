@@ -452,7 +452,13 @@ export default function Landing() {
                           : "bg-white/5 hover:bg-white/10 text-gray-300"
                       }`}
                     >
-                      {p.guru ? "Start Teaching" : "Get Started"}
+                      {p.guru
+                        ? "Start Teaching"
+                        : p.name === "Pro"
+                        ? "Start Pro — $29/mo"
+                        : p.name === "Expert"
+                        ? "Start Expert — $49/mo"
+                        : "Get Started"}
                     </Button>
                   </Link>
                 </CardContent>
