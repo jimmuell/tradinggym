@@ -185,7 +185,7 @@ export default function PricingPage() {
           {planState !== 'starter' && (
             <Button
               variant="ghost"
-              onClick={() => portal.mutate()}
+              onClick={() => portal.mutate(undefined)}
               disabled={portal.isPending}
               className="text-muted-foreground hover:text-foreground"
             >
