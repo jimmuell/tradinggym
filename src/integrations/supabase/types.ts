@@ -513,6 +513,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_verified: boolean | null
           avatar_url: string | null
           completed_modules: string[] | null
           created_at: string
@@ -523,10 +524,12 @@ export type Database = {
           referred_by_guru_id: string | null
           stripe_customer_id: string | null
           tier_state: string
+          tos_accepted_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          age_verified?: boolean | null
           avatar_url?: string | null
           completed_modules?: string[] | null
           created_at?: string
@@ -537,10 +540,12 @@ export type Database = {
           referred_by_guru_id?: string | null
           stripe_customer_id?: string | null
           tier_state?: string
+          tos_accepted_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          age_verified?: boolean | null
           avatar_url?: string | null
           completed_modules?: string[] | null
           created_at?: string
@@ -551,6 +556,7 @@ export type Database = {
           referred_by_guru_id?: string | null
           stripe_customer_id?: string | null
           tier_state?: string
+          tos_accepted_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -677,6 +683,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_terms: {
+        Args: { p_age_verified?: boolean; p_tos_accepted?: boolean }
+        Returns: undefined
+      }
       get_guru_student_profiles: {
         Args: never
         Returns: {
