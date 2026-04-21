@@ -44,6 +44,7 @@ const formSchema = z.object({
 export default function GuruApplyPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { planState } = useTier();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp, submitApplication } =
     useGuruApplication();
