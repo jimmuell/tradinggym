@@ -10,7 +10,10 @@ import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 const PLAN_PRICE_MAP: Record<string, string> = {
   pro: 'price_1TNtx3LMQSLv70CqmRJaPHCu',
   expert: 'price_1THXB1LMQSLv70CqYTehlVba',
+  guru: 'price_REPLACE_WITH_GURU_PRICE_ID',
 };
+
+const GURU_PRICE_ID = PLAN_PRICE_MAP.guru;
 
 const PLAN_RANK: Record<PlanState, number> = {
   starter: 0,
