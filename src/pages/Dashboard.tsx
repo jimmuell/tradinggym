@@ -1,4 +1,5 @@
 import HelpSheet from '@/components/HelpSheet';
+import FinancialDisclaimer from '@/components/FinancialDisclaimer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -114,6 +115,7 @@ export default function Dashboard() {
   return (
     <TooltipProvider>
       <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        <FinancialDisclaimer />
         {/* Header */}
         <div className="flex items-center justify-between">
           <div />

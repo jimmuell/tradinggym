@@ -117,6 +117,9 @@ export default function Simulator() {
               />
             </div>
           </div>
+          <div className="px-3 pt-2">
+            <FinancialDisclaimer />
+          </div>
           <SimulatorHintBanner />
           <div className="flex flex-1 overflow-hidden">
             <LeftToolbar

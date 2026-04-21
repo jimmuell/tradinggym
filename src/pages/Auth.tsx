@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,8 @@ export default function Auth() {
   const [signupConfirm, setSignupConfirm] = useState('');
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showSignupConfirm, setShowSignupConfirm] = useState(false);
+  const [tosAccepted, setTosAccepted] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { session } = useAuth();
@@ -42,6 +44,14 @@ export default function Auth() {
   };
 
   const handleSignup = async () => {
+    if (!tosAccepted) {
+      toast.error('You must accept the Terms of Service and Privacy Policy');
+      return;
+    }
+    if (!ageConfirmed) {
+      toast.error('You must confirm you are at least 18 years old');
+      return;
+    }
     if (signupPassword !== signupConfirm) {
       toast.error('Passwords do not match');
       return;
@@ -56,7 +66,11 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Check your email to confirm your account');
+      await supabase.rpc('accept_terms', {
+        p_tos_accepted: true,
+        p_age_verified: true,
+      });
+      toast.success('Account created successfully!');
     }
   };
 
@@ -199,9 +213,34 @@ export default function Auth() {
                     </button>
                   </div>
                 </div>
+                <div className="space-y-3 pt-2">
+                  <label className="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={tosAccepted}
+                      onChange={(e) => setTosAccepted(e.target.checked)}
+                      className="mt-0.5 rounded border-[#363a45] bg-[#2a2e39] text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>
+                      I agree to the{' '}
+                      <Link to="/terms" target="_blank" className="text-blue-400 hover:underline">Terms of Service</Link>
+                      {' '}and{' '}
+                      <Link to="/privacy" target="_blank" className="text-blue-400 hover:underline">Privacy Policy</Link>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={ageConfirmed}
+                      onChange={(e) => setAgeConfirmed(e.target.checked)}
+                      className="mt-0.5 rounded border-[#363a45] bg-[#2a2e39] text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>I confirm that I am at least 18 years old</span>
+                  </label>
+                </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
-                <Button onClick={handleSignup} disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                <Button onClick={handleSignup} disabled={loading || !tosAccepted || !ageConfirmed} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                   {loading ? 'Creating account...' : 'Sign Up'}
                 </Button>
                 <div className="relative w-full">

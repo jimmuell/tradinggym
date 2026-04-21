@@ -503,6 +503,11 @@ export default function Landing() {
             </div>
           </div>
           <p className="text-gray-500 text-sm">Focused exclusively on MES (Micro E-mini S&P 500) futures.</p>
+          <div className="flex items-center gap-4 text-xs text-gray-400">
+            <Link to="/terms" className="hover:text-white">Terms of Service</Link>
+            <span className="text-gray-700">·</span>
+            <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
+          </div>
           <p className="text-gray-600 text-xs">© {new Date().getFullYear()} TradingGYM. All rights reserved.</p>
           <p className="text-gray-600 text-xs text-center w-full mt-2">
             TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
