@@ -44,6 +44,7 @@ const formSchema = z.object({
 export default function GuruApplyPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { planState } = useTier();
   const { data: guruProfile, isLoading: loadingProfile } = useGuruProfile();
   const { data: guruApplication, isLoading: loadingApp, submitApplication } =
     useGuruApplication();
@@ -70,8 +71,8 @@ export default function GuruApplyPage() {
   }, [authLoading, user, navigate]);
 
   useEffect(() => {
-    if (guruProfile?.status === 'active') navigate('/guru');
-  }, [guruProfile, navigate]);
+    if (guruProfile?.status === 'active' && planState === 'guru') navigate('/guru');
+  }, [guruProfile, planState, navigate]);
 
   if (authLoading || loadingProfile || loadingApp) {
     return (

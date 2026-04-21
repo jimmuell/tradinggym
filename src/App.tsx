@@ -103,7 +103,7 @@ const App = () => (
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
               <Route path="/pricing" element={<LayoutRoute><PricingPage /></LayoutRoute>} />
-              <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
+              <Route path="/guru/apply" element={<ProtectedRoute><TierProvider><GuruApplyPage /></TierProvider></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
               <Route path="/guru/classes/new" element={<ProtectedRoute><GuruClassFormPage /></ProtectedRoute>} />
