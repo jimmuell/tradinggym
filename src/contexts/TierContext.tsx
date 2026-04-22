@@ -8,9 +8,6 @@ export type PlanState = 'starter' | 'pro' | 'expert' | 'guru';
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
 const PLAN_VALUES: PlanState[] = ['starter', 'pro', 'expert', 'guru'];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _PLAN_VALUES_USED = PLAN_VALUES;
-
 const FEATURE_TIER_MAP: Record<string, TierState> = {
   simulator: 'tier1',
   strategies: 'tier1',
