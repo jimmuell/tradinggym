@@ -1,4 +1,4 @@
-import { Bell, Monitor, Lock, Trash2, CreditCard, ExternalLink, Loader2 } from 'lucide-react';
+import { Bell, Monitor, Lock, Trash2, CreditCard, ExternalLink, Loader2, PanelRightOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -67,6 +67,30 @@ export default function Settings() {
                 </Button>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Companion Mode */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-foreground flex items-center gap-2">
+              <PanelRightOpen className="h-5 w-5" /> Companion Mode
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Open TradingGYM in a slim window to use alongside TradingView
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              variant="outline"
+              className="border-border text-foreground hover:bg-accent"
+              onClick={() =>
+                window.open('/companion', 'tradingym-companion', 'width=360,height=800')
+              }
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Open Companion Mode
+            </Button>
           </CardContent>
         </Card>
 

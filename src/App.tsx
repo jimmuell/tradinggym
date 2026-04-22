@@ -53,6 +53,8 @@ import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
 import TierLessonPage from "./pages/learning/TierLessonPage";
 import NotFound from "./pages/NotFound";
+import CompanionPage from "./pages/CompanionPage";
+import CompanionLayout from "./layouts/CompanionLayout";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 
 const queryClient = new QueryClient();
@@ -124,6 +126,7 @@ const App = () => (
               <Route path="/guru/sessions/:id" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
               <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
+              <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChecklistFab />
