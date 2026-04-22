@@ -5,6 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
+import { usePromoteTier } from '@/hooks/usePromoteTier';
+import { useTier } from '@/contexts/TierContext';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
 
