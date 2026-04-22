@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useStudentClass } from '@/hooks/useStudentEnrollments';
 import { useClassContent } from '@/hooks/useClassContent';
 import { useClassSessions } from '@/hooks/useClassSessions';
+import { useClassGuruLessons } from '@/hooks/useGuruLessons';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -44,6 +45,7 @@ export default function ClassDetailPage() {
   const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
   const { content, isLoading: contentLoading } = useClassContent(classId);
   const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useClassSessions(classId);
+  const { data: guruLessons, isLoading: guruLessonsLoading } = useClassGuruLessons(classId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
