@@ -1,6 +1,7 @@
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
 import TierModuleGrid, { ModuleConfig, GateConfig } from '@/components/learning/TierModuleGrid';
+import GraduationGateCard from '@/components/learning/GraduationGateCard';
 import { BookOpen, Layers, BarChart3, Play, GraduationCap } from 'lucide-react';
 
 const MODULES: ModuleConfig[] = [
@@ -31,8 +32,8 @@ const MODULES: ModuleConfig[] = [
 ];
 
 const GATE: GateConfig = {
-  title: 'Tier 3 Gate',
-  description: '20 sessions with 55%+ win rate and at least 30 completed backtest trades.',
+  title: 'Tier 3 Mastery',
+  description: '20 sessions with 55%+ win rate to demonstrate mastery.',
   icon: GraduationCap,
   buttonText: 'View Progress',
 };
@@ -56,6 +57,16 @@ export default function Tier3Learning() {
       subtitle="Understand how institutions move price. AMD model and the Inverse Fair Value Gap."
       modules={MODULES}
       gate={GATE}
+      gateContent={
+        <GraduationGateCard
+          fromTier="tier3"
+          targetTier={null}
+          requiredTrades={20}
+          requiredWinRate={55}
+          title="Tier 3 Mastery"
+          completionLabel="Tier 3 Complete — You've mastered the TradingGYM curriculum."
+        />
+      }
     />
   );
 }

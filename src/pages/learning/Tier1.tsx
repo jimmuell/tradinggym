@@ -1,6 +1,7 @@
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
 import TierModuleGrid, { ModuleConfig, GateConfig } from '@/components/learning/TierModuleGrid';
+import GraduationGateCard from '@/components/learning/GraduationGateCard';
 import { BookOpen, Search, Clock, Target, GraduationCap } from 'lucide-react';
 
 const MODULES: ModuleConfig[] = [
@@ -31,8 +32,8 @@ const MODULES: ModuleConfig[] = [
 ];
 
 const GATE: GateConfig = {
-  title: 'Tier 1 Gate',
-  description: 'Complete 20 simulator sessions with a 50%+ win rate and 70%+ step accuracy to advance.',
+  title: 'Tier 1 Graduation Gate',
+  description: 'Complete 20 simulator sessions with a 50%+ win rate to advance.',
   icon: GraduationCap,
   buttonText: 'View Progress',
 };
@@ -56,6 +57,17 @@ export default function Tier1Learning() {
       subtitle="Master the ORB strategy using price action only. No indicators."
       modules={MODULES}
       gate={GATE}
+      gateContent={
+        <GraduationGateCard
+          fromTier="tier1"
+          targetTier="tier2"
+          requiredTrades={20}
+          requiredWinRate={50}
+          title="Tier 1 Graduation Gate"
+          completionLabel="Tier 1 Complete — you've advanced to Tier 2."
+          buttonLabel="Advance to Tier 2"
+        />
+      }
     />
   );
 }

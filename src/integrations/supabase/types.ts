@@ -985,6 +985,7 @@ export type Database = {
         }[]
       }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
+      promote_tier: { Args: { target_tier: string }; Returns: Json }
       student_is_enrolled_in_class: {
         Args: { _class_id: string }
         Returns: boolean

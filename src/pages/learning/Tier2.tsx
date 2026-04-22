@@ -1,6 +1,7 @@
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
 import TierModuleGrid, { ModuleConfig, GateConfig } from '@/components/learning/TierModuleGrid';
+import GraduationGateCard from '@/components/learning/GraduationGateCard';
 import { BookOpen, Filter, Play, GraduationCap } from 'lucide-react';
 
 const MODULES: ModuleConfig[] = [
@@ -25,8 +26,8 @@ const MODULES: ModuleConfig[] = [
 ];
 
 const GATE: GateConfig = {
-  title: 'Tier 2 Gate',
-  description: '20 sessions with 55%+ win rate and 75%+ step accuracy to advance.',
+  title: 'Tier 2 Graduation Gate',
+  description: '20 sessions with 55%+ win rate to advance.',
   icon: GraduationCap,
   buttonText: 'View Progress',
 };
@@ -50,6 +51,17 @@ export default function Tier2Learning() {
       subtitle="Add VWAP as a filter. Only trade in the direction of the market."
       modules={MODULES}
       gate={GATE}
+      gateContent={
+        <GraduationGateCard
+          fromTier="tier2"
+          targetTier="tier3"
+          requiredTrades={20}
+          requiredWinRate={55}
+          title="Tier 2 Graduation Gate"
+          completionLabel="Tier 2 Complete — you've advanced to Tier 3."
+          buttonLabel="Advance to Tier 3"
+        />
+      }
     />
   );
 }

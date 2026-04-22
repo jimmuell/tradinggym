@@ -30,6 +30,7 @@ interface TierModuleGridProps {
   modules: ModuleConfig[];
   gate: GateConfig;
   completedCount?: number;
+  gateContent?: React.ReactNode;
 }
 
 export default function TierModuleGrid({
@@ -39,6 +40,7 @@ export default function TierModuleGrid({
   modules,
   gate,
   completedCount = 0,
+  gateContent,
 }: TierModuleGridProps) {
   const navigate = useNavigate();
 
@@ -112,27 +114,29 @@ export default function TierModuleGrid({
           ))}
         </div>
 
-        <Card className="opacity-70">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <gate.icon className="h-5 w-5 text-muted-foreground" />
-                <CardTitle className="text-base">{gate.title}</CardTitle>
+        {gateContent ?? (
+          <Card className="opacity-70">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <gate.icon className="h-5 w-5 text-muted-foreground" />
+                  <CardTitle className="text-base">{gate.title}</CardTitle>
+                </div>
+                <Badge variant="outline" className="text-muted-foreground gap-1">
+                  <Lock className="h-3 w-3" />
+                  Locked
+                </Badge>
               </div>
-              <Badge variant="outline" className="text-muted-foreground gap-1">
-                <Lock className="h-3 w-3" />
-                Locked
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="mb-4">{gate.description}</CardDescription>
-            <Button size="sm" disabled>
-              {gate.buttonText}
-              <Lock className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <CardDescription className="mb-4">{gate.description}</CardDescription>
+              <Button size="sm" disabled>
+                {gate.buttonText}
+                <Lock className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </TooltipProvider>
   );
