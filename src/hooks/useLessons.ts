@@ -47,6 +47,27 @@ export function useLessonsByModule(module: string) {
   });
 }
 
+export function useFoundationLessons() {
+  return useQuery({
+    queryKey: ['lessons', 'foundation-all'],
+    queryFn: async (): Promise<Lesson[]> => {
+      const { data, error } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('content_type', 'platform')
+        .eq('tier_required', 'foundation')
+        .eq('is_published', true)
+        .like('module', 'f%')
+        .order('module_order', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        ...row,
+        slides: (row.slides as unknown as LessonSlide[]) ?? [],
+      })) as Lesson[];
+    },
+  });
+}
+
 export function useLesson(lessonId: string | undefined) {
   return useQuery({
     queryKey: ['lesson', lessonId],
