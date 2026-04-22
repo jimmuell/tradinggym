@@ -22,7 +22,6 @@ interface TierContextType {
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
-  setPlanState: (plan: PlanState) => Promise<void>;
   loading: boolean;
 }
 
@@ -32,7 +31,6 @@ const TierContext = createContext<TierContextType>({
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
-  setPlanState: async () => {},
   loading: true,
 });
 
@@ -89,17 +87,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const setPlanState = useCallback(
-    async (plan: PlanState) => {
-      setPlanStateLocal(plan);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.rpc as any)('update_own_plan_state', { new_plan_state: plan });
-    },
-    [],
-  );
-
   return (
-    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, setPlanState, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, loading }}>
       {children}
     </TierContext.Provider>
   );
