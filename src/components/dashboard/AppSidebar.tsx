@@ -14,6 +14,7 @@ import {
   Users,
   Crown,
   Sparkles,
+  Brain,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -53,6 +54,7 @@ const navItems = [
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
   { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: null },
+  { title: 'My Coaching', url: '/coaching', icon: Brain, feature: null },
   { title: 'Find a Guru', url: '/gurus', icon: Users, feature: null },
   { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
 ];

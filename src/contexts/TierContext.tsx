@@ -8,6 +8,9 @@ export type PlanState = 'starter' | 'pro' | 'expert' | 'guru';
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
 const PLAN_VALUES: PlanState[] = ['starter', 'pro', 'expert', 'guru'];
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _PLAN_VALUES_USED = PLAN_VALUES;
+
 const FEATURE_TIER_MAP: Record<string, TierState> = {
   simulator: 'tier1',
   strategies: 'tier1',
@@ -22,7 +25,6 @@ interface TierContextType {
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
-  setPlanState: (plan: PlanState) => Promise<void>;
   loading: boolean;
 }
 
@@ -32,7 +34,6 @@ const TierContext = createContext<TierContextType>({
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
-  setPlanState: async () => {},
   loading: true,
 });
 
@@ -89,17 +90,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const setPlanState = useCallback(
-    async (plan: PlanState) => {
-      setPlanStateLocal(plan);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.rpc as any)('update_own_plan_state', { new_plan_state: plan });
-    },
-    [],
-  );
-
   return (
-    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, setPlanState, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, loading }}>
       {children}
     </TierContext.Provider>
   );

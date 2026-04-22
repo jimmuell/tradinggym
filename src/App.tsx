@@ -21,6 +21,7 @@ import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Learning from "./pages/Learning";
 import ClassesPage from "./pages/ClassesPage";
+import CoachingPage from "./pages/CoachingPage";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -96,6 +97,7 @@ const App = () => (
               <Route path="/classes/:classId/content/:contentId" element={<LayoutRoute><ClassContentPage /></LayoutRoute>} />
               <Route path="/classes/:classId/session/:sessionId" element={<ProtectedRoute><ClassSessionPage /></ProtectedRoute>} />
               <Route path="/classes/:classId" element={<LayoutRoute><ClassDetailPage /></LayoutRoute>} />
+              <Route path="/coaching" element={<LayoutRoute><CoachingPage /></LayoutRoute>} />
               <Route path="/gurus" element={<LayoutRoute><GurusDirectoryPage /></LayoutRoute>} />
               <Route path="/gurus/:guruId" element={<LayoutRoute><GuruPublicProfileExternalPage /></LayoutRoute>} />
               <Route path="/checkout/success" element={<ProtectedRoute><EnrollmentSuccessPage /></ProtectedRoute>} />
