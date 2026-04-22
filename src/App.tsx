@@ -51,7 +51,7 @@ import FoundationLessonPage from "./pages/learning/FoundationLesson";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
-import ModulePlaceholder from "./pages/learning/ModulePlaceholder";
+import TierLessonPage from "./pages/learning/TierLessonPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,11 +90,11 @@ const App = () => (
               <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
               <Route path="/learning/foundation/:lessonId" element={<LayoutRoute><FoundationLessonPage /></LayoutRoute>} />
               <Route path="/learning/tier1" element={<LayoutRoute><Tier1Learning /></LayoutRoute>} />
-              <Route path="/learning/tier1/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier1/:lessonId" element={<LayoutRoute><TierLessonPage tier="tier1" modulePrefix="tier1_" backPath="/learning/tier1" backLabel="Tier 1" /></LayoutRoute>} />
               <Route path="/learning/tier2" element={<LayoutRoute><Tier2Learning /></LayoutRoute>} />
-              <Route path="/learning/tier2/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier2/:lessonId" element={<LayoutRoute><TierLessonPage tier="tier2" modulePrefix="tier2_" backPath="/learning/tier2" backLabel="Tier 2" /></LayoutRoute>} />
               <Route path="/learning/tier3" element={<LayoutRoute><Tier3Learning /></LayoutRoute>} />
-              <Route path="/learning/tier3/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
+              <Route path="/learning/tier3/:lessonId" element={<LayoutRoute><TierLessonPage tier="tier3" modulePrefix="tier3_" backPath="/learning/tier3" backLabel="Tier 3" /></LayoutRoute>} />
               <Route path="/classes" element={<LayoutRoute><ClassesPage /></LayoutRoute>} />
               <Route path="/classes/:classId/content/:contentId" element={<LayoutRoute><ClassContentPage /></LayoutRoute>} />
               <Route path="/classes/:classId/session/:sessionId" element={<ProtectedRoute><ClassSessionPage /></ProtectedRoute>} />
