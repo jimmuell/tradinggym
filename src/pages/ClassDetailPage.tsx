@@ -157,6 +157,43 @@ export default function ClassDetailPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <BookOpen className="h-4 w-4" />
+          Lessons
+        </h2>
+        {guruLessonsLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : !guruLessons || guruLessons.length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center text-sm text-muted-foreground">
+              No lessons published yet.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {guruLessons.map((lesson) => (
+              <Card key={lesson.id}>
+                <CardContent className="p-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{lesson.title}</p>
+                    {lesson.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {lesson.estimated_minutes ?? 10} min · {lesson.slides.length} slides
+                    </p>
+                  </div>
+                  <Button asChild size="sm">
+                    <Link to={`/classes/${classId}/lessons/${lesson.id}`}>Start Lesson</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
           <Video className="h-4 w-4" />
           Upcoming Sessions
         </h2>
