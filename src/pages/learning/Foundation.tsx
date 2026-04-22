@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, Lock } from 'lucide-react';
 import { useFoundationLessons } from '@/hooks/useLessons';
 import { useQuizByModule, useBestQuizAttempt } from '@/hooks/useQuizzes';
+import { useTier } from '@/contexts/TierContext';
 
 const STORAGE_KEY = 'completedLessons';
 
@@ -25,6 +26,8 @@ export default function FoundationLearning() {
   const { data: lessons, isLoading: lessonsLoading } = useFoundationLessons();
   const { data: quiz, isLoading: quizLoading } = useQuizByModule('foundation');
   const { data: bestAttempt, isLoading: attemptLoading } = useBestQuizAttempt(quiz?.id);
+  const { isUnlocked } = useTier();
+  const tier1Unlocked = isUnlocked('tier1');
   const [completed, setCompleted] = useState<string[]>([]);
 
   useEffect(() => {
@@ -119,14 +122,14 @@ export default function FoundationLearning() {
         </div>
       )}
 
-      <Card className={passed ? 'border-l-4 border-l-green-500' : ''}>
+      <Card className={(passed || tier1Unlocked) ? 'border-l-4 border-l-green-500' : ''}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-muted-foreground" />
               <CardTitle className="text-base">Foundation Assessment</CardTitle>
             </div>
-            {passed ? (
+            {(passed || tier1Unlocked) ? (
               <Badge variant="outline" className="text-green-500 border-green-500/30 gap-1">
                 <CheckCircle2 className="h-3 w-3" />
                 Passed
@@ -140,11 +143,25 @@ export default function FoundationLearning() {
           </div>
         </CardHeader>
         <CardContent>
-          {passed ? (
+          {tier1Unlocked ? (
+            <>
+              <CardDescription className="mb-4 text-green-600 dark:text-green-400">
+                Foundation Complete — Tier 1 unlocked!
+              </CardDescription>
+              <Button size="sm" variant="outline" onClick={() => navigate('/learning/tier1')}>
+                Continue to Tier 1
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </>
+          ) : passed ? (
             <>
               <CardDescription className="mb-4 text-green-600 dark:text-green-400">
                 Foundation Complete — {passThreshold}%+ achieved. Tier 1 unlocked!
               </CardDescription>
+              <Button size="sm" onClick={() => navigate('/learning/tier1')}>
+                Continue to Tier 1
+                <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
             </>
           ) : bestAttempt ? (
             <>
