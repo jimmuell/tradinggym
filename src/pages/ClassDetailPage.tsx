@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useStudentClass } from '@/hooks/useStudentEnrollments';
 import { useClassContent } from '@/hooks/useClassContent';
 import { useClassSessions } from '@/hooks/useClassSessions';
+import { useClassGuruLessons } from '@/hooks/useGuruLessons';
 import type { ContentType } from '@/types/guru';
 
 const TYPE_LABELS: Record<ContentType, string> = {
@@ -44,6 +45,7 @@ export default function ClassDetailPage() {
   const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
   const { content, isLoading: contentLoading } = useClassContent(classId);
   const { upcomingSessions, liveSession, isLoading: sessionsLoading } = useClassSessions(classId);
+  const { data: guruLessons, isLoading: guruLessonsLoading } = useClassGuruLessons(classId);
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   const filtered = useMemo(
@@ -152,6 +154,43 @@ export default function ClassDetailPage() {
           ))}
         </div>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+          <BookOpen className="h-4 w-4" />
+          Lessons
+        </h2>
+        {guruLessonsLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : !guruLessons || guruLessons.length === 0 ? (
+          <Card>
+            <CardContent className="py-6 text-center text-sm text-muted-foreground">
+              No lessons published yet.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {guruLessons.map((lesson) => (
+              <Card key={lesson.id}>
+                <CardContent className="p-4 flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{lesson.title}</p>
+                    {lesson.description && (
+                      <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {lesson.estimated_minutes ?? 10} min · {lesson.slides.length} slides
+                    </p>
+                  </div>
+                  <Button asChild size="sm">
+                    <Link to={`/classes/${classId}/lessons/${lesson.id}`}>Start Lesson</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
