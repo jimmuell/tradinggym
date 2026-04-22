@@ -207,6 +207,13 @@ export type Database = {
             referencedRelation: "guru_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cohorts_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       guru_applications: {
@@ -304,6 +311,13 @@ export type Database = {
             columns: ["guru_id"]
             isOneToOne: false
             referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guru_content_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -417,6 +431,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "guru_referrals_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "guru_referrals_referred_user_id_fkey"
             columns: ["referred_user_id"]
             isOneToOne: false
@@ -509,6 +530,13 @@ export type Database = {
             referencedRelation: "guru_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "live_sessions_guru_id_fkey"
+            columns: ["guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -566,6 +594,13 @@ export type Database = {
             columns: ["referred_by_guru_id"]
             isOneToOne: false
             referencedRelation: "guru_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_guru_id_fkey"
+            columns: ["referred_by_guru_id"]
+            isOneToOne: false
+            referencedRelation: "guru_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -680,7 +715,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guru_profiles_public: {
+        Row: {
+          bio: string | null
+          id: string | null
+          is_public: boolean | null
+          primary_instrument: string | null
+          primary_strategy: string | null
+          status: string | null
+          tagline: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          primary_instrument?: string | null
+          primary_strategy?: string | null
+          status?: string | null
+          tagline?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          primary_instrument?: string | null
+          primary_strategy?: string | null
+          status?: string | null
+          tagline?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_terms: {
@@ -781,10 +848,6 @@ export type Database = {
           p_stripe_customer_id?: string
           p_user_id: string
         }
-        Returns: undefined
-      }
-      update_own_plan_state: {
-        Args: { new_plan_state: string }
         Returns: undefined
       }
       update_own_profile: {
