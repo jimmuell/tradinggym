@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { useLesson } from '@/hooks/useLessons';
-import { useQuizByModule, useSaveQuizAttempt, type QuizAnswer } from '@/hooks/useQuizzes';
+import { useQuizByModule } from '@/hooks/useQuizzes';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
 
@@ -26,7 +26,6 @@ function markComplete(lessonId: string) {
 function QuizView() {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuizByModule('foundation');
-  const saveAttempt = useSaveQuizAttempt();
 
   if (isLoading) {
     return (
@@ -48,20 +47,6 @@ function QuizView() {
     );
   }
 
-  const handleComplete = async (score: number, total: number, passed: boolean, answers: QuizAnswer[]) => {
-    try {
-      await saveAttempt.mutateAsync({
-        quiz_id: quiz.id,
-        score,
-        total_questions: total,
-        passed,
-        answers,
-      });
-    } catch {
-      // surfaced inside QuizRunner if needed
-    }
-  };
-
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <Button
@@ -74,8 +59,8 @@ function QuizView() {
       </Button>
       <QuizRunner
         quiz={quiz}
-        onComplete={(score, total, passed, answers) => handleComplete(score, total, passed, answers)}
-        onExit={() => navigate('/learning/foundation')}
+        onComplete={() => navigate('/learning/foundation')}
+        onReviewLesson={() => navigate('/learning/foundation')}
       />
     </div>
   );
