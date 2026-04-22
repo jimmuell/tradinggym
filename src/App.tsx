@@ -47,6 +47,7 @@ import ClassSessionPage from "./pages/ClassSessionPage";
 import EnrollmentSuccessPage from "./pages/EnrollmentSuccessPage";
 import PricingPage from "./pages/PricingPage";
 import FoundationF1 from "./pages/learning/FoundationF1";
+import FoundationLessonPage from "./pages/learning/FoundationLesson";
 import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
               <Route path="/learning/foundation" element={<LayoutRoute><FoundationLearning /></LayoutRoute>} />
               <Route path="/learning/foundation/f1" element={<LayoutRoute><FoundationF1 /></LayoutRoute>} />
+              <Route path="/learning/foundation/:lessonId" element={<LayoutRoute><FoundationLessonPage /></LayoutRoute>} />
               <Route path="/learning/tier1" element={<LayoutRoute><Tier1Learning /></LayoutRoute>} />
               <Route path="/learning/tier1/:moduleId" element={<LayoutRoute><ModulePlaceholder /></LayoutRoute>} />
               <Route path="/learning/tier2" element={<LayoutRoute><Tier2Learning /></LayoutRoute>} />
