@@ -126,6 +126,7 @@ const App = () => (
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <ChecklistFab />
           </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
