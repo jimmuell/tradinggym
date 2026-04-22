@@ -1,36 +1,7 @@
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
-import TierModuleGrid, { ModuleConfig, GateConfig } from '@/components/learning/TierModuleGrid';
+import TierLessonList from '@/components/learning/TierLessonList';
 import GraduationGateCard from '@/components/learning/GraduationGateCard';
-import { BookOpen, Filter, Play, GraduationCap } from 'lucide-react';
-
-const MODULES: ModuleConfig[] = [
-  {
-    id: 'T2-1', title: 'What is VWAP?',
-    description: 'The institutional reference price and why it matters for futures traders.',
-    icon: BookOpen, unlocked: true, lockHint: '',
-    path: '/learning/tier2/t2-1',
-  },
-  {
-    id: 'T2-2', title: 'VWAP as a Filter',
-    description: 'Only long above VWAP. Only short below. Sit on hands when context is wrong.',
-    icon: Filter, unlocked: false, lockHint: 'Complete T2-1 to unlock',
-    path: '/learning/tier2/t2-2',
-  },
-  {
-    id: 'T2-3', title: 'Filtered ORB Sessions',
-    description: 'Apply the VWAP filter in the simulator across 20 sessions.',
-    icon: Play, unlocked: false, lockHint: 'Complete T2-2 to unlock',
-    path: '/learning/tier2/t2-3',
-  },
-];
-
-const GATE: GateConfig = {
-  title: 'Tier 2 Graduation Gate',
-  description: '20 sessions with 55%+ win rate to advance.',
-  icon: GraduationCap,
-  buttonText: 'View Progress',
-};
 
 export default function Tier2Learning() {
   const { isUnlocked } = useTier();
@@ -46,22 +17,26 @@ export default function Tier2Learning() {
   }
 
   return (
-    <TierModuleGrid
-      heading="Tier 2 — Confirmation Tools"
-      subtitle="Add VWAP as a filter. Only trade in the direction of the market."
-      modules={MODULES}
-      gate={GATE}
-      gateContent={
-        <GraduationGateCard
-          fromTier="tier2"
-          targetTier="tier3"
-          requiredTrades={20}
-          requiredWinRate={55}
-          title="Tier 2 Graduation Gate"
-          completionLabel="Tier 2 Complete — you've advanced to Tier 3."
-          buttonLabel="Advance to Tier 3"
-        />
-      }
-    />
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Tier 2 — Confirmation Tools</h1>
+        <p className="text-muted-foreground mt-1">
+          Add VWAP as a filter. Only trade in the direction of the market.
+        </p>
+        <p className="text-xs text-muted-foreground/60 mt-1 italic">No Pain — No Gain</p>
+      </div>
+
+      <TierLessonList module="tier2_vwap" basePath="/learning/tier2" />
+
+      <GraduationGateCard
+        fromTier="tier2"
+        targetTier="tier3"
+        requiredTrades={20}
+        requiredWinRate={55}
+        title="Tier 2 Graduation Gate"
+        completionLabel="Tier 2 Complete — you've advanced to Tier 3."
+        buttonLabel="Advance to Tier 3"
+      />
+    </div>
   );
 }

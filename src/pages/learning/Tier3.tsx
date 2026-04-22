@@ -1,42 +1,7 @@
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
-import TierModuleGrid, { ModuleConfig, GateConfig } from '@/components/learning/TierModuleGrid';
+import TierLessonList from '@/components/learning/TierLessonList';
 import GraduationGateCard from '@/components/learning/GraduationGateCard';
-import { BookOpen, Layers, BarChart3, Play, GraduationCap } from 'lucide-react';
-
-const MODULES: ModuleConfig[] = [
-  {
-    id: 'T3-1', title: 'How Markets Really Move',
-    description: 'Liquidity, stop sweeps, and why retail traders get trapped.',
-    icon: BookOpen, unlocked: true, lockHint: '',
-    path: '/learning/tier3/t3-1',
-  },
-  {
-    id: 'T3-2', title: 'The AMD Model',
-    description: 'Accumulation, Manipulation, Distribution — the institutional playbook.',
-    icon: Layers, unlocked: false, lockHint: 'Complete T3-1 to unlock',
-    path: '/learning/tier3/t3-2',
-  },
-  {
-    id: 'T3-3', title: 'The Inverse Fair Value Gap',
-    description: 'Identify the IFVG left by the manipulation candle. This is your entry trigger.',
-    icon: BarChart3, unlocked: false, lockHint: 'Complete T3-2 to unlock',
-    path: '/learning/tier3/t3-3',
-  },
-  {
-    id: 'T3-4', title: 'AMD Live Sessions',
-    description: 'Practice the full 7-step AMD blueprint in the simulator.',
-    icon: Play, unlocked: false, lockHint: 'Complete T3-3 to unlock',
-    path: '/learning/tier3/t3-4',
-  },
-];
-
-const GATE: GateConfig = {
-  title: 'Tier 3 Mastery',
-  description: '20 sessions with 55%+ win rate to demonstrate mastery.',
-  icon: GraduationCap,
-  buttonText: 'View Progress',
-};
 
 export default function Tier3Learning() {
   const { isUnlocked } = useTier();
@@ -52,21 +17,25 @@ export default function Tier3Learning() {
   }
 
   return (
-    <TierModuleGrid
-      heading="Tier 3 — Institutional Concepts"
-      subtitle="Understand how institutions move price. AMD model and the Inverse Fair Value Gap."
-      modules={MODULES}
-      gate={GATE}
-      gateContent={
-        <GraduationGateCard
-          fromTier="tier3"
-          targetTier={null}
-          requiredTrades={20}
-          requiredWinRate={55}
-          title="Tier 3 Mastery"
-          completionLabel="Tier 3 Complete — You've mastered the TradingGYM curriculum."
-        />
-      }
-    />
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Tier 3 — Institutional Concepts</h1>
+        <p className="text-muted-foreground mt-1">
+          Understand how institutions move price. AMD model and the Inverse Fair Value Gap.
+        </p>
+        <p className="text-xs text-muted-foreground/60 mt-1 italic">No Pain — No Gain</p>
+      </div>
+
+      <TierLessonList module="tier3_amd" basePath="/learning/tier3" />
+
+      <GraduationGateCard
+        fromTier="tier3"
+        targetTier={null}
+        requiredTrades={20}
+        requiredWinRate={55}
+        title="Tier 3 Mastery"
+        completionLabel="Tier 3 Complete — You've mastered the TradingGYM curriculum."
+      />
+    </div>
   );
 }
