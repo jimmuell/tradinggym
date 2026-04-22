@@ -59,6 +59,12 @@ import NotFound from "./pages/NotFound";
 import CompanionPage from "./pages/CompanionPage";
 import CompanionLayout from "./layouts/CompanionLayout";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import { AdminUsersStubPage, AdminGurusStubPage, AdminRevenueStubPage } from "./pages/admin/AdminStubPages";
+import InvestorLayout from "./layouts/InvestorLayout";
+import InvestorDashboardPage from "./pages/investor/InvestorDashboardPage";
+import { InvestorKpisStubPage, InvestorDataRoomStubPage, InvestorRoadmapStubPage } from "./pages/investor/InvestorStubPages";
+import InvestorNotesPage from "./pages/investor/InvestorNotesPage";
 
 const queryClient = new QueryClient();
 
@@ -134,6 +140,15 @@ const App = () => (
               <Route path="/guru/lessons" element={<ProtectedRoute><GuruLessonsPage /></ProtectedRoute>} />
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
+              <Route path="/admin" element={<LayoutRoute><AdminDashboardPage /></LayoutRoute>} />
+              <Route path="/admin/users" element={<LayoutRoute><AdminUsersStubPage /></LayoutRoute>} />
+              <Route path="/admin/gurus" element={<LayoutRoute><AdminGurusStubPage /></LayoutRoute>} />
+              <Route path="/admin/revenue" element={<LayoutRoute><AdminRevenueStubPage /></LayoutRoute>} />
+              <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
+              <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisStubPage /></InvestorLayout>} />
+              <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomStubPage /></InvestorLayout>} />
+              <Route path="/investor/roadmap" element={<InvestorLayout><InvestorRoadmapStubPage /></InvestorLayout>} />
+              <Route path="/investor/notes" element={<InvestorLayout><InvestorNotesPage /></InvestorLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChecklistFab />
