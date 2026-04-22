@@ -97,6 +97,112 @@ export type Database = {
           },
         ]
       }
+      checklist_sessions: {
+        Row: {
+          created_at: string
+          emotional_readiness: boolean | null
+          execution_complete: boolean | null
+          execution_completed: Json
+          htf_bias: string | null
+          id: string
+          max_daily_loss: number | null
+          prep_complete: boolean | null
+          session_date: string
+          session_prep_completed: Json
+          strategy_name: string
+          template_id: string
+          trading_session: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emotional_readiness?: boolean | null
+          execution_complete?: boolean | null
+          execution_completed?: Json
+          htf_bias?: string | null
+          id?: string
+          max_daily_loss?: number | null
+          prep_complete?: boolean | null
+          session_date?: string
+          session_prep_completed?: Json
+          strategy_name: string
+          template_id: string
+          trading_session?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emotional_readiness?: boolean | null
+          execution_complete?: boolean | null
+          execution_completed?: Json
+          htf_bias?: string | null
+          id?: string
+          max_daily_loss?: number | null
+          prep_complete?: boolean | null
+          session_date?: string
+          session_prep_completed?: Json
+          strategy_name?: string
+          template_id?: string
+          trading_session?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_sessions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklist_templates: {
+        Row: {
+          created_at: string
+          execution_items: Json
+          id: string
+          is_default: boolean | null
+          session_prep_items: Json
+          strategy_id: string | null
+          strategy_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          execution_items?: Json
+          id?: string
+          is_default?: boolean | null
+          session_prep_items?: Json
+          strategy_id?: string | null
+          strategy_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          execution_items?: Json
+          id?: string
+          is_default?: boolean | null
+          session_prep_items?: Json
+          strategy_id?: string | null
+          strategy_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_templates_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_enrollments: {
         Row: {
           billing_starts_at: string | null
@@ -802,6 +908,7 @@ export type Database = {
       }
       trades: {
         Row: {
+          checklist_session_id: string | null
           closed_at: string | null
           created_at: string | null
           direction: string | null
@@ -821,6 +928,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          checklist_session_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           direction?: string | null
@@ -840,6 +948,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          checklist_session_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           direction?: string | null
@@ -858,7 +967,15 @@ export type Database = {
           timeframe?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trades_checklist_session_id_fkey"
+            columns: ["checklist_session_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -913,6 +1030,7 @@ export type Database = {
       get_guru_student_trades: {
         Args: { _student_id: string }
         Returns: {
+          checklist_session_id: string | null
           closed_at: string | null
           created_at: string | null
           direction: string | null
@@ -986,6 +1104,10 @@ export type Database = {
       }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       promote_tier: { Args: { target_tier: string }; Returns: Json }
+      seed_default_checklists: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       student_is_enrolled_in_class: {
         Args: { _class_id: string }
         Returns: boolean
