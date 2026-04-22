@@ -446,6 +446,65 @@ export type Database = {
           },
         ]
       }
+      lessons: {
+        Row: {
+          author_id: string | null
+          class_id: string | null
+          content_type: string
+          created_at: string
+          description: string | null
+          estimated_minutes: number | null
+          id: string
+          is_published: boolean | null
+          module: string
+          module_order: number
+          slides: Json
+          tier_required: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          class_id?: string | null
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          module: string
+          module_order?: number
+          slides?: Json
+          tier_required?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          class_id?: string | null
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          module?: string
+          module_order?: number
+          slides?: Json
+          tier_required?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       live_session_attendance: {
         Row: {
           id: string
@@ -601,6 +660,94 @@ export type Database = {
             columns: ["referred_by_guru_id"]
             isOneToOne: false
             referencedRelation: "guru_profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_attempts: {
+        Row: {
+          answers: Json
+          completed_at: string
+          id: string
+          passed: boolean
+          quiz_id: string
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          passed: boolean
+          quiz_id: string
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          passed?: boolean
+          quiz_id?: string
+          score?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          author_id: string | null
+          content_type: string
+          created_at: string
+          id: string
+          is_published: boolean | null
+          lesson_id: string | null
+          module: string
+          pass_threshold: number
+          questions: Json
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          lesson_id?: string | null
+          module: string
+          pass_threshold?: number
+          questions?: Json
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          lesson_id?: string | null
+          module?: string
+          pass_threshold?: number
+          questions?: Json
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
