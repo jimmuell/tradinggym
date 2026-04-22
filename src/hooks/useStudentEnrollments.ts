@@ -33,8 +33,9 @@ export function useStudentEnrollments() {
       if (cErr) throw cErr;
 
       const guruIds = Array.from(new Set((classes ?? []).map((c) => c.guru_id)));
+      // Use the public view which respects RLS and only exposes safe columns
       const { data: guruRows, error: gErr } = await supabase
-        .from('guru_profiles')
+        .from('guru_profiles_public')
         .select('id, user_id')
         .in('id', guruIds);
       if (gErr) throw gErr;

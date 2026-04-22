@@ -67,7 +67,7 @@ serve(async (req) => {
     // Foundation gate
     const { data: profile } = await admin
       .from("profiles")
-      .select("tier_state")
+      .select("tier_state, stripe_customer_id")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!profile) return json({ error: "no_profile", message: "Profile not found" }, 404);
@@ -102,17 +102,33 @@ serve(async (req) => {
 
     // Verify Stripe subscription (Pro or Expert)
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
-      return json(
-        {
-          error: "no_subscription",
-          message: "Active Pro or Expert subscription required to enroll with a Coach.",
-        },
-        402,
-      );
+
+    // Prefer stripe_customer_id from profile (P31+); fall back to email lookup
+    let customer: { id: string } | null = null;
+    if (profile.stripe_customer_id) {
+      try {
+        const c = await stripe.customers.retrieve(profile.stripe_customer_id);
+        if (c && !(c as { deleted?: boolean }).deleted) {
+          customer = { id: (c as { id: string }).id };
+        }
+      } catch (e) {
+        log("stripe_customer_id retrieve failed, falling back to email", String(e));
+      }
     }
-    const customer = customers.data[0];
+    if (!customer) {
+      log("WARN: falling back to email lookup for stripe customer", { email: user.email });
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length === 0) {
+        return json(
+          {
+            error: "no_subscription",
+            message: "Active Pro or Expert subscription required to enroll with a Coach.",
+          },
+          402,
+        );
+      }
+      customer = { id: customers.data[0].id };
+    }
 
     const subs = await stripe.subscriptions.list({
       customer: customer.id,
