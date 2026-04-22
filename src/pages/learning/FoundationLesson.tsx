@@ -28,6 +28,20 @@ function markComplete(lessonId: string) {
 function QuizView() {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuizByModule('foundation');
+  const promote = usePromoteTier();
+  const { currentTier } = useTier();
+
+  const handleComplete = (_score: number, _total: number, passed: boolean) => {
+    if (passed && currentTier === 'foundation') {
+      promote.mutate('tier1', {
+        onSettled: () => navigate('/learning/tier1'),
+      });
+    } else if (passed) {
+      navigate('/learning/tier1');
+    } else {
+      navigate('/learning/foundation');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -61,7 +75,7 @@ function QuizView() {
       </Button>
       <QuizRunner
         quiz={quiz}
-        onComplete={() => navigate('/learning/foundation')}
+        onComplete={handleComplete}
         onReviewLesson={() => navigate('/learning/foundation')}
       />
     </div>
