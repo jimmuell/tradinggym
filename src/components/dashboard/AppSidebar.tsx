@@ -15,12 +15,14 @@ import {
   Crown,
   Sparkles,
   Brain,
+  Shield,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useGuruProfile } from '@/hooks/useGuruData';
+import { useUserRole } from '@/hooks/useUserRole';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,7 +73,14 @@ export function AppSidebar() {
   const { signOut, user } = useAuth();
   const { canAccess, planState } = useTier();
   const { data: guruProfile } = useGuruProfile();
+  const { isAdmin } = useUserRole();
   const isActiveGuru = guruProfile?.status === 'active';
+  const adminItems = [
+    { title: 'Dashboard', url: '/admin' },
+    { title: 'Users', url: '/admin/users' },
+    { title: 'Gurus', url: '/admin/gurus' },
+    { title: 'Revenue', url: '/admin/revenue' },
+  ];
   const showPricingLink = planState !== 'guru';
 
   const { data: profile } = useQuery({
@@ -157,6 +166,37 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
+              {!collapsed && 'Admin'}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item, idx) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === '/admin'}
+                        className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+                          isActive(item.url)
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                            : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                        }`}
+                        activeClassName=""
+                      >
+                        {idx === 0 ? <Shield className="h-4 w-4 shrink-0" /> : <span className="w-4" />}
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {isActiveGuru && (
           <SidebarGroup>

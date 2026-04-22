@@ -552,6 +552,47 @@ export type Database = {
           },
         ]
       }
+      investor_notes: {
+        Row: {
+          author_id: string
+          author_name: string | null
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean | null
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_name?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean | null
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_notes_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "investor_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           author_id: string | null
@@ -715,6 +756,7 @@ export type Database = {
           plan_state: string
           referral_source: string | null
           referred_by_guru_id: string | null
+          role: string
           stripe_customer_id: string | null
           tier_state: string
           tos_accepted_at: string | null
@@ -731,6 +773,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          role?: string
           stripe_customer_id?: string | null
           tier_state?: string
           tos_accepted_at?: string | null
@@ -747,6 +790,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          role?: string
           stripe_customer_id?: string | null
           tier_state?: string
           tos_accepted_at?: string | null
@@ -1102,6 +1146,7 @@ export type Database = {
           win_rate: number
         }[]
       }
+      get_user_role: { Args: never; Returns: string }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       promote_tier: { Args: { target_tier: string }; Returns: Json }
       seed_default_checklists: {
