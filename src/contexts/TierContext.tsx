@@ -22,6 +22,7 @@ interface TierContextType {
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
+  refreshTier: () => Promise<void>;
   loading: boolean;
 }
 
@@ -31,6 +32,7 @@ const TierContext = createContext<TierContextType>({
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
+  refreshTier: async () => {},
   loading: true,
 });
 
@@ -43,29 +45,27 @@ export function TierProvider({ children }: { children: ReactNode }) {
   const [planState, setPlanStateLocal] = useState<PlanState>('starter');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchTier = useCallback(async () => {
     if (!user) return;
-    let cancelled = false;
-
-    supabase
+    const { data } = await supabase
       .from('profiles')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .select('tier_state, plan_state' as any)
       .eq('user_id', user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const row = data as any;
-        const tier = (row?.tier_state as TierState) || 'foundation';
-        const plan = (row?.plan_state as PlanState) || 'starter';
-        setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
-        setPlanStateLocal(PLAN_VALUES.includes(plan) ? plan : 'starter');
-        setLoading(false);
-      });
-
-    return () => { cancelled = true; };
+      .maybeSingle();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const row = data as any;
+    const tier = (row?.tier_state as TierState) || 'foundation';
+    const plan = (row?.plan_state as PlanState) || 'starter';
+    setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
+    setPlanStateLocal(PLAN_VALUES.includes(plan) ? plan : 'starter');
+    setLoading(false);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchTier();
+  }, [user, fetchTier]);
 
   const isUnlocked = useCallback(
     (tier: TierState) => TIER_ORDER.indexOf(currentTier) >= TIER_ORDER.indexOf(tier),
@@ -88,7 +88,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
       {children}
     </TierContext.Provider>
   );
