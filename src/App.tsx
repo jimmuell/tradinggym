@@ -53,6 +53,7 @@ import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
 import TierLessonPage from "./pages/learning/TierLessonPage";
 import NotFound from "./pages/NotFound";
+import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 
 const queryClient = new QueryClient();
 
