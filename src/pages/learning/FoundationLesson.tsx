@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
-import { useLesson } from '@/hooks/useLessons';
+import { useFoundationLessons, useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
 import { usePromoteTier } from '@/hooks/usePromoteTier';
 import { useTier } from '@/contexts/TierContext';
@@ -28,20 +28,30 @@ function markComplete(lessonId: string) {
 function QuizView() {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuizByModule('foundation');
+  const { data: lessons } = useFoundationLessons();
   const promote = usePromoteTier();
   const { currentTier } = useTier();
+  const [promotionMessage, setPromotionMessage] = useState<string | null>(null);
 
-  const handleComplete = (_score: number, _total: number, passed: boolean) => {
-    if (passed && currentTier === 'foundation') {
+  const lessonTitleById = useMemo(() => {
+    const map: Record<string, string> = {};
+    (lessons ?? []).forEach((l) => {
+      map[l.id] = l.title;
+    });
+    return map;
+  }, [lessons]);
+
+  function handlePassed() {
+    if (currentTier === 'foundation') {
       promote.mutate('tier1', {
-        onSettled: () => navigate('/learning/tier1'),
+        onSuccess: () => {
+          setPromotionMessage("Congratulations! You've unlocked Tier 1 — Pure Price Action.");
+        },
       });
-    } else if (passed) {
-      navigate('/learning/tier1');
     } else {
-      navigate('/learning/foundation');
+      setPromotionMessage("Congratulations! You've unlocked Tier 1 — Pure Price Action.");
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -75,7 +85,11 @@ function QuizView() {
       </Button>
       <QuizRunner
         quiz={quiz}
-        onComplete={handleComplete}
+        lessonTitleById={lessonTitleById}
+        promotionMessage={promotionMessage}
+        onPassed={handlePassed}
+        onContinue={() => navigate('/learning/tier1')}
+        onBackToFoundation={() => navigate('/learning/foundation')}
         onReviewLesson={() => navigate('/learning/foundation')}
       />
     </div>

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -8,6 +8,9 @@ export interface QuizQuestion {
   options: string[];
   correct_index: number;
   explanation: string;
+  source_lesson_id?: string | null;
+  source_lesson_title?: string | null;
+  source_slide_index?: number | null;
 }
 
 export interface Quiz {
@@ -37,8 +40,12 @@ export interface QuizAttempt {
   total_questions: number;
   passed: boolean;
   answers: QuizAnswer[];
+  responses?: import('./useQuizAttempts').QuizResponse[];
   completed_at: string;
 }
+
+// Re-export the new mutation hook so existing imports keep working.
+export { useSaveQuizAttempt } from './useQuizAttempts';
 
 function mapQuiz(row: Record<string, unknown>): Quiz {
   return {
@@ -81,41 +88,6 @@ export function useQuiz(quizId: string | undefined) {
       return data ? mapQuiz(data) : null;
     },
     enabled: !!quizId,
-  });
-}
-
-export function useSaveQuizAttempt() {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async (input: {
-      quiz_id: string;
-      score: number;
-      total_questions: number;
-      passed: boolean;
-      answers: QuizAnswer[];
-    }) => {
-      if (!user) throw new Error('Not authenticated');
-      const { data, error } = await supabase
-        .from('quiz_attempts')
-        .insert({
-          user_id: user.id,
-          quiz_id: input.quiz_id,
-          score: input.score,
-          total_questions: input.total_questions,
-          passed: input.passed,
-          answers: input.answers as unknown as never,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['quiz-attempts'] });
-      queryClient.invalidateQueries({ queryKey: ['quiz-attempt', 'best', variables.quiz_id] });
-    },
   });
 }
 

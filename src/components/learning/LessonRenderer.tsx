@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -61,12 +62,26 @@ function SlideView({ slide }: { slide: LessonSlide }) {
 }
 
 export default function LessonRenderer({ lesson, isLoading, onComplete }: LessonRendererProps) {
+  const [searchParams] = useSearchParams();
   const [index, setIndex] = useState(0);
 
   const slides = lesson?.slides ?? [];
   const total = slides.length;
   const isLast = index === total - 1;
   const isFirst = index === 0;
+
+  // Apply ?slide=N once per loaded lesson so internal Next/Prev navigation isn't overridden by the URL.
+  const appliedForLessonRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!lesson || total === 0) return;
+    if (appliedForLessonRef.current === lesson.id) return;
+    const raw = searchParams.get('slide');
+    const parsed = parseInt(raw ?? '0', 10);
+    const safe = Number.isFinite(parsed) ? parsed : 0;
+    const clamped = Math.min(Math.max(safe, 0), total - 1);
+    setIndex(clamped);
+    appliedForLessonRef.current = lesson.id;
+  }, [lesson, total, searchParams]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
