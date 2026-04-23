@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { getRandomEmotionalReadinessPhrase } from '@/lib/tradingPhrases';
 
 type Props = {
   mode: 'drawer' | 'companion';
@@ -65,6 +66,7 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
     itemId: string;
   } | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [emotionalPhrase, setEmotionalPhrase] = useState<string | null>(null);
 
   useEffect(() => {
     if (active && templates && templates.length === 0 && !seed.isPending) {
@@ -117,7 +119,14 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
     }
     if (item.id === 'sp-2') patch.trading_session = String(value);
     if (item.id === 'sp-3') patch.htf_bias = String(value);
-    if (item.id === 'sp-4') patch.emotional_readiness = value === true;
+    if (item.id === 'sp-4') {
+      patch.emotional_readiness = value === true;
+      if (value === true) {
+        setEmotionalPhrase(getRandomEmotionalReadinessPhrase());
+      } else {
+        setEmotionalPhrase(null);
+      }
+    }
     updateSession.mutate({ id: s.id, patch });
   };
 
@@ -250,15 +259,26 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
 
                 <div className="space-y-3">
                   {activeTemplate.session_prep_items.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      value={prepValues[item.id]}
-                      onChange={(v) => updatePrep(item.id, v, item)}
-                      editing={editing}
-                      onLabelChange={(l) => updateItemLabel('prep', item.id, l)}
-                      onDelete={() => handleDeleteItem('prep', item)}
-                    />
+                    <div key={item.id} className="space-y-2">
+                      <ItemRow
+                        item={item}
+                        value={prepValues[item.id]}
+                        onChange={(v) => updatePrep(item.id, v, item)}
+                        editing={editing}
+                        onLabelChange={(l) => updateItemLabel('prep', item.id, l)}
+                        onDelete={() => handleDeleteItem('prep', item)}
+                      />
+                      {item.id === 'sp-4' &&
+                        !editing &&
+                        prepValues[item.id] === true &&
+                        emotionalPhrase && (
+                          <div className="ml-6 animate-fade-in rounded-md border-l-[3px] border-sky-500 bg-muted/60 px-3 py-2">
+                            <p className="text-sm italic text-muted-foreground">
+                              💭 {emotionalPhrase}
+                            </p>
+                          </div>
+                        )}
+                    </div>
                   ))}
                   {editing && (
                     <Button
