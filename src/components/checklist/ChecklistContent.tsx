@@ -66,6 +66,7 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
     itemId: string;
   } | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [emotionalPhrase, setEmotionalPhrase] = useState<string | null>(null);
 
   useEffect(() => {
     if (active && templates && templates.length === 0 && !seed.isPending) {
