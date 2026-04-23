@@ -99,6 +99,8 @@ export default function QuizResponsesReview({ responses, expandAll = false }: Qu
                 {!r.is_correct && r.source_lesson_id && (
                   <Link
                     to={`/learning/foundation/${r.source_lesson_id}?slide=${r.source_slide_index}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                   >
                     <BookOpen className="h-4 w-4" />
