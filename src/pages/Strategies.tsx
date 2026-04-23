@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target } from 'lucide-react';
+import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -193,6 +193,14 @@ export default function Strategies() {
         </div>
         <div className="flex items-center gap-2">
           <HelpSheet pageName="Strategies" />
+          <Button
+            variant="outline"
+            className="gap-2 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+            onClick={() => navigate('/strategies/extract')}
+          >
+            <Sparkles className="h-4 w-4" />
+            Extract from Transcript
+          </Button>
           {atCap ? (
             <Tooltip>
               <TooltipTrigger asChild>

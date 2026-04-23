@@ -17,6 +17,7 @@ import Simulator from "./pages/Simulator";
 import Dashboard from "./pages/Dashboard";
 import Strategies from "./pages/Strategies";
 import StrategyDetailPage from "./pages/StrategyDetailPage";
+import StrategyExtractPage from "./pages/StrategyExtractPage";
 import Backtesting from "./pages/Backtesting";
 import Resources from "./pages/Resources";
 import Learning from "./pages/Learning";
@@ -92,8 +93,9 @@ const App = () => (
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/simulator" element={<ProtectedRoute><TierProvider><><Simulator /><DevTierSwitcher /></></TierProvider></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
-              <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
+              <Route path="/strategies/extract" element={<LayoutRoute><StrategyExtractPage /></LayoutRoute>} />
               <Route path="/strategies/:id" element={<LayoutRoute><StrategyDetailPage /></LayoutRoute>} />
+              <Route path="/strategies" element={<LayoutRoute><Strategies /></LayoutRoute>} />
               <Route path="/backtesting" element={<LayoutRoute><Backtesting /></LayoutRoute>} />
               <Route path="/resources" element={<LayoutRoute><Resources /></LayoutRoute>} />
               <Route path="/learning" element={<LayoutRoute><Learning /></LayoutRoute>} />
