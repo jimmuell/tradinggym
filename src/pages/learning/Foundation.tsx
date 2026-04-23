@@ -134,6 +134,95 @@ export default function FoundationLearning() {
         </div>
       )}
 
+      {!attemptsLoading && attempts && attempts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <History className="h-5 w-5 text-muted-foreground" />
+                <CardTitle className="text-base">Quiz History</CardTitle>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {attempts.length} attempt{attempts.length === 1 ? '' : 's'}
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border">
+              {(showAllAttempts ? attempts : attempts.slice(0, 5)).map((a) => {
+                const pct = Math.round((a.score / Math.max(a.total_questions, 1)) * 100);
+                const dateLabel = new Date(a.completed_at).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                });
+                return (
+                  <li key={a.id} className="flex items-center justify-between gap-3 py-3">
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-foreground truncate">{dateLabel}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {a.score}/{a.total_questions} — {pct}%
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {a.passed ? (
+                        <Badge variant="outline" className="text-green-500 border-green-500/30 gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Passed
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Not passed
+                        </Badge>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setReviewing(a)}
+                        disabled={!a.responses || a.responses.length === 0}
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+            {attempts.length > 5 && (
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllAttempts((v) => !v)}
+                >
+                  {showAllAttempts ? 'Show less' : `Show all (${attempts.length})`}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <Dialog open={!!reviewing} onOpenChange={(open) => !open && setReviewing(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Quiz attempt review</DialogTitle>
+            {reviewing && (
+              <DialogDescription>
+                {new Date(reviewing.completed_at).toLocaleDateString(undefined, {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}{' '}
+                — {reviewing.score}/{reviewing.total_questions} (
+                {Math.round((reviewing.score / Math.max(reviewing.total_questions, 1)) * 100)}%)
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          {reviewing && <QuizResponsesReview responses={reviewing.responses ?? []} expandAll />}
+        </DialogContent>
+      </Dialog>
+
       <Card className={(passed || tier1Unlocked) ? 'border-l-4 border-l-green-500' : ''}>
         <CardHeader>
           <div className="flex items-center justify-between">
