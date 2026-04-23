@@ -309,7 +309,7 @@ export default function GuruLessonFormPage() {
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Lessons
+          Content
         </button>
 
         <div className="flex items-center justify-between">
