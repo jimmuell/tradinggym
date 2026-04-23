@@ -206,7 +206,19 @@ export default function FoundationLearning() {
       <Dialog open={!!reviewing} onOpenChange={(open) => !open && setReviewing(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Quiz attempt review</DialogTitle>
+            <div className="flex items-center justify-between gap-3 pr-6">
+              <DialogTitle>Quiz Results</DialogTitle>
+              {reviewing && (
+                reviewing.passed ? (
+                  <Badge variant="outline" className="text-green-500 border-green-500/30 gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Passed
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">Not passed</Badge>
+                )
+              )}
+            </div>
             {reviewing && (
               <DialogDescription>
                 {new Date(reviewing.completed_at).toLocaleDateString(undefined, {
