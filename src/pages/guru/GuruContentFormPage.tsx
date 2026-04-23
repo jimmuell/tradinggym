@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import GuruLayout from '@/layouts/GuruLayout';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,7 +32,10 @@ const TYPE_HELP: Record<ContentType, string> = {
 export default function GuruContentFormPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isNew = !id || id === 'new';
+  const initialType: ContentType =
+    searchParams.get('type') === 'blueprint' ? 'blueprint' : 'post';
 
   const { data: guruProfile, isLoading: profileLoading } = useGuruProfile();
   const { classes, isLoading: classesLoading } = useGuruClasses();
@@ -53,7 +56,7 @@ export default function GuruContentFormPage() {
   const [form, setForm] = useState<ContentFormData>({
     title: '',
     body: '',
-    content_type: 'post',
+    content_type: initialType,
     class_id: '',
     is_draft: true,
   });
