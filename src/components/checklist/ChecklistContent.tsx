@@ -259,15 +259,26 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
 
                 <div className="space-y-3">
                   {activeTemplate.session_prep_items.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      value={prepValues[item.id]}
-                      onChange={(v) => updatePrep(item.id, v, item)}
-                      editing={editing}
-                      onLabelChange={(l) => updateItemLabel('prep', item.id, l)}
-                      onDelete={() => handleDeleteItem('prep', item)}
-                    />
+                    <div key={item.id} className="space-y-2">
+                      <ItemRow
+                        item={item}
+                        value={prepValues[item.id]}
+                        onChange={(v) => updatePrep(item.id, v, item)}
+                        editing={editing}
+                        onLabelChange={(l) => updateItemLabel('prep', item.id, l)}
+                        onDelete={() => handleDeleteItem('prep', item)}
+                      />
+                      {item.id === 'sp-4' &&
+                        !editing &&
+                        prepValues[item.id] === true &&
+                        emotionalPhrase && (
+                          <div className="ml-6 animate-fade-in rounded-md border-l-[3px] border-sky-500 bg-muted/60 px-3 py-2">
+                            <p className="text-sm italic text-muted-foreground">
+                              💭 {emotionalPhrase}
+                            </p>
+                          </div>
+                        )}
+                    </div>
                   ))}
                   {editing && (
                     <Button
