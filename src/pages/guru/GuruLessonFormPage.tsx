@@ -174,12 +174,25 @@ export default function GuruLessonFormPage() {
   }
 
   async function handleSave(publish: boolean) {
+    console.log('GuruLessonFormPage.handleSave called', {
+      publish,
+      existingLessonId: existingLesson?.id ?? null,
+      classId,
+      title,
+      estimatedMinutes,
+      slideCount: slides.length,
+      quizEnabled,
+    });
+
     const err = validate();
     if (err) {
+      console.warn('GuruLessonFormPage.handleSave validation failed:', err);
       toast.error(err);
       return;
     }
+
     try {
+      console.log('GuruLessonFormPage.handleSave starting lesson mutation');
       const lesson = await saveLesson.mutateAsync({
         id: existingLesson?.id,
         title: title.trim(),
@@ -190,7 +203,12 @@ export default function GuruLessonFormPage() {
         slides,
       });
 
+      console.log('GuruLessonFormPage.handleSave lesson mutation succeeded', {
+        lessonId: lesson.id,
+      });
+
       if (quizEnabled) {
+        console.log('GuruLessonFormPage.handleSave starting quiz mutation');
         await saveQuiz.mutateAsync({
           id: existingQuiz?.id,
           lesson_id: lesson.id,
@@ -198,8 +216,11 @@ export default function GuruLessonFormPage() {
           pass_threshold: passThreshold,
           questions,
         });
+        console.log('GuruLessonFormPage.handleSave quiz mutation succeeded');
       } else if (existingQuiz) {
+        console.log('GuruLessonFormPage.handleSave deleting existing quiz');
         await deleteQuiz.mutateAsync(existingQuiz.id);
+        console.log('GuruLessonFormPage.handleSave existing quiz deleted');
       }
 
       toast.success(
@@ -209,6 +230,7 @@ export default function GuruLessonFormPage() {
       );
       navigate('/guru/lessons');
     } catch (e) {
+      console.error('GuruLessonFormPage.handleSave failed:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save lesson');
     }
   }
