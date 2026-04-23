@@ -63,7 +63,19 @@ export function useSaveGuruLesson() {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (input: GuruLessonInput): Promise<Lesson> => {
-      if (!user) throw new Error('Not authenticated');
+      console.log('useSaveGuruLesson.mutationFn called', {
+        lessonId: input.id ?? null,
+        userId: user?.id ?? null,
+        classId: input.class_id,
+        isPublished: input.is_published,
+        slideCount: input.slides.length,
+      });
+
+      if (!user) {
+        console.error('useSaveGuruLesson: no authenticated user');
+        throw new Error('Not authenticated');
+      }
+
       const payload = {
         title: input.title,
         description: input.description,
@@ -77,8 +89,9 @@ export function useSaveGuruLesson() {
         module_order: 0,
         tier_required: 'foundation',
       };
-      console.log('Lesson save payload:', payload);
+
       if (input.id) {
+        console.log('Lesson save update payload:', payload);
         const { data, error } = await supabase
           .from('lessons')
           .update(payload)
@@ -86,15 +99,29 @@ export function useSaveGuruLesson() {
           .eq('author_id', user.id)
           .select('*')
           .single();
-        if (error) throw error;
+
+        if (error) {
+          console.error('Lesson update returned error:', error);
+          throw error;
+        }
+
+        console.log('Lesson update succeeded:', data);
         return mapLesson(data);
       }
+
+      console.log('Lesson insert payload:', payload);
       const { data, error } = await supabase
         .from('lessons')
         .insert(payload)
         .select('*')
         .single();
-      if (error) throw error;
+
+      if (error) {
+        console.error('Lesson insert returned error:', error);
+        throw error;
+      }
+
+      console.log('Lesson insert succeeded:', data);
       return mapLesson(data);
     },
     onSuccess: (lesson) => {
