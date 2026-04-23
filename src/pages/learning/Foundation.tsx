@@ -5,10 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, Lock } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, History, Lock } from 'lucide-react';
 import { useFoundationLessons } from '@/hooks/useLessons';
-import { useQuizByModule, useBestQuizAttempt } from '@/hooks/useQuizzes';
+import { useQuizByModule, useBestQuizAttempt, type QuizAttempt } from '@/hooks/useQuizzes';
+import { useQuizAttempts } from '@/hooks/useQuizAttempts';
 import { useTier } from '@/contexts/TierContext';
+import QuizResponsesReview from '@/components/learning/QuizResponsesReview';
 
 const STORAGE_KEY = 'completedLessons';
 
@@ -26,9 +35,12 @@ export default function FoundationLearning() {
   const { data: lessons, isLoading: lessonsLoading } = useFoundationLessons();
   const { data: quiz, isLoading: quizLoading } = useQuizByModule('foundation');
   const { data: bestAttempt, isLoading: attemptLoading } = useBestQuizAttempt(quiz?.id);
+  const { data: attempts, isLoading: attemptsLoading } = useQuizAttempts(quiz?.id);
   const { isUnlocked } = useTier();
   const tier1Unlocked = isUnlocked('tier1');
   const [completed, setCompleted] = useState<string[]>([]);
+  const [showAllAttempts, setShowAllAttempts] = useState(false);
+  const [reviewing, setReviewing] = useState<QuizAttempt | null>(null);
 
   useEffect(() => {
     setCompleted(getCompleted());
