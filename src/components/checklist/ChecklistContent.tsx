@@ -119,7 +119,14 @@ export function ChecklistContent({ mode, active = true, onSitOut, footerExtra }:
     }
     if (item.id === 'sp-2') patch.trading_session = String(value);
     if (item.id === 'sp-3') patch.htf_bias = String(value);
-    if (item.id === 'sp-4') patch.emotional_readiness = value === true;
+    if (item.id === 'sp-4') {
+      patch.emotional_readiness = value === true;
+      if (value === true) {
+        setEmotionalPhrase(getRandomEmotionalReadinessPhrase());
+      } else {
+        setEmotionalPhrase(null);
+      }
+    }
     updateSession.mutate({ id: s.id, patch });
   };
 
