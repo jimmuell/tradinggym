@@ -147,6 +147,28 @@ export function useDeleteGuruLesson() {
         .eq('id', lessonId)
         .eq('author_id', user.id);
       if (error) throw error;
+
+      // Best-effort cleanup of any imported slide assets in storage.
+      // Failures are logged but never block the lesson deletion.
+      try {
+        const folder = `${user.id}/${lessonId}`;
+        const { data: files, error: listError } = await supabase.storage
+          .from('lesson-assets')
+          .list(folder, { limit: 1000 });
+        if (listError) {
+          console.warn('lesson-assets list failed:', listError);
+        } else if (files && files.length > 0) {
+          const paths = files.map((f) => `${folder}/${f.name}`);
+          const { error: removeError } = await supabase.storage
+            .from('lesson-assets')
+            .remove(paths);
+          if (removeError) {
+            console.warn('lesson-assets cleanup failed:', removeError);
+          }
+        }
+      } catch (e) {
+        console.warn('lesson-assets cleanup threw:', e);
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['guru-lessons'] });
