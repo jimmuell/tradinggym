@@ -77,6 +77,7 @@ export function useSaveGuruLesson() {
         module_order: 0,
         tier_required: 'foundation',
       };
+      console.log('Lesson save payload:', payload);
       if (input.id) {
         const { data, error } = await supabase
           .from('lessons')
@@ -100,6 +101,9 @@ export function useSaveGuruLesson() {
       qc.invalidateQueries({ queryKey: ['guru-lessons'] });
       qc.invalidateQueries({ queryKey: ['guru-lesson', lesson.id] });
       qc.invalidateQueries({ queryKey: ['class-guru-lessons', lesson.class_id] });
+    },
+    onError: (error) => {
+      console.error('Lesson save error:', error);
     },
   });
 }
