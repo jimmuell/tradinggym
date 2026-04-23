@@ -236,7 +236,7 @@ export default function GuruLessonFormPage() {
           ? 'Lesson published — students can now access it.'
           : 'Lesson saved as draft.',
       );
-      navigate('/guru/lessons');
+      navigate('/guru/content');
     } catch (e) {
       console.error('GuruLessonFormPage.handleSave failed:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save lesson');
@@ -248,7 +248,7 @@ export default function GuruLessonFormPage() {
     try {
       await deleteLesson.mutateAsync(existingLesson.id);
       toast.success('Lesson deleted');
-      navigate('/guru/lessons');
+      navigate('/guru/content');
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to delete lesson');
     }
@@ -305,7 +305,7 @@ export default function GuruLessonFormPage() {
       <div className="space-y-6 max-w-3xl">
         <button
           type="button"
-          onClick={() => navigate('/guru/lessons')}
+          onClick={() => navigate('/guru/content')}
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
