@@ -206,7 +206,19 @@ export default function FoundationLearning() {
       <Dialog open={!!reviewing} onOpenChange={(open) => !open && setReviewing(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Quiz attempt review</DialogTitle>
+            <div className="flex items-center justify-between gap-3 pr-6">
+              <DialogTitle>Quiz Results</DialogTitle>
+              {reviewing && (
+                reviewing.passed ? (
+                  <Badge variant="outline" className="text-green-500 border-green-500/30 gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Passed
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">Not passed</Badge>
+                )
+              )}
+            </div>
             {reviewing && (
               <DialogDescription>
                 {new Date(reviewing.completed_at).toLocaleDateString(undefined, {
@@ -269,10 +281,22 @@ export default function FoundationLearning() {
               <CardDescription className="mb-4">
                 Your best score: {bestScorePct}%. You need {passThreshold}% to pass.
               </CardDescription>
-              <Button size="sm" onClick={() => navigate('/learning/foundation/quiz')}>
-                Retake Assessment
-                <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" onClick={() => navigate('/learning/foundation/quiz')}>
+                  Retake Assessment
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+                {attempts && attempts.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setReviewing(attempts[0])}
+                    disabled={!attempts[0].responses || attempts[0].responses.length === 0}
+                  >
+                    Quiz Results
+                  </Button>
+                )}
+              </div>
             </>
           ) : (
             <>
