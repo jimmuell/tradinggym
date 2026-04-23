@@ -8,6 +8,10 @@ export interface LessonSlide {
   bullet_points?: string[] | null;
   tip?: string | null;
   image_key?: string | null;
+  /** Public URL of an uploaded image for imported slides (PDF page or image upload). */
+  image_url?: string | null;
+  /** 'imported' marks slides created via PDF/image import. Undefined for legacy text slides. */
+  type?: 'imported' | null;
 }
 
 export interface Lesson {

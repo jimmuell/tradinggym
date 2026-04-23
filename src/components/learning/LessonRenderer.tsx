@@ -26,16 +26,25 @@ function renderInline(text: string): string {
 }
 
 function SlideView({ slide }: { slide: LessonSlide }) {
-  const paragraphs = slide.body.split(/\n\n+/);
+  const paragraphs = slide.body ? slide.body.split(/\n\n+/) : [];
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-foreground">{slide.title}</h2>
 
-      {slide.image_key && (
+      {slide.image_url ? (
+        <div className="w-full rounded-lg border border-border bg-muted/30 overflow-hidden flex items-center justify-center">
+          <img
+            src={slide.image_url}
+            alt={slide.title || 'Imported slide'}
+            className="w-full h-auto max-h-[70vh] object-contain"
+            loading="lazy"
+          />
+        </div>
+      ) : slide.image_key ? (
         <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-sm">
           Image: {slide.image_key}
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-3 text-foreground/90 leading-relaxed">
         {paragraphs.map((p, i) => (
