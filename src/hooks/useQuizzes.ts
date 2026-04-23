@@ -110,7 +110,7 @@ export function useBestQuizAttempt(quizId: string | undefined) {
       return {
         ...data,
         answers: (data.answers as unknown as QuizAnswer[]) ?? [],
-      } as QuizAttempt;
+      } as unknown as QuizAttempt;
     },
     enabled: !!quizId && !!user,
   });
