@@ -704,6 +704,25 @@ export default function GuruLessonFormPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SlideImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        lessonFolderId={lessonFolderId}
+        onImported={(imported) =>
+          setSlides((prev) => {
+            // If the only slide is the default empty placeholder, replace it.
+            const isDefaultPlaceholder =
+              prev.length === 1 &&
+              !prev[0].title.trim() &&
+              !prev[0].body.trim() &&
+              !prev[0].image_url &&
+              (prev[0].bullet_points ?? []).length === 0 &&
+              !prev[0].tip;
+            return isDefaultPlaceholder ? imported : [...prev, ...imported];
+          })
+        }
+      />
     </GuruLayout>
   );
 }
