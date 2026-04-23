@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -9,6 +9,7 @@ import {
   Eye,
   Save,
   Send,
+  FileUp,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import GuruLayout from '@/layouts/GuruLayout';
@@ -44,6 +45,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import LessonRenderer from '@/components/learning/LessonRenderer';
+import SlideImportDialog from '@/components/guru/SlideImportDialog';
 import { useGuruClasses } from '@/hooks/useGuruClasses';
 import {
   useGuruLesson,
@@ -112,6 +114,12 @@ export default function GuruLessonFormPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmDeleteSlide, setConfirmDeleteSlide] = useState<number | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  // Stable folder id used for storage uploads. For existing lessons use the real id;
+  // for new lessons generate one upfront so uploaded files have a permanent home.
+  const newLessonFolderRef = useRef<string>(crypto.randomUUID());
+  const lessonFolderId = existingLesson?.id ?? newLessonFolderRef.current;
 
   useEffect(() => {
     if (existingLesson) {
