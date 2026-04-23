@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { getRandomEmotionalReadinessPhrase } from '@/lib/tradingPhrases';
 
 type Props = {
   mode: 'drawer' | 'companion';
