@@ -821,6 +821,7 @@ export type Database = {
           id: string
           passed: boolean
           quiz_id: string
+          responses: Json
           score: number
           total_questions: number
           user_id: string
@@ -831,6 +832,7 @@ export type Database = {
           id?: string
           passed: boolean
           quiz_id: string
+          responses?: Json
           score: number
           total_questions: number
           user_id: string
@@ -841,6 +843,7 @@ export type Database = {
           id?: string
           passed?: boolean
           quiz_id?: string
+          responses?: Json
           score?: number
           total_questions?: number
           user_id?: string
