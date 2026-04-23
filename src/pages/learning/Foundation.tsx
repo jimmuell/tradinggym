@@ -269,10 +269,22 @@ export default function FoundationLearning() {
               <CardDescription className="mb-4">
                 Your best score: {bestScorePct}%. You need {passThreshold}% to pass.
               </CardDescription>
-              <Button size="sm" onClick={() => navigate('/learning/foundation/quiz')}>
-                Retake Assessment
-                <ArrowRight className="h-3.5 w-3.5 ml-1" />
-              </Button>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" onClick={() => navigate('/learning/foundation/quiz')}>
+                  Retake Assessment
+                  <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+                {attempts && attempts.length > 0 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setReviewing(attempts[0])}
+                    disabled={!attempts[0].responses || attempts[0].responses.length === 0}
+                  >
+                    Quiz Results
+                  </Button>
+                )}
+              </div>
             </>
           ) : (
             <>
