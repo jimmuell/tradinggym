@@ -39,7 +39,6 @@ import GuruSessionsPage from "./pages/guru/GuruSessionsPage";
 import GuruSessionFormPage from "./pages/guru/GuruSessionFormPage";
 import GuruSessionLivePage from "./pages/guru/GuruSessionLivePage";
 import GuruPayoutsPage from "./pages/guru/GuruPayoutsPage";
-import GuruLessonsPage from "./pages/guru/GuruLessonsPage";
 import GuruLessonFormPage from "./pages/guru/GuruLessonFormPage";
 import StudentLessonPage from "./pages/StudentLessonPage";
 import ClassDetailPage from "./pages/ClassDetailPage";
@@ -128,6 +127,8 @@ const App = () => (
               <Route path="/guru/classes" element={<ProtectedRoute><GuruClassesPage /></ProtectedRoute>} />
               <Route path="/guru/students/:studentId" element={<ProtectedRoute><GuruStudentDetailPage /></ProtectedRoute>} />
               <Route path="/guru/students" element={<ProtectedRoute><GuruStudentsPage /></ProtectedRoute>} />
+              <Route path="/guru/content/lessons/new" element={<ProtectedRoute><GuruLessonFormPage /></ProtectedRoute>} />
+              <Route path="/guru/content/lessons/:lessonId" element={<ProtectedRoute><GuruLessonFormPage /></ProtectedRoute>} />
               <Route path="/guru/content/new" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
               <Route path="/guru/content/:id" element={<ProtectedRoute><GuruContentFormPage /></ProtectedRoute>} />
               <Route path="/guru/content" element={<ProtectedRoute><GuruContentPage /></ProtectedRoute>} />
@@ -135,9 +136,6 @@ const App = () => (
               <Route path="/guru/sessions/new" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
               <Route path="/guru/sessions/:id" element={<ProtectedRoute><GuruSessionFormPage /></ProtectedRoute>} />
               <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
-              <Route path="/guru/lessons/new" element={<ProtectedRoute><GuruLessonFormPage /></ProtectedRoute>} />
-              <Route path="/guru/lessons/:lessonId" element={<ProtectedRoute><GuruLessonFormPage /></ProtectedRoute>} />
-              <Route path="/guru/lessons" element={<ProtectedRoute><GuruLessonsPage /></ProtectedRoute>} />
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
               <Route path="/admin" element={<LayoutRoute><AdminDashboardPage /></LayoutRoute>} />
