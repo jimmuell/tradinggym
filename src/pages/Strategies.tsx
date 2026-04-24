@@ -303,6 +303,7 @@ export default function Strategies() {
                   strategy={s}
                   locked={locked}
                   onClick={() => handleCardClick(s, locked)}
+                  onWatchDemo={handleWatchDemo}
                 />
               );
             })}
@@ -342,6 +343,7 @@ export default function Strategies() {
                 strategy={s}
                 locked={false}
                 onClick={() => navigate(`/strategies/${s.id}`)}
+                onWatchDemo={handleWatchDemo}
               />
             ))}
           </div>
