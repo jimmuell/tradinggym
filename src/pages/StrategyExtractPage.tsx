@@ -777,6 +777,31 @@ export default function StrategyExtractPage() {
           </div>
         </div>
       )}
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => { if (!open) setPendingDelete(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this extraction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.saved_strategy_id
+                ? 'This extraction was saved as a strategy. Deleting the extraction will not delete the saved strategy. Continue?'
+                : 'Delete this extraction? This will restore one extraction credit.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteExtraction.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteExtraction.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteExtraction.isPending ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
