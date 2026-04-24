@@ -58,6 +58,28 @@ function timeAgo(iso: string): string {
   return `${Math.floor(mo / 12)}y ago`;
 }
 
+function normalizeDirectionBias(
+  value: ExtractedStrategy['direction_bias'] | string | null | undefined,
+): 'Long' | 'Short' | 'Both' | null {
+  if (!value) return null;
+
+  switch (value) {
+    case 'long_only':
+    case 'long':
+    case 'Long':
+      return 'Long';
+    case 'short_only':
+    case 'short':
+    case 'Short':
+      return 'Short';
+    case 'both':
+    case 'Both':
+      return 'Both';
+    default:
+      return null;
+  }
+}
+
 function ConfidenceBanner({ confidence }: { confidence: ExtractedStrategy['confidence'] }) {
   const map = {
     high: {
@@ -167,7 +189,7 @@ export default function StrategyExtractPage() {
         description: s.description ?? null,
         instrument: s.instrument && s.instrument !== 'Any' ? s.instrument : null,
         timeframe: s.timeframe && s.timeframe !== 'Any' ? s.timeframe : null,
-        direction_bias: s.direction_bias ?? null,
+        direction_bias: normalizeDirectionBias(s.direction_bias),
         entry_rules: Array.isArray(s.entry_rules)
           ? s.entry_rules.map((r, i) => `${i + 1}. ${r}`).join('\n')
           : null,
@@ -469,7 +491,7 @@ export default function StrategyExtractPage() {
               <div className="flex flex-wrap gap-2 pt-2">
                 <Badge variant="secondary">{strategy.instrument}</Badge>
                 <Badge variant="secondary">{strategy.timeframe}</Badge>
-                <Badge variant="secondary">{strategy.direction_bias}</Badge>
+                <Badge variant="secondary">{normalizeDirectionBias(strategy.direction_bias) ?? 'N/A'}</Badge>
               </div>
             </CardContent>
           </Card>
