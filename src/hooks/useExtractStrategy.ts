@@ -33,6 +33,7 @@ export type ExtractStrategyInput = {
 };
 
 export function useExtractStrategy() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: ExtractStrategyInput): Promise<ExtractStrategyResponse> => {
       const { data, error } = await supabase.functions.invoke('extract-strategy', {
@@ -53,6 +54,10 @@ export function useExtractStrategy() {
       }
       if (data?.error) throw new Error(data.error);
       return data as ExtractStrategyResponse;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['strategy-extractions'] });
+      qc.invalidateQueries({ queryKey: ['extraction-usage'] });
     },
     onError: (e: Error) => {
       toast.error(e.message || 'Extraction failed');
