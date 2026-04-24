@@ -734,6 +734,17 @@ export default function StrategyExtractPage() {
               <RotateCcw className="h-4 w-4" />
               Try Again
             </Button>
+            {viewingExtraction && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPendingDelete(viewingExtraction)}
+                className="gap-2 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Extraction
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
