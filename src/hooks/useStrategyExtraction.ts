@@ -145,6 +145,29 @@ export function useExtractionUsage() {
 }
 
 /**
+ * Delete a strategy extraction row. Also invalidates usage so the credit
+ * badge updates immediately (deleting reclaims the credit).
+ */
+export function useDeleteExtraction() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (extractionId: string) => {
+      const { error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from('strategy_extractions' as any)
+        .delete()
+        .eq('id', extractionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['strategy-extractions'] });
+      qc.invalidateQueries({ queryKey: ['extraction-usage'] });
+    },
+  });
+}
+
+/**
  * Save an extracted strategy into the strategies table and link back to the extraction row.
  */
 export function useSaveExtractedStrategy() {

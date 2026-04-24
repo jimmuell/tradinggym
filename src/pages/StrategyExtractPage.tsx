@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles, ArrowLeft, Wand2, Check, AlertTriangle, ShieldAlert,
   Lock, Loader2, RotateCcw, Save, ListChecks, ChevronDown, ChevronRight,
-  History, CheckCircle2, XCircle,
+  History, CheckCircle2, XCircle, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,12 +12,19 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useExtractStrategy, ExtractedStrategy } from '@/hooks/useExtractStrategy';
-import { useExtractionHistory, useExtractionUsage } from '@/hooks/useStrategyExtraction';
+import {
+  useExtractionHistory, useExtractionUsage, useDeleteExtraction,
+  type ExtractionRecord,
+} from '@/hooks/useStrategyExtraction';
 
 type SourceType = 'youtube_transcript' | 'article' | 'notes';
 
@@ -119,9 +126,12 @@ export default function StrategyExtractPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [progressIdx, setProgressIdx] = useState(0);
   const [strategy, setStrategy] = useState<ExtractedStrategy | null>(null);
+  const [viewingExtraction, setViewingExtraction] = useState<ExtractionRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ExtractionRecord | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const extract = useExtractStrategy();
+  const deleteExtraction = useDeleteExtraction();
   const isPro = planState === 'pro';
   const isUnlimited = planState === 'expert' || planState === 'guru';
   const historyLimit = isPro ? 5 : undefined;
@@ -171,8 +181,28 @@ export default function StrategyExtractPage() {
 
   const handleTryAgain = () => {
     setStrategy(null);
+    setViewingExtraction(null);
     setCollapsed(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    try {
+      await deleteExtraction.mutateAsync(target.id);
+      toast.success('Extraction deleted — credit restored');
+      // If the deleted row is the one being reviewed, clear the review state
+      if (viewingExtraction?.id === target.id) {
+        setStrategy(null);
+        setViewingExtraction(null);
+        setCollapsed(false);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete extraction');
+    } finally {
+      setPendingDelete(null);
+    }
   };
 
   // Save mutations
@@ -637,6 +667,7 @@ export default function StrategyExtractPage() {
                           onClick={() => {
                             if (!clickable) return;
                             setStrategy(row.extracted_json as ExtractedStrategy);
+                            setViewingExtraction(row);
                             setCollapsed(true);
                             setTimeout(() => {
                               resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -667,6 +698,18 @@ export default function StrategyExtractPage() {
                               Saved
                             </Badge>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Delete extraction"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingDelete(row);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       );
                     })}
@@ -691,6 +734,17 @@ export default function StrategyExtractPage() {
               <RotateCcw className="h-4 w-4" />
               Try Again
             </Button>
+            {viewingExtraction && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setPendingDelete(viewingExtraction)}
+                className="gap-2 text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Extraction
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -723,6 +777,31 @@ export default function StrategyExtractPage() {
           </div>
         </div>
       )}
+      <AlertDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => { if (!open) setPendingDelete(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this extraction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDelete?.saved_strategy_id
+                ? 'This extraction was saved as a strategy. Deleting the extraction will not delete the saved strategy. Continue?'
+                : 'Delete this extraction? This will restore one extraction credit.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteExtraction.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteExtraction.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteExtraction.isPending ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
