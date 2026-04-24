@@ -252,14 +252,40 @@ export default function StrategyExtractPage() {
           <div className="rounded-lg bg-primary/10 p-2">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-foreground">AI Strategy Extractor</h1>
               <Badge variant="outline" className="border-primary/40 text-primary">Pro</Badge>
+              {isUnlimited && (
+                <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/15">
+                  Unlimited extractions
+                </Badge>
+              )}
+              {isPro && remaining !== null && (
+                <span
+                  className={`text-xs font-medium ${
+                    remaining === 0
+                      ? 'text-red-500'
+                      : remaining === 1
+                        ? 'text-amber-500'
+                        : 'text-muted-foreground'
+                  }`}
+                >
+                  {remaining} of 2 remaining this month
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               Paste a YouTube transcript or article and let AI extract a structured trading blueprint
             </p>
+            {outOfCredits && (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="text-xs text-primary hover:underline mt-1"
+              >
+                Upgrade to Expert for unlimited extractions →
+              </button>
+            )}
           </div>
         </div>
       </div>
