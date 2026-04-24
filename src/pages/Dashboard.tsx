@@ -28,6 +28,7 @@ import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanne
 import TierProgressCard from '@/components/dashboard/TierProgressCard';
 import { FoundationLearningPath, FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
 import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
+import LaunchSessionCard from '@/components/dashboard/LaunchSessionCard';
 
 const STAT_TOOLTIPS: Record<string, string> = {
   'Total Trades': 'Number of completed simulated trades.',
@@ -164,6 +165,9 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Live Trading Session */}
+        <LaunchSessionCard />
 
         {/* Header */}
         <div className="flex items-center justify-between">
