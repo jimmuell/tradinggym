@@ -15,6 +15,7 @@ import {
   Shield,
   Target,
   Search,
+  User,
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
@@ -447,6 +448,14 @@ export function AppSidebar() {
                   <NavLink to="/settings" end className={itemClass(isActive('/settings'))} activeClassName="">
                     <Settings className="h-4 w-4 shrink-0" />
                     {!collapsed && <span>Settings</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/profile" end className={itemClass(isActive('/profile'))} activeClassName="">
+                    <User className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Profile</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
