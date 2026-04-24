@@ -199,6 +199,7 @@ export default function StrategyExtractPage() {
         notes: s.notes ?? null,
         is_system: false,
         tier_required: 'foundation',
+        source: 'ai_extracted',
       };
       console.log('[saveStrategyMut] payload:', payload);
       const { error: insertError } = await supabase.from('strategies').insert(payload);
