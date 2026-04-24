@@ -182,6 +182,7 @@ export function useSaveExtractedStrategy() {
           notes: strategy.notes,
           is_system: false,
           tier_required: 'foundation',
+          source: 'ai_extracted',
         })
         .select('id')
         .single();

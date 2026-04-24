@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +27,10 @@ interface Strategy {
   is_system: boolean;
   tier_required: string;
   created_at: string;
+  source?: string | null;
 }
+
+type SourceFilter = 'all' | 'manual' | 'ai_extracted';
 
 const tierBadgeColors: Record<string, string> = {
   foundation: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
@@ -66,6 +70,7 @@ function StrategyCard({
   locked: boolean;
   onClick: () => void;
 }) {
+  const showAiBadge = !strategy.is_system && strategy.source === 'ai_extracted';
   return (
     <Card
       className={`group relative transition-all cursor-pointer ${locked ? 'opacity-50' : 'hover:border-primary/30 hover:shadow-md'}`}
@@ -84,7 +89,18 @@ function StrategyCard({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-1.5">
-            <CardTitle className="text-base leading-snug">{strategy.name}</CardTitle>
+            <div className="flex items-center gap-2 flex-wrap">
+              <CardTitle className="text-base leading-snug">{strategy.name}</CardTitle>
+              {showAiBadge && (
+                <Badge
+                  variant="outline"
+                  className="gap-1 text-xs border-primary/40 bg-primary/10 text-primary"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  AI Extracted
+                </Badge>
+              )}
+            </div>
             <CardDescription className="text-sm leading-relaxed line-clamp-2">
               {strategy.description}
             </CardDescription>
@@ -134,6 +150,7 @@ export default function Strategies() {
   const { user } = useAuth();
   const { isUnlocked, currentTier } = useTier();
   const { toast } = useToast();
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
 
   const { data: systemStrategies, isLoading: loadingSystem } = useQuery({
     queryKey: ['strategies', 'system'],
@@ -166,6 +183,19 @@ export default function Strategies() {
 
   const isFoundation = currentTier === 'foundation';
   const atCap = isFoundation && (userStrategies?.length ?? 0) >= 1;
+
+  const filteredUserStrategies = (userStrategies ?? []).filter((s) => {
+    if (sourceFilter === 'all') return true;
+    if (sourceFilter === 'ai_extracted') return s.source === 'ai_extracted';
+    // 'manual' — treat missing source as manual for legacy rows
+    return s.source === 'manual' || !s.source;
+  });
+
+  const FILTER_OPTIONS: { value: SourceFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'manual', label: 'Manual' },
+    { value: 'ai_extracted', label: 'AI Extracted' },
+  ];
 
   const handleCardClick = (strategy: Strategy, locked: boolean) => {
     if (locked) {
@@ -248,14 +278,31 @@ export default function Strategies() {
 
       {/* My Strategies */}
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">My Strategies</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold text-foreground">My Strategies</h2>
+          <div className="flex flex-wrap gap-2">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSourceFilter(opt.value)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  sourceFilter === opt.value
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted text-muted-foreground border-transparent hover:bg-muted/80'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
         {loadingUser ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <StrategyCardSkeleton />
           </div>
-        ) : userStrategies && userStrategies.length > 0 ? (
+        ) : filteredUserStrategies.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {userStrategies.map((s) => (
+            {filteredUserStrategies.map((s) => (
               <StrategyCard
                 key={s.id}
                 strategy={s}
@@ -270,9 +317,17 @@ export default function Strategies() {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <Plus className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No Strategies Yet</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {sourceFilter === 'all'
+                  ? 'No Strategies Yet'
+                  : sourceFilter === 'ai_extracted'
+                    ? 'No AI-Extracted Strategies'
+                    : 'No Manual Strategies'}
+              </h3>
               <p className="text-sm text-muted-foreground max-w-md mb-6">
-                Create your first strategy to document your trading rules.
+                {sourceFilter === 'all'
+                  ? 'Create your first strategy to document your trading rules.'
+                  : 'Try a different filter or create a new strategy.'}
               </p>
               {!atCap && (
                 <Button className="gap-2" onClick={() => navigate('/strategies/new')}>
