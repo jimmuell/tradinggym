@@ -126,9 +126,12 @@ export default function StrategyExtractPage() {
   const [collapsed, setCollapsed] = useState(false);
   const [progressIdx, setProgressIdx] = useState(0);
   const [strategy, setStrategy] = useState<ExtractedStrategy | null>(null);
+  const [viewingExtraction, setViewingExtraction] = useState<ExtractionRecord | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ExtractionRecord | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const extract = useExtractStrategy();
+  const deleteExtraction = useDeleteExtraction();
   const isPro = planState === 'pro';
   const isUnlimited = planState === 'expert' || planState === 'guru';
   const historyLimit = isPro ? 5 : undefined;
