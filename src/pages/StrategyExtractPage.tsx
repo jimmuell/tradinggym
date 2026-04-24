@@ -3,18 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles, ArrowLeft, Wand2, Check, AlertTriangle, ShieldAlert,
-  Lock, Loader2, RotateCcw, Save, ListChecks,
+  Lock, Loader2, RotateCcw, Save, ListChecks, ChevronDown, ChevronRight,
+  History, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useExtractStrategy, ExtractedStrategy } from '@/hooks/useExtractStrategy';
+import { useExtractionHistory, useExtractionUsage } from '@/hooks/useStrategyExtraction';
 
 type SourceType = 'youtube_transcript' | 'article' | 'notes';
 
