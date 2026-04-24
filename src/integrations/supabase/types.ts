@@ -997,6 +997,75 @@ export type Database = {
           },
         ]
       }
+      strategy_playback_scenarios: {
+        Row: {
+          annotations: Json
+          confirmation_bar_index: number
+          created_at: string
+          description: string | null
+          direction: string
+          entry_bar_index: number
+          entry_price: number
+          exit_bar_index: number
+          exit_price: number
+          id: string
+          indicator_tags: string[]
+          instrument: string
+          is_active: boolean
+          name: string
+          ohlcv_data: Json
+          result_points: number
+          setup_bar_index: number
+          stop_price: number
+          target_price: number
+          timeframe: string
+        }
+        Insert: {
+          annotations?: Json
+          confirmation_bar_index: number
+          created_at?: string
+          description?: string | null
+          direction?: string
+          entry_bar_index: number
+          entry_price: number
+          exit_bar_index: number
+          exit_price: number
+          id?: string
+          indicator_tags?: string[]
+          instrument?: string
+          is_active?: boolean
+          name: string
+          ohlcv_data: Json
+          result_points: number
+          setup_bar_index: number
+          stop_price: number
+          target_price: number
+          timeframe?: string
+        }
+        Update: {
+          annotations?: Json
+          confirmation_bar_index?: number
+          created_at?: string
+          description?: string | null
+          direction?: string
+          entry_bar_index?: number
+          entry_price?: number
+          exit_bar_index?: number
+          exit_price?: number
+          id?: string
+          indicator_tags?: string[]
+          instrument?: string
+          is_active?: boolean
+          name?: string
+          ohlcv_data?: Json
+          result_points?: number
+          setup_bar_index?: number
+          stop_price?: number
+          target_price?: number
+          timeframe?: string
+        }
+        Relationships: []
+      }
       trades: {
         Row: {
           checklist_session_id: string | null
