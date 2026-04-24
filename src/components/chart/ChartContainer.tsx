@@ -382,8 +382,9 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     chartRef.current?.timeScale().setVisibleLogicalRange({ from: -5, to: 100 });
   }, []);
 
-  // Load data when timeframe changes
+  // Load data when timeframe changes (skipped entirely in playback mode)
   useEffect(() => {
+    if (playbackMode) return;
     saveCurrentRange();
     let cancelled = false;
     loadTimeframeData(timeframe).then((data) => {
@@ -417,7 +418,30 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       }
     });
     return () => { cancelled = true; };
-  }, [timeframe]);
+  }, [timeframe, playbackMode]);
+
+  // Playback mode: drive chart from supplied scenario candles + barCount
+  useEffect(() => {
+    if (!playbackMode || !candleSeriesRef.current || !playbackCandles) return;
+    allDataRef.current = playbackCandles;
+    const count = Math.max(1, Math.min(playbackBarCount ?? playbackCandles.length, playbackCandles.length));
+    const slice = playbackCandles.slice(0, count);
+    candleSeriesRef.current.setData(slice);
+    smaSeriesRef.current?.setData([]);
+    emaSeriesRef.current?.setData([]);
+    const last = slice[slice.length - 1];
+    if (last) {
+      setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+      onPriceUpdate(last.close);
+    }
+    // Fit a sensible window: show the slice + some leading room
+    const total = playbackCandles.length;
+    chartRef.current?.timeScale().setVisibleLogicalRange({
+      from: Math.max(0, count - 60),
+      to: Math.min(total, count + 10),
+    });
+  }, [playbackMode, playbackCandles, playbackBarCount, onPriceUpdate]);
+
 
   // Handle replay mode toggle
   useEffect(() => {
