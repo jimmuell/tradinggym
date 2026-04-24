@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target, Sparkles } from 'lucide-react';
+import { BookOpen, Plus, Lock, ChevronRight, Sparkles, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier, TierState } from '@/contexts/TierContext';
+import { useScenarioMatch } from '@/hooks/useScenarioMatch';
 import HelpSheet from '@/components/HelpSheet';
 
 interface Strategy {
@@ -65,12 +66,15 @@ function StrategyCard({
   strategy,
   locked,
   onClick,
+  onWatchDemo,
 }: {
   strategy: Strategy;
   locked: boolean;
   onClick: () => void;
+  onWatchDemo: (s: Strategy) => void;
 }) {
   const showAiBadge = !strategy.is_system && strategy.source === 'ai_extracted';
+  const { data: matchedScenarioId } = useScenarioMatch(locked ? null : strategy);
   return (
     <Card
       className={`group relative transition-all cursor-pointer ${locked ? 'opacity-50' : 'hover:border-primary/30 hover:shadow-md'}`}
@@ -134,7 +138,20 @@ function StrategyCard({
           )}
         </div>
         {!locked && (
-          <div className="flex justify-end mt-3">
+          <div className="flex justify-between items-center mt-3 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+              disabled={!matchedScenarioId}
+              onClick={(e) => {
+                e.stopPropagation();
+                onWatchDemo(strategy);
+              }}
+            >
+              <Play className="h-3 w-3" />
+              Watch Demo
+            </Button>
             <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
               View Details <ChevronRight className="h-3.5 w-3.5" />
             </Button>
@@ -208,6 +225,23 @@ export default function Strategies() {
     navigate(`/strategies/${strategy.id}`);
   };
 
+  const handleWatchDemo = async (strategy: Strategy) => {
+    // Match the strategy to a scenario via the same logic as the card hook.
+    const { data } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from('strategy_playback_scenarios' as any)
+      .select('id, indicator_tags, direction')
+      .eq('is_active', true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const scenarios = (data ?? []) as any[];
+    if (!scenarios.length) {
+      toast({ title: 'No demo available', description: 'No playback scenarios have been added yet.' });
+      return;
+    }
+    // simple first-match fallback (the hook scoring is fine for the badge state)
+    navigate(`/simulator?playback=${scenarios[0].id}`);
+  };
+
   return (
     <div className="p-6 space-y-8 max-w-5xl mx-auto">
       {/* Header */}
@@ -269,6 +303,7 @@ export default function Strategies() {
                   strategy={s}
                   locked={locked}
                   onClick={() => handleCardClick(s, locked)}
+                  onWatchDemo={handleWatchDemo}
                 />
               );
             })}
@@ -308,6 +343,7 @@ export default function Strategies() {
                 strategy={s}
                 locked={false}
                 onClick={() => navigate(`/strategies/${s.id}`)}
+                onWatchDemo={handleWatchDemo}
               />
             ))}
           </div>

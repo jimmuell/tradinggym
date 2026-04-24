@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import SimulatorHintBanner from '@/components/chart/SimulatorHintBanner';
 import { SLTPConfig } from '@/components/chart/TradeOrderPanel';
 import TopBar from '@/components/chart/TopBar';
@@ -16,13 +17,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
-import { IChartApi, ISeriesApi } from 'lightweight-charts';
+import type { CandlestickData, IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
 import FinancialDisclaimer from '@/components/FinancialDisclaimer';
+import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
+import { usePlaybackMode } from '@/hooks/usePlaybackMode';
+import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
+import AnnotationLayer from '@/components/playback/AnnotationLayer';
+import { Sparkles, BookOpen } from 'lucide-react';
 
 export default function Simulator() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const playbackId = searchParams.get('playback');
+  const practiceMode = searchParams.get('practice') === '1';
+
   const [tradeOpen, setTradeOpen] = useState(false);
   const [timeframe, setTimeframe] = useState<Timeframe>('1m');
   const [replayMode, setReplayMode] = useState(false);
@@ -35,19 +46,56 @@ export default function Simulator() {
   const [drawingCount, setDrawingCount] = useState(0);
   const chartApiRef = useRef<IChartApi | null>(null);
   const seriesApiRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const [chartApiState, setChartApiState] = useState<IChartApi | null>(null);
+  const [seriesApiState, setSeriesApiState] = useState<ISeriesApi<'Candlestick'> | null>(null);
   const [blueprintSteps, setBlueprintSteps] = useState<number[]>([]);
   const [blueprintResetKey, setBlueprintResetKey] = useState(0);
   const [instrument, setInstrument] = useState<InstrumentKey>(() =>
     (localStorage.getItem('tg-selected-instrument') as InstrumentKey) || 'MES'
   );
 
+  // ---- Playback ----
+  const isPlaybackMode = !!playbackId && !practiceMode;
+  const { data: scenario } = usePlaybackScenario(playbackId);
+  const [playbackBarCount, setPlaybackBarCount] = useState(0);
+
+  const playbackCandles: CandlestickData<Time>[] | undefined = useMemo(() => {
+    if (!scenario) return undefined;
+    return scenario.ohlcv_data.map((c) => ({
+      time: c.time as Time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+    }));
+  }, [scenario]);
+
+  const playback = usePlaybackMode({
+    scenario,
+    onBarIndexChange: setPlaybackBarCount,
+  });
+
+  // Practice mode bootstrap: when ?practice=1 with the same scenario, render the candles
+  // but let the user trade. We feed all candles and let the user act on the last bar.
+  const isPracticeWithScenario = !!playbackId && practiceMode && !!scenario;
+
+  const handleTryItYourself = () => {
+    setSearchParams({ playback: playbackId!, practice: '1' });
+  };
+
+  const exitPlayback = () => {
+    setSearchParams({});
+    navigate('/strategies');
+  };
+
   const handleInstrumentChange = (inst: InstrumentKey) => {
     setInstrument(inst);
     localStorage.setItem('tg-selected-instrument', inst);
   };
 
-  // Keyboard shortcuts for drawing tools + Escape
+  // Keyboard shortcuts for drawing tools + Escape (disabled during playback)
   useEffect(() => {
+    if (isPlaybackMode) return;
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -62,7 +110,7 @@ export default function Simulator() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, []);
+  }, [isPlaybackMode]);
 
   const saveTradeMutation = useMutation({
     mutationFn: async (data: TradeCloseData & { stepsCompleted?: number[] }) => {
@@ -121,14 +169,30 @@ export default function Simulator() {
           <div className="px-3 pt-2">
             <FinancialDisclaimer />
           </div>
-          <SimulatorHintBanner />
+          {!isPlaybackMode && !isPracticeWithScenario && <SimulatorHintBanner />}
+          {isPracticeWithScenario && scenario && (
+            <div className="px-3 py-2 bg-primary/10 border-b border-primary/30 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-[13px] text-foreground">
+                <span className="font-semibold">Practice mode:</span> {scenario.name} — try entering at ~{scenario.entry_price.toFixed(2)} with stop {scenario.stop_price.toFixed(2)} and target {scenario.target_price.toFixed(2)}.
+              </span>
+              <button
+                onClick={() => setSearchParams({ playback: playbackId! })}
+                className="ml-auto text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <BookOpen className="h-3 w-3" /> Watch demo again
+              </button>
+            </div>
+          )}
           <div className="flex flex-1 overflow-hidden">
-            <LeftToolbar
-              activeTool={activeTool}
-              onToolChange={setActiveTool}
-              drawingCount={drawingCount}
-              onClearAll={() => (window as Window & { __drawingOverlayClearAll?: () => void }).__drawingOverlayClearAll?.()}
-            />
+            {!isPlaybackMode && (
+              <LeftToolbar
+                activeTool={activeTool}
+                onToolChange={setActiveTool}
+                drawingCount={drawingCount}
+                onClearAll={() => (window as Window & { __drawingOverlayClearAll?: () => void }).__drawingOverlayClearAll?.()}
+              />
+            )}
             <ChartContainer
               timeframe={timeframe}
               replayMode={replayMode}
@@ -151,15 +215,50 @@ export default function Simulator() {
               onChartReady={(chart, series) => {
                 chartApiRef.current = chart;
                 seriesApiRef.current = series;
+                setChartApiState(chart);
+                setSeriesApiState(series);
               }}
               instrument={instrument}
+              playbackMode={isPlaybackMode}
+              playbackCandles={isPlaybackMode ? playbackCandles : undefined}
+              playbackBarCount={isPlaybackMode ? playbackBarCount : undefined}
+              playbackChildren={
+                isPlaybackMode && scenario ? (
+                  <>
+                    <AnnotationLayer
+                      chartApi={chartApiState}
+                      seriesApi={seriesApiState}
+                      scenario={scenario}
+                      currentPhase={playback.phase}
+                      visibleBarCount={playbackBarCount}
+                    />
+                    <PlaybackOverlay
+                      scenario={scenario}
+                      phase={playback.phase}
+                      isPlaying={playback.isPlaying}
+                      speed={playback.speed}
+                      onPlay={playback.play}
+                      onPause={playback.pause}
+                      onStepBack={playback.stepBack}
+                      onStepForward={playback.stepForward}
+                      onReset={playback.reset}
+                      onExit={exitPlayback}
+                      onSpeedChange={playback.setSpeed}
+                      onGoToPhase={playback.goToPhase}
+                      onTryItYourself={handleTryItYourself}
+                    />
+                  </>
+                ) : null
+              }
             />
-            <RightToolbar />
-            <BlueprintChecklist
-              onStepsChange={setBlueprintSteps}
-              resetKey={blueprintResetKey}
-            />
-            {tradeOpen && (
+            {!isPlaybackMode && <RightToolbar />}
+            {!isPlaybackMode && (
+              <BlueprintChecklist
+                onStepsChange={setBlueprintSteps}
+                resetKey={blueprintResetKey}
+              />
+            )}
+            {tradeOpen && !isPlaybackMode && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}
                 lastPrice={lastPrice}
@@ -171,7 +270,7 @@ export default function Simulator() {
               />
             )}
           </div>
-          <BottomBar />
+          {!isPlaybackMode && <BottomBar />}
         </div>
       </div>
     </SidebarProvider>

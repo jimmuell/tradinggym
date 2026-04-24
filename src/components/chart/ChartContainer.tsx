@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import {
   createChart,
   CandlestickSeries,
@@ -67,6 +67,14 @@ interface ChartContainerProps {
   onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
   onDrawingCountChange?: (count: number) => void;
   instrument?: InstrumentKey;
+  /** Playback mode: when provided, render these candles instead of CSV data. */
+  playbackCandles?: CandlestickData<Time>[];
+  /** How many bars of `playbackCandles` are currently visible. */
+  playbackBarCount?: number;
+  /** Disable trade controls / replay UI when in playback mode. */
+  playbackMode?: boolean;
+  /** Extra overlays (annotations, controls) rendered inside the chart wrapper. */
+  playbackChildren?: ReactNode;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
@@ -101,7 +109,7 @@ function CurrencyDropdown() {
   );
 }
 
-export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady, onDrawingCountChange, instrument = 'MES' }: ChartContainerProps) {
+export default function ChartContainer({ timeframe, replayMode, onExitReplay, onPriceUpdate, onRegisterBuyHandler, onRegisterSellHandler, onSLTPDrag, onTradeClose, activeTool, isCoachMode = false, onChartReady, onDrawingCountChange, instrument = 'MES', playbackCandles, playbackBarCount, playbackMode = false, playbackChildren }: ChartContainerProps) {
   const inst = INSTRUMENTS[instrument];
   const { theme } = useSettings();
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -374,8 +382,9 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     chartRef.current?.timeScale().setVisibleLogicalRange({ from: -5, to: 100 });
   }, []);
 
-  // Load data when timeframe changes
+  // Load data when timeframe changes (skipped entirely in playback mode)
   useEffect(() => {
+    if (playbackMode) return;
     saveCurrentRange();
     let cancelled = false;
     loadTimeframeData(timeframe).then((data) => {
@@ -409,7 +418,30 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       }
     });
     return () => { cancelled = true; };
-  }, [timeframe]);
+  }, [timeframe, playbackMode]);
+
+  // Playback mode: drive chart from supplied scenario candles + barCount
+  useEffect(() => {
+    if (!playbackMode || !candleSeriesRef.current || !playbackCandles) return;
+    allDataRef.current = playbackCandles;
+    const count = Math.max(1, Math.min(playbackBarCount ?? playbackCandles.length, playbackCandles.length));
+    const slice = playbackCandles.slice(0, count);
+    candleSeriesRef.current.setData(slice);
+    smaSeriesRef.current?.setData([]);
+    emaSeriesRef.current?.setData([]);
+    const last = slice[slice.length - 1];
+    if (last) {
+      setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
+      onPriceUpdate(last.close);
+    }
+    // Fit a sensible window: show the slice + some leading room
+    const total = playbackCandles.length;
+    chartRef.current?.timeScale().setVisibleLogicalRange({
+      from: Math.max(0, count - 60),
+      to: Math.min(total, count + 10),
+    });
+  }, [playbackMode, playbackCandles, playbackBarCount, onPriceUpdate]);
+
 
   // Handle replay mode toggle
   useEffect(() => {
@@ -562,7 +594,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   const replayIndexRef = useRef(0);
   replayIndexRef.current = replayIndex;
   const replayModeRef = useRef(false);
-  const isReplaySessionActive = (replayMode && !replayPositioning) || replayIndex > 0;
+  const isReplaySessionActive = !playbackMode && ((replayMode && !replayPositioning) || replayIndex > 0);
   replayModeRef.current = isReplaySessionActive;
 
   useEffect(() => {
@@ -832,14 +864,16 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   return (
     <div className="relative flex-1 min-w-0 bg-background">
       <div ref={chartContainerRef} className="absolute inset-0" />
-      <DrawingOverlay
-        activeTool={activeTool ?? null}
-        chartApi={chartRef.current}
-        seriesApi={candleSeriesRef.current}
-        isCoachMode={isCoachMode}
-        onDrawingCountChange={onDrawingCountChange}
-      />
-
+      {!playbackMode && (
+        <DrawingOverlay
+          activeTool={activeTool ?? null}
+          chartApi={chartRef.current}
+          seriesApi={candleSeriesRef.current}
+          isCoachMode={isCoachMode}
+          onDrawingCountChange={onDrawingCountChange}
+        />
+      )}
+      {playbackChildren}
       {/* Replay positioning overlay — vertical line + ghost */}
       {replayPositioning && replayLineX != null && (
         <>
@@ -892,26 +926,30 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           </span>
           <span>Vol{ohlcv.volume}</span>
         </div>
-        <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
-          <div
-            onClick={() => placePosition('short')}
-            className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
-          >
-            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
-            <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
+        {!playbackMode && (
+          <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
+            <div
+              onClick={() => placePosition('short')}
+              className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
+            >
+              <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
+              <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
+            </div>
+            <div className="flex flex-col items-center justify-center text-[12px] text-muted-foreground leading-tight px-2 py-1.5 bg-muted border border-border rounded-[6px] min-w-[36px]">
+              <span>0.25</span><span>{positions.length}</span>
+            </div>
+            <div
+              onClick={() => placePosition('long')}
+              className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
+            >
+              <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
+              <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center text-[12px] text-muted-foreground leading-tight px-2 py-1.5 bg-muted border border-border rounded-[6px] min-w-[36px]">
-            <span>0.25</span><span>{positions.length}</span>
-          </div>
-          <div
-            onClick={() => placePosition('long')}
-            className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
-          >
-            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
-            <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
-          </div>
-        </div>
-        <div className="text-[12px] text-muted-foreground mt-1">▼ {positions.length}</div>
+        )}
+        {!playbackMode && (
+          <div className="text-[12px] text-muted-foreground mt-1">▼ {positions.length}</div>
+        )}
       </div>
 
       {/* Active positions overlay */}
