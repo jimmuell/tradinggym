@@ -157,25 +157,38 @@ export default function StrategyExtractPage() {
   const saveStrategyMut = useMutation({
     mutationFn: async (s: ExtractedStrategy) => {
       if (!user?.id) throw new Error('Not authenticated');
+      const payload = {
+        user_id: user.id,
+        name: s.name,
+        description: s.description,
+        instrument: s.instrument === 'Any' ? null : s.instrument,
+        timeframe: s.timeframe === 'Any' ? null : s.timeframe,
+        direction_bias: s.direction_bias,
+        entry_rules: s.entry_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
+        exit_rules: s.exit_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
+        notes: s.notes,
+        is_system: false,
+        tier_required: 'foundation',
+      };
+      console.log('[saveStrategyMut] INSERT strategies payload:', payload);
       const { data, error } = await supabase
         .from('strategies')
-        .insert({
-          user_id: user.id,
-          name: s.name,
-          description: s.description,
-          instrument: s.instrument === 'Any' ? null : s.instrument,
-          timeframe: s.timeframe === 'Any' ? null : s.timeframe,
-          direction_bias: s.direction_bias,
-          entry_rules: s.entry_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
-          exit_rules: s.exit_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
-          notes: s.notes,
-          is_system: false,
-          tier_required: 'foundation',
-        })
+        .insert(payload)
         .select('id')
         .single();
-      if (error) throw error;
+      if (error) {
+        console.error('[saveStrategyMut] Supabase error:', error);
+        console.error('[saveStrategyMut] error.message:', error.message);
+        console.error('[saveStrategyMut] error.code:', error.code);
+        console.error('[saveStrategyMut] error.details:', error.details);
+        console.error('[saveStrategyMut] error.hint:', error.hint);
+        throw error;
+      }
       return data;
+    },
+    onError: (error) => {
+      console.error('[saveStrategyMut onError] Full error object:', error);
+      console.error('[saveStrategyMut onError] JSON:', JSON.stringify(error, null, 2));
     },
   });
 
@@ -198,7 +211,7 @@ export default function StrategyExtractPage() {
           type: 'toggle' as const,
           is_core: c.is_core,
         }));
-      const { error } = await supabase.from('checklist_templates').insert({
+      const payload = {
         user_id: user.id,
         strategy_name: s.name,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -206,8 +219,17 @@ export default function StrategyExtractPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         execution_items: execution as any,
         is_default: false,
-      });
-      if (error) throw error;
+      };
+      console.log('[saveChecklistMut] INSERT checklist_templates payload:', payload);
+      const { error } = await supabase.from('checklist_templates').insert(payload);
+      if (error) {
+        console.error('[saveChecklistMut] Supabase error:', error);
+        throw error;
+      }
+    },
+    onError: (error) => {
+      console.error('[saveChecklistMut onError] Full error object:', error);
+      console.error('[saveChecklistMut onError] JSON:', JSON.stringify(error, null, 2));
     },
   });
 
