@@ -85,6 +85,14 @@ export default function StrategyExtractPage() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const extract = useExtractStrategy();
+  const isPro = planState === 'pro';
+  const isUnlimited = planState === 'expert' || planState === 'guru';
+  const historyLimit = isPro ? 5 : undefined;
+  const { data: history, isLoading: historyLoading } = useExtractionHistory(historyLimit);
+  const { data: usageCount } = useExtractionUsage();
+  const remaining = isPro ? Math.max(0, 2 - (usageCount ?? 0)) : null;
+  const outOfCredits = isPro && remaining === 0;
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Rotate progress messages every 3s while loading
   useEffect(() => {
