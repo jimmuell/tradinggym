@@ -154,41 +154,54 @@ export default function StrategyExtractPage() {
   };
 
   // Save mutations
+  // P44-style fix: the `.insert().select().single()` pattern can silently
+  // fail when RLS on the returning SELECT doesn't see the row immediately.
+  // Insert first, then query back by user_id + name if we need the id.
   const saveStrategyMut = useMutation({
     mutationFn: async (s: ExtractedStrategy) => {
+      console.log('[saveStrategyMut] start, userId:', user?.id);
       if (!user?.id) throw new Error('Not authenticated');
       const payload = {
         user_id: user.id,
         name: s.name,
-        description: s.description,
-        instrument: s.instrument === 'Any' ? null : s.instrument,
-        timeframe: s.timeframe === 'Any' ? null : s.timeframe,
-        direction_bias: s.direction_bias,
-        entry_rules: s.entry_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
-        exit_rules: s.exit_rules.map((r, i) => `${i + 1}. ${r}`).join('\n'),
-        notes: s.notes,
+        description: s.description ?? null,
+        instrument: s.instrument && s.instrument !== 'Any' ? s.instrument : null,
+        timeframe: s.timeframe && s.timeframe !== 'Any' ? s.timeframe : null,
+        direction_bias: s.direction_bias ?? null,
+        entry_rules: Array.isArray(s.entry_rules)
+          ? s.entry_rules.map((r, i) => `${i + 1}. ${r}`).join('\n')
+          : null,
+        exit_rules: Array.isArray(s.exit_rules)
+          ? s.exit_rules.map((r, i) => `${i + 1}. ${r}`).join('\n')
+          : null,
+        notes: s.notes ?? null,
         is_system: false,
         tier_required: 'foundation',
       };
-      console.log('[saveStrategyMut] INSERT strategies payload:', payload);
-      const { data, error } = await supabase
-        .from('strategies')
-        .insert(payload)
-        .select('id')
-        .single();
-      if (error) {
-        console.error('[saveStrategyMut] Supabase error:', error);
-        console.error('[saveStrategyMut] error.message:', error.message);
-        console.error('[saveStrategyMut] error.code:', error.code);
-        console.error('[saveStrategyMut] error.details:', error.details);
-        console.error('[saveStrategyMut] error.hint:', error.hint);
-        throw error;
+      console.log('[saveStrategyMut] payload:', payload);
+      const { error: insertError } = await supabase.from('strategies').insert(payload);
+      if (insertError) {
+        console.error('[saveStrategyMut] insert error:', insertError);
+        throw insertError;
       }
-      return data;
+      // Best-effort fetch of the id we just inserted. Non-fatal on failure.
+      const { data: rows, error: fetchError } = await supabase
+        .from('strategies')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', s.name)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (fetchError) {
+        console.warn('[saveStrategyMut] fetch-after-insert warning:', fetchError);
+      }
+      return rows?.[0] ?? { id: null };
     },
     onError: (error) => {
       console.error('[saveStrategyMut onError] Full error object:', error);
-      console.error('[saveStrategyMut onError] JSON:', JSON.stringify(error, null, 2));
+      try {
+        console.error('[saveStrategyMut onError] JSON:', JSON.stringify(error, null, 2));
+      } catch { /* ignore */ }
     },
   });
 
@@ -234,30 +247,38 @@ export default function StrategyExtractPage() {
   });
 
   const handleSaveStrategy = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveStrategy] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await saveStrategyMut.mutateAsync(strategy);
       qc.invalidateQueries({ queryKey: ['strategies'] });
       toast.success('Strategy saved');
       navigate('/strategies');
     } catch (e) {
+      console.error('[handleSaveStrategy] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save strategy');
     }
   };
 
   const handleSaveChecklist = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveChecklist] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await saveChecklistMut.mutateAsync(strategy);
       qc.invalidateQueries({ queryKey: ['checklist-templates'] });
       toast.success('Checklist template created — available in your pre-trade checklist');
     } catch (e) {
+      console.error('[handleSaveChecklist] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save checklist');
     }
   };
 
   const handleSaveBoth = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveBoth] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await Promise.all([
         saveStrategyMut.mutateAsync(strategy),
@@ -268,6 +289,7 @@ export default function StrategyExtractPage() {
       toast.success('Strategy and checklist saved');
       navigate('/strategies');
     } catch (e) {
+      console.error('[handleSaveBoth] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save');
     }
   };
