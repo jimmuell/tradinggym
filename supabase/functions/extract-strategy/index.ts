@@ -211,15 +211,25 @@ serve(async (req) => {
       }),
     });
 
+    const markFailed = async (msg: string) => {
+      await admin
+        .from("strategy_extractions")
+        .update({ status: "failed", error_message: msg })
+        .eq("id", extraction.id);
+    };
+
     if (aiResp.status === 429) {
+      await markFailed("Rate limit exceeded");
       return json({ error: "Rate limit exceeded. Please try again shortly." }, 429);
     }
     if (aiResp.status === 402) {
+      await markFailed("AI credits exhausted");
       return json({ error: "AI credits exhausted. Please add credits in workspace settings." }, 402);
     }
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       log("AI gateway error", { status: aiResp.status, errText });
+      await markFailed("AI extraction failed");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -228,6 +238,7 @@ serve(async (req) => {
     const argsStr = toolCall?.function?.arguments;
     if (!argsStr) {
       log("Missing tool call", aiJson);
+      await markFailed("Missing tool call");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -236,6 +247,7 @@ serve(async (req) => {
       strategy = JSON.parse(argsStr);
     } catch (e) {
       log("Failed to parse tool args", { argsStr });
+      await markFailed("Failed to parse AI response");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -246,12 +258,20 @@ serve(async (req) => {
       !Array.isArray(strategy.exit_rules) ||
       !Array.isArray(strategy.checklist_steps)
     ) {
+      await markFailed("Invalid shape returned");
       return json({ error: "AI extraction returned invalid shape" }, 502);
     }
+
+    // Mark as complete and store the extracted JSON
+    await admin
+      .from("strategy_extractions")
+      .update({ status: "complete", extracted_json: strategy })
+      .eq("id", extraction.id);
 
     const tokensUsed = aiJson?.usage?.total_tokens ?? 0;
 
     return json({
+      extraction_id: extraction.id,
       strategy,
       tokens_used: tokensUsed,
       source_type: sourceType,
