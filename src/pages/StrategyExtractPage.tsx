@@ -31,7 +31,7 @@ type SourceType = 'youtube_transcript' | 'article' | 'notes';
 const SOURCE_TABS: { value: SourceType; label: string; placeholder: string }[] = [
   {
     value: 'youtube_transcript',
-    label: 'YouTube Transcript',
+    label: 'Video Transcript',
     placeholder:
       'Paste the YouTube transcript here... You can get this from YouTube → three dots → Show transcript → Copy',
   },
