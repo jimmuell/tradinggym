@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -22,6 +22,7 @@ export type ExtractedStrategy = {
 };
 
 export type ExtractStrategyResponse = {
+  extraction_id?: string;
   strategy: ExtractedStrategy;
   tokens_used: number;
   source_type: string;
@@ -33,6 +34,7 @@ export type ExtractStrategyInput = {
 };
 
 export function useExtractStrategy() {
+  const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: ExtractStrategyInput): Promise<ExtractStrategyResponse> => {
       const { data, error } = await supabase.functions.invoke('extract-strategy', {
@@ -53,6 +55,10 @@ export function useExtractStrategy() {
       }
       if (data?.error) throw new Error(data.error);
       return data as ExtractStrategyResponse;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['strategy-extractions'] });
+      qc.invalidateQueries({ queryKey: ['extraction-usage'] });
     },
     onError: (e: Error) => {
       toast.error(e.message || 'Extraction failed');

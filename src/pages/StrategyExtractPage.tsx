@@ -3,18 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles, ArrowLeft, Wand2, Check, AlertTriangle, ShieldAlert,
-  Lock, Loader2, RotateCcw, Save, ListChecks,
+  Lock, Loader2, RotateCcw, Save, ListChecks, ChevronDown, ChevronRight,
+  History, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useExtractStrategy, ExtractedStrategy } from '@/hooks/useExtractStrategy';
+import { useExtractionHistory, useExtractionUsage } from '@/hooks/useStrategyExtraction';
 
 type SourceType = 'youtube_transcript' | 'article' | 'notes';
 
@@ -39,6 +42,21 @@ const PROGRESS_MESSAGES = [
 
 const MAX_CHARS = 50000;
 const MIN_CHARS = 100;
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'just now';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `${d}d ago`;
+  const mo = Math.floor(d / 30);
+  if (mo < 12) return `${mo}mo ago`;
+  return `${Math.floor(mo / 12)}y ago`;
+}
 
 function ConfidenceBanner({ confidence }: { confidence: ExtractedStrategy['confidence'] }) {
   const map = {
@@ -82,6 +100,14 @@ export default function StrategyExtractPage() {
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const extract = useExtractStrategy();
+  const isPro = planState === 'pro';
+  const isUnlimited = planState === 'expert' || planState === 'guru';
+  const historyLimit = isPro ? 5 : undefined;
+  const { data: history, isLoading: historyLoading } = useExtractionHistory(historyLimit);
+  const { data: usageCount } = useExtractionUsage();
+  const remaining = isPro ? Math.max(0, 2 - (usageCount ?? 0)) : null;
+  const outOfCredits = isPro && remaining === 0;
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Rotate progress messages every 3s while loading
   useEffect(() => {
@@ -100,7 +126,11 @@ export default function StrategyExtractPage() {
     () => SOURCE_TABS.find((s) => s.value === sourceType)?.placeholder ?? '',
     [sourceType],
   );
-  const canSubmit = charCount >= MIN_CHARS && charCount <= MAX_CHARS && !extract.isPending;
+  const canSubmit =
+    charCount >= MIN_CHARS &&
+    charCount <= MAX_CHARS &&
+    !extract.isPending &&
+    !outOfCredits;
 
   const handleExtract = async () => {
     if (!canSubmit) return;
@@ -237,14 +267,40 @@ export default function StrategyExtractPage() {
           <div className="rounded-lg bg-primary/10 p-2">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-foreground">AI Strategy Extractor</h1>
               <Badge variant="outline" className="border-primary/40 text-primary">Pro</Badge>
+              {isUnlimited && (
+                <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/15">
+                  Unlimited extractions
+                </Badge>
+              )}
+              {isPro && remaining !== null && (
+                <span
+                  className={`text-xs font-medium ${
+                    remaining === 0
+                      ? 'text-red-500'
+                      : remaining === 1
+                        ? 'text-amber-500'
+                        : 'text-muted-foreground'
+                  }`}
+                >
+                  {remaining} of 2 remaining this month
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               Paste a YouTube transcript or article and let AI extract a structured trading blueprint
             </p>
+            {outOfCredits && (
+              <button
+                onClick={() => navigate('/pricing')}
+                className="text-xs text-primary hover:underline mt-1"
+              >
+                Upgrade to Expert for unlimited extractions →
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -467,7 +523,100 @@ export default function StrategyExtractPage() {
         </div>
       )}
 
-      {/* Sticky action bar */}
+      {/* Past Extractions */}
+      {!isStarter && (
+        <section className="space-y-3">
+          <button
+            onClick={() => setHistoryOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+          >
+            {historyOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            <History className="h-4 w-4" />
+            Past Extractions
+            {history && history.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{history.length}</Badge>
+            )}
+          </button>
+
+          {historyOpen && (
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                {historyLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : !history || history.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                    <Sparkles className="h-6 w-6 opacity-50" />
+                    <p className="text-sm">No extractions yet</p>
+                  </div>
+                ) : (
+                  <>
+                    {history.map((row) => {
+                      const name = row.extracted_json?.name || 'Untitled extraction';
+                      const isComplete = row.status === 'complete';
+                      const isFailed = row.status === 'failed';
+                      const clickable = isComplete && !!row.extracted_json;
+                      const relative = timeAgo(row.created_at);
+                      return (
+                        <div
+                          key={row.id}
+                          onClick={() => {
+                            if (!clickable) return;
+                            setStrategy(row.extracted_json as ExtractedStrategy);
+                            setCollapsed(true);
+                            setTimeout(() => {
+                              resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-md border border-border ${
+                            clickable ? 'cursor-pointer hover:bg-muted/40' : 'opacity-70'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-foreground truncate">{name}</div>
+                            <div className="text-xs text-muted-foreground">{relative}</div>
+                          </div>
+                          {isComplete && (
+                            <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/15 gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Complete
+                            </Badge>
+                          )}
+                          {isFailed && (
+                            <Badge className="bg-red-500/15 text-red-500 border-red-500/30 hover:bg-red-500/15 gap-1">
+                              <XCircle className="h-3 w-3" />
+                              Failed
+                            </Badge>
+                          )}
+                          {row.saved_strategy_id && (
+                            <Badge className="bg-blue-500/15 text-blue-500 border-blue-500/30 hover:bg-blue-500/15">
+                              Saved
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {isPro && history.length >= 5 && (
+                      <p className="text-xs text-muted-foreground pt-2 text-center">
+                        Upgrade to Expert to see full history
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </section>
+      )}
+
+
       {strategy && (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm z-40">
           <div className="max-w-4xl mx-auto p-4 flex flex-wrap gap-2 justify-end items-center">

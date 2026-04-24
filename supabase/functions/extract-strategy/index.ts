@@ -111,10 +111,16 @@ serve(async (req) => {
     const body = await req.json().catch(() => null);
     if (!body) return json({ error: "Invalid JSON body" }, 400);
 
-    const text = typeof body.text === "string" ? body.text : "";
+    // Accept both legacy `text` and new `source_text` field names
+    const text =
+      typeof body.source_text === "string"
+        ? body.source_text
+        : typeof body.text === "string"
+          ? body.text
+          : "";
     const sourceType = typeof body.source_type === "string" ? body.source_type : "notes";
 
-    if (text.trim().length < 100) {
+    if (text.trim().length < 50) {
       return json({ error: "Text too short to extract a strategy" }, 400);
     }
     if (text.length > 50000) {
@@ -134,10 +140,56 @@ serve(async (req) => {
 
     if (profileErr || !profile) return json({ error: "Profile not found" }, 404);
     if (profile.plan_state === "starter") {
-      return json({ error: "Pro plan required to use AI extraction" }, 403);
+      return json(
+        {
+          error: "Upgrade to Pro to use AI Strategy Extraction.",
+          upgrade_required: true,
+        },
+        403,
+      );
     }
 
-    log("Calling AI gateway", { userId, sourceType, length: text.length });
+    // Usage limit — 2/month for Pro
+    if (profile.plan_state === "pro") {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count } = await admin
+        .from("strategy_extractions")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+
+      if ((count ?? 0) >= 2) {
+        return json(
+          {
+            error:
+              "Monthly extraction limit reached (2/month on Pro). Upgrade to Expert for unlimited extractions.",
+            limit_reached: true,
+          },
+          429,
+        );
+      }
+    }
+
+    // Insert a pending extraction record
+    const { data: extraction, error: insertError } = await admin
+      .from("strategy_extractions")
+      .insert({
+        user_id: userId,
+        source_text: text.slice(0, 8000),
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (insertError || !extraction) {
+      log("Failed to create extraction record", { insertError });
+      return json({ error: "Failed to create extraction record" }, 500);
+    }
+
+    log("Calling AI gateway", { userId, sourceType, length: text.length, extractionId: extraction.id });
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -159,15 +211,25 @@ serve(async (req) => {
       }),
     });
 
+    const markFailed = async (msg: string) => {
+      await admin
+        .from("strategy_extractions")
+        .update({ status: "failed", error_message: msg })
+        .eq("id", extraction.id);
+    };
+
     if (aiResp.status === 429) {
+      await markFailed("Rate limit exceeded");
       return json({ error: "Rate limit exceeded. Please try again shortly." }, 429);
     }
     if (aiResp.status === 402) {
+      await markFailed("AI credits exhausted");
       return json({ error: "AI credits exhausted. Please add credits in workspace settings." }, 402);
     }
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       log("AI gateway error", { status: aiResp.status, errText });
+      await markFailed("AI extraction failed");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -176,6 +238,7 @@ serve(async (req) => {
     const argsStr = toolCall?.function?.arguments;
     if (!argsStr) {
       log("Missing tool call", aiJson);
+      await markFailed("Missing tool call");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -184,6 +247,7 @@ serve(async (req) => {
       strategy = JSON.parse(argsStr);
     } catch (e) {
       log("Failed to parse tool args", { argsStr });
+      await markFailed("Failed to parse AI response");
       return json({ error: "AI extraction failed — please try again" }, 502);
     }
 
@@ -194,12 +258,20 @@ serve(async (req) => {
       !Array.isArray(strategy.exit_rules) ||
       !Array.isArray(strategy.checklist_steps)
     ) {
+      await markFailed("Invalid shape returned");
       return json({ error: "AI extraction returned invalid shape" }, 502);
     }
+
+    // Mark as complete and store the extracted JSON
+    await admin
+      .from("strategy_extractions")
+      .update({ status: "complete", extracted_json: strategy })
+      .eq("id", extraction.id);
 
     const tokensUsed = aiJson?.usage?.total_tokens ?? 0;
 
     return json({
+      extraction_id: extraction.id,
       strategy,
       tokens_used: tokensUsed,
       source_type: sourceType,

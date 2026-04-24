@@ -53,6 +53,7 @@ const navItems = [
   { title: 'Learning', url: '/learning', icon: BookOpenCheck, feature: null },
   { title: 'Simulator', url: '/simulator', icon: CandlestickChart, feature: 'simulator' },
   { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
+  { title: 'AI Extract', url: '/strategies/extract', icon: Sparkles, feature: null, proGated: true },
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
   { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: null },
@@ -130,7 +131,10 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const locked = item.feature ? !canAccess(item.feature) : false;
+                const proGatedLocked = item.proGated ? planState === 'starter' : false;
+                const featureLocked = item.feature ? !canAccess(item.feature) : false;
+                const locked = proGatedLocked || featureLocked;
+                const Icon = proGatedLocked ? Lock : item.icon;
 
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -141,7 +145,11 @@ export function AppSidebar() {
                         onClick={(e: React.MouseEvent) => {
                           if (locked) {
                             e.preventDefault();
-                            toast(LOCK_MESSAGES[item.feature!] || 'Feature locked');
+                            if (proGatedLocked) {
+                              toast('Upgrade to Pro to unlock AI Strategy Extraction');
+                            } else {
+                              toast(LOCK_MESSAGES[item.feature!] || 'Feature locked');
+                            }
                           }
                         }}
                         className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
@@ -151,11 +159,11 @@ export function AppSidebar() {
                         } ${locked ? 'opacity-50' : ''}`}
                         activeClassName=""
                       >
-                        <item.icon className="h-4 w-4 shrink-0" />
+                        <Icon className="h-4 w-4 shrink-0" />
                         {!collapsed && (
                           <>
                             <span>{item.title}</span>
-                            {locked && <Lock size={12} className="ml-auto opacity-50" />}
+                            {featureLocked && <Lock size={12} className="ml-auto opacity-50" />}
                           </>
                         )}
                       </NavLink>
