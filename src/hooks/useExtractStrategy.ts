@@ -22,6 +22,7 @@ export type ExtractedStrategy = {
 };
 
 export type ExtractStrategyResponse = {
+  extraction_id?: string;
   strategy: ExtractedStrategy;
   tokens_used: number;
   source_type: string;
