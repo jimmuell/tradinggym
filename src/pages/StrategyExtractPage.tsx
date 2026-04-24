@@ -111,7 +111,11 @@ export default function StrategyExtractPage() {
     () => SOURCE_TABS.find((s) => s.value === sourceType)?.placeholder ?? '',
     [sourceType],
   );
-  const canSubmit = charCount >= MIN_CHARS && charCount <= MAX_CHARS && !extract.isPending;
+  const canSubmit =
+    charCount >= MIN_CHARS &&
+    charCount <= MAX_CHARS &&
+    !extract.isPending &&
+    !outOfCredits;
 
   const handleExtract = async () => {
     if (!canSubmit) return;
