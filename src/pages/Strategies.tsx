@@ -225,6 +225,23 @@ export default function Strategies() {
     navigate(`/strategies/${strategy.id}`);
   };
 
+  const handleWatchDemo = async (strategy: Strategy) => {
+    // Match the strategy to a scenario via the same logic as the card hook.
+    const { data } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from('strategy_playback_scenarios' as any)
+      .select('id, indicator_tags, direction')
+      .eq('is_active', true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const scenarios = (data ?? []) as any[];
+    if (!scenarios.length) {
+      toast({ title: 'No demo available', description: 'No playback scenarios have been added yet.' });
+      return;
+    }
+    // simple first-match fallback (the hook scoring is fine for the badge state)
+    navigate(`/simulator?playback=${scenarios[0].id}`);
+  };
+
   return (
     <div className="p-6 space-y-8 max-w-5xl mx-auto">
       {/* Header */}
