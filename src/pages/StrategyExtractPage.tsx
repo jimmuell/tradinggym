@@ -667,6 +667,7 @@ export default function StrategyExtractPage() {
                           onClick={() => {
                             if (!clickable) return;
                             setStrategy(row.extracted_json as ExtractedStrategy);
+                            setViewingExtraction(row);
                             setCollapsed(true);
                             setTimeout(() => {
                               resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -697,6 +698,18 @@ export default function StrategyExtractPage() {
                               Saved
                             </Badge>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Delete extraction"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingDelete(row);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       );
                     })}
