@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, ReactNode } from 'react';
 import {
   createChart,
   CandlestickSeries,
@@ -67,6 +67,14 @@ interface ChartContainerProps {
   onChartReady?: (chart: IChartApi, series: ISeriesApi<'Candlestick'>) => void;
   onDrawingCountChange?: (count: number) => void;
   instrument?: InstrumentKey;
+  /** Playback mode: when provided, render these candles instead of CSV data. */
+  playbackCandles?: CandlestickData<Time>[];
+  /** How many bars of `playbackCandles` are currently visible. */
+  playbackBarCount?: number;
+  /** Disable trade controls / replay UI when in playback mode. */
+  playbackMode?: boolean;
+  /** Extra overlays (annotations, controls) rendered inside the chart wrapper. */
+  playbackChildren?: ReactNode;
 }
 
 const currencies = ['USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD'];
