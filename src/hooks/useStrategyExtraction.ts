@@ -13,6 +13,23 @@ export interface ExtractionRecord {
   created_at: string;
 }
 
+function normalizeDirectionBias(
+  value: ExtractedStrategy['direction_bias'] | null | undefined,
+): 'Long' | 'Short' | 'Both' | null {
+  if (!value) return null;
+
+  switch (value) {
+    case 'long_only':
+      return 'Long';
+    case 'short_only':
+      return 'Short';
+    case 'both':
+      return 'Both';
+    default:
+      return null;
+  }
+}
+
 /**
  * Invoke the extract-strategy edge function.
  * Maps server error shapes (403 upgrade_required, 429 limit_reached, 402) into Error messages.
@@ -159,7 +176,7 @@ export function useSaveExtractedStrategy() {
           description: strategy.description,
           instrument: strategy.instrument === 'Any' ? null : strategy.instrument,
           timeframe: strategy.timeframe === 'Any' ? null : strategy.timeframe,
-          direction_bias: strategy.direction_bias,
+          direction_bias: normalizeDirectionBias(strategy.direction_bias),
           entry_rules: entryRulesText,
           exit_rules: exitRulesText,
           notes: strategy.notes,
