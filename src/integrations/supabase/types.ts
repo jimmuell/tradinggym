@@ -953,6 +953,47 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_extractions: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          extracted_json: Json | null
+          id: string
+          saved_strategy_id: string | null
+          source_text: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          extracted_json?: Json | null
+          id?: string
+          saved_strategy_id?: string | null
+          source_text: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          extracted_json?: Json | null
+          id?: string
+          saved_strategy_id?: string | null
+          source_text?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_extractions_saved_strategy_id_fkey"
+            columns: ["saved_strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           checklist_session_id: string | null
