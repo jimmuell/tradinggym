@@ -1,21 +1,22 @@
+import { useState } from 'react';
 import {
   LayoutDashboard,
   LineChart,
   BookOpen,
   FlaskConical,
   GraduationCap,
-  BookOpenCheck,
   BarChart3,
-  UserCircle,
   Settings,
   LogOut,
-  CandlestickChart,
   Lock,
   Users,
   Crown,
   Sparkles,
-  Brain,
   Shield,
+  Target,
+  Search,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -27,6 +28,7 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Sidebar,
   SidebarContent,
@@ -47,42 +49,24 @@ const LOCK_MESSAGES: Record<string, string> = {
   backtesting: 'Complete Tier 1 to unlock',
 };
 
-
-const navItems = [
-  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard, feature: null },
-  { title: 'Learning', url: '/learning', icon: BookOpenCheck, feature: null },
-  { title: 'Simulator', url: '/simulator', icon: CandlestickChart, feature: 'simulator' },
-  { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
-  { title: 'AI Extract', url: '/strategies/extract', icon: Sparkles, feature: null, proGated: true },
-  { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
-  { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
-  { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: null },
-  { title: 'My Coaching', url: '/coaching', icon: Brain, feature: null },
-  { title: 'Find a Guru', url: '/gurus', icon: Users, feature: null },
-  { title: 'Resources', url: '/resources', icon: BookOpenCheck, feature: null },
-];
-
-const bottomItems = [
-  { title: 'Profile', url: '/profile', icon: UserCircle },
-  { title: 'Settings', url: '/settings', icon: Settings },
-];
-
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const { canAccess, planState } = useTier();
+  const { canAccess, planState, loading: tierLoading } = useTier();
   const { data: guruProfile } = useGuruProfile();
   const { isAdmin } = useUserRole();
   const isActiveGuru = guruProfile?.status === 'active';
-  const adminItems = [
-    { title: 'Dashboard', url: '/admin' },
-    { title: 'Users', url: '/admin/users' },
-    { title: 'Gurus', url: '/admin/gurus' },
-    { title: 'Revenue', url: '/admin/revenue' },
-  ];
   const showPricingLink = planState !== 'guru';
+  const path = location.pathname;
+
+  const strategiesActive = path.startsWith('/strategies') || path.startsWith('/backtesting');
+  const classesActive = path.startsWith('/classes') || path.startsWith('/gurus');
+
+  const [strategiesOpen, setStrategiesOpen] = useState(strategiesActive);
+  const [classesOpen, setClassesOpen] = useState(classesActive);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -103,7 +87,35 @@ export function AppSidebar() {
     .charAt(0)
     .toUpperCase();
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (p: string) => path === p;
+
+  const itemClass = (active: boolean, locked = false) =>
+    `flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
+      active
+        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+        : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+    } ${locked ? 'opacity-50' : ''}`;
+
+  const subItemClass = (active: boolean, locked = false) =>
+    `flex items-center gap-3 px-4 py-2 rounded-md text-sm transition-colors ${
+      active
+        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+        : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+    } ${locked ? 'opacity-50' : ''}`;
+
+  const adminItems = [
+    { title: 'Dashboard', url: '/admin' },
+    { title: 'Users', url: '/admin/users' },
+    { title: 'Gurus', url: '/admin/gurus' },
+    { title: 'Revenue', url: '/admin/revenue' },
+  ];
+
+  // AI Extract lock state
+  const aiExtractLocked = planState === 'starter';
+  const backtestingLocked = !canAccess('backtesting');
+  const simulatorLocked = !canAccess('simulator');
+  const strategiesLocked = !canAccess('strategies');
+  const analyticsLocked = !canAccess('analytics');
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
@@ -124,88 +136,249 @@ export function AppSidebar() {
           )}
         </div>
 
+        {/* TRADE section */}
         <SidebarGroup>
           <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
-            {!collapsed && 'Navigation'}
+            {!collapsed && 'Trade'}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
-                const proGatedLocked = item.proGated ? planState === 'starter' : false;
-                const featureLocked = item.feature ? !canAccess(item.feature) : false;
-                const locked = proGatedLocked || featureLocked;
-                const Icon = proGatedLocked ? Lock : item.icon;
+              {/* Dashboard */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/dashboard" end className={itemClass(isActive('/dashboard'))} activeClassName="">
+                    <LayoutDashboard className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Dashboard</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-                return (
-                  <SidebarMenuItem key={item.title}>
+              {/* Simulator */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/simulator"
+                    end
+                    onClick={(e: React.MouseEvent) => {
+                      if (simulatorLocked) {
+                        e.preventDefault();
+                        toast(LOCK_MESSAGES.simulator);
+                      }
+                    }}
+                    className={itemClass(isActive('/simulator'), simulatorLocked)}
+                    activeClassName=""
+                  >
+                    <LineChart className="h-4 w-4 shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span>Simulator</span>
+                        {simulatorLocked && <Lock size={12} className="ml-auto opacity-50" />}
+                      </>
+                    )}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Strategies (parent with chevron) */}
+              <SidebarMenuItem>
+                <div className="flex items-center">
+                  <SidebarMenuButton asChild className="flex-1">
+                    <NavLink
+                      to="/strategies"
+                      end
+                      onClick={(e: React.MouseEvent) => {
+                        if (strategiesLocked) {
+                          e.preventDefault();
+                          toast(LOCK_MESSAGES.strategies);
+                          return;
+                        }
+                        setStrategiesOpen(true);
+                      }}
+                      className={itemClass(isActive('/strategies'), strategiesLocked)}
+                      activeClassName=""
+                    >
+                      <Target className="h-4 w-4 shrink-0" />
+                      {!collapsed && (
+                        <>
+                          <span>Strategies</span>
+                          {strategiesLocked && <Lock size={12} className="ml-auto opacity-50" />}
+                        </>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                  {!collapsed && (
+                    <button
+                      type="button"
+                      onClick={() => setStrategiesOpen((v) => !v)}
+                      aria-label="Toggle strategies"
+                      className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
+                    >
+                      {strategiesOpen || strategiesActive ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </SidebarMenuItem>
+
+              {!collapsed && (strategiesOpen || strategiesActive) && (
+                <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to={item.url}
+                        to="/strategies/extract"
                         end
                         onClick={(e: React.MouseEvent) => {
-                          if (locked) {
+                          if (aiExtractLocked) {
                             e.preventDefault();
-                            if (proGatedLocked) {
-                              toast('Upgrade to Pro to unlock AI Strategy Extraction');
-                            } else {
-                              toast(LOCK_MESSAGES[item.feature!] || 'Feature locked');
-                            }
+                            toast('Upgrade to Pro to unlock AI Strategy Extraction');
                           }
                         }}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                          isActive(item.url)
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                            : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                        } ${locked ? 'opacity-50' : ''}`}
+                        className={subItemClass(isActive('/strategies/extract'), aiExtractLocked)}
                         activeClassName=""
                       >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {!collapsed && (
-                          <>
-                            <span>{item.title}</span>
-                            {featureLocked && <Lock size={12} className="ml-auto opacity-50" />}
-                          </>
+                        {aiExtractLocked ? (
+                          <Lock className="h-4 w-4 shrink-0" />
+                        ) : (
+                          <Sparkles className="h-4 w-4 shrink-0" />
                         )}
+                        <span>AI Extract</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                );
-              })}
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/backtesting"
+                        end
+                        onClick={(e: React.MouseEvent) => {
+                          if (backtestingLocked) {
+                            e.preventDefault();
+                            toast(LOCK_MESSAGES.backtesting);
+                          }
+                        }}
+                        className={subItemClass(isActive('/backtesting'), backtestingLocked)}
+                        activeClassName=""
+                      >
+                        <FlaskConical className="h-4 w-4 shrink-0" />
+                        <span>Backtesting</span>
+                        {backtestingLocked && <Lock size={12} className="ml-auto opacity-50" />}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              )}
+
+              {/* Analytics */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/analytics"
+                    end
+                    onClick={(e: React.MouseEvent) => {
+                      if (analyticsLocked) {
+                        e.preventDefault();
+                        toast(LOCK_MESSAGES.analytics);
+                      }
+                    }}
+                    className={itemClass(isActive('/analytics'), analyticsLocked)}
+                    activeClassName=""
+                  >
+                    <BarChart3 className="h-4 w-4 shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span>Analytics</span>
+                        {analyticsLocked && <Lock size={12} className="ml-auto opacity-50" />}
+                      </>
+                    )}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
-              {!collapsed && 'Admin'}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item, idx) => (
-                  <SidebarMenuItem key={item.url}>
+        {/* LEARN section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
+            {!collapsed && 'Learn'}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/learning" end className={itemClass(isActive('/learning'))} activeClassName="">
+                    <GraduationCap className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Learning</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Classes (parent with chevron) */}
+              <SidebarMenuItem>
+                <div className="flex items-center">
+                  <SidebarMenuButton asChild className="flex-1">
+                    <NavLink
+                      to="/classes"
+                      end
+                      onClick={() => setClassesOpen(true)}
+                      className={itemClass(isActive('/classes'))}
+                      activeClassName=""
+                    >
+                      <Users className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Classes</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                  {!collapsed && (
+                    <button
+                      type="button"
+                      onClick={() => setClassesOpen((v) => !v)}
+                      aria-label="Toggle classes"
+                      className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
+                    >
+                      {classesOpen || classesActive ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                  )}
+                </div>
+              </SidebarMenuItem>
+
+              {!collapsed && (classesOpen || classesActive) && (
+                <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
+                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                       <NavLink
-                        to={item.url}
-                        end={item.url === '/admin'}
-                        className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                          isActive(item.url)
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                            : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
-                        }`}
+                        to="/gurus"
+                        end
+                        className={subItemClass(isActive('/gurus'))}
                         activeClassName=""
                       >
-                        {idx === 0 ? <Shield className="h-4 w-4 shrink-0" /> : <span className="w-4" />}
-                        {!collapsed && <span>{item.title}</span>}
+                        <Search className="h-4 w-4 shrink-0" />
+                        <span>Find a Guru</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+                </div>
+              )}
 
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/resources" end className={itemClass(isActive('/resources'))} activeClassName="">
+                    <BookOpen className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Resources</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* GURU section */}
         {isActiveGuru && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
@@ -218,7 +391,7 @@ export function AppSidebar() {
                     <NavLink
                       to="/guru"
                       className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                        location.pathname.startsWith('/guru')
+                        path.startsWith('/guru')
                           ? 'bg-amber-500/15 text-amber-500 font-medium'
                           : 'text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10'
                       }`}
@@ -233,69 +406,99 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* ADMIN section */}
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
+              {!collapsed && 'Admin'}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item, idx) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === '/admin'}
+                        className={itemClass(isActive(item.url))}
+                        activeClassName=""
+                      >
+                        {idx === 0 ? <Shield className="h-4 w-4 shrink-0" /> : <span className="w-4" />}
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* ACCOUNT section */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
+            {!collapsed && 'Account'}
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/settings" end className={itemClass(isActive('/settings'))} activeClassName="">
+                    <Settings className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Settings</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="bg-sidebar p-3">
         <div className="border-t border-sidebar-border pt-3 mb-2">
           <SidebarMenu>
-            {bottomItems.map((item) => {
-              const isProfile = item.url === '/profile';
-              return (
-                <SidebarMenuItem key={item.title}>
+            {tierLoading ? (
+              <SidebarMenuItem>
+                <div className="px-4 py-2">
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              </SidebarMenuItem>
+            ) : (
+              showPricingLink && (
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      to={item.url}
+                      to="/pricing"
                       end
                       className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                        isActive(item.url)
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                          : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50'
+                        isActive('/pricing')
+                          ? 'bg-sidebar-accent text-amber-400 font-medium'
+                          : 'text-amber-400 hover:text-amber-300 hover:bg-sidebar-accent/50'
                       }`}
                       activeClassName=""
                     >
-                      {isProfile ? (
-                        <Avatar className="h-5 w-5 shrink-0">
-                          {profile?.avatar_url && (
-                            <AvatarImage src={profile.avatar_url} alt={profile?.display_name || 'Profile'} />
-                          )}
-                          <AvatarFallback className="text-[10px] bg-sidebar-accent text-sidebar-accent-foreground">
-                            {initials}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <item.icon className="h-4 w-4 shrink-0" />
-                      )}
-                      {!collapsed && <span>{item.title}</span>}
+                      <Sparkles className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Upgrade</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              );
-            })}
-            {showPricingLink && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/pricing"
-                    end
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm transition-colors ${
-                      isActive('/pricing')
-                        ? 'bg-sidebar-accent text-blue-400 font-medium'
-                        : 'text-blue-400 hover:text-blue-300 hover:bg-sidebar-accent/50'
-                    }`}
-                    activeClassName=""
-                  >
-                    <Sparkles className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span>Upgrade</span>}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              )
             )}
           </SidebarMenu>
         </div>
         <div className="border-t border-sidebar-border pt-3">
           {!collapsed && user && (
-            <div className="text-xs text-muted-foreground truncate mb-2 px-1">
-              {user.email}
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <Avatar className="h-6 w-6 shrink-0">
+                {profile?.avatar_url && (
+                  <AvatarImage src={profile.avatar_url} alt={profile?.display_name || 'Profile'} />
+                )}
+                <AvatarFallback className="text-[10px] bg-sidebar-accent text-sidebar-accent-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-xs text-muted-foreground truncate">{user.email}</div>
             </div>
           )}
           <button
