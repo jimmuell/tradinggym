@@ -66,12 +66,15 @@ function StrategyCard({
   strategy,
   locked,
   onClick,
+  onWatchDemo,
 }: {
   strategy: Strategy;
   locked: boolean;
   onClick: () => void;
+  onWatchDemo: (s: Strategy) => void;
 }) {
   const showAiBadge = !strategy.is_system && strategy.source === 'ai_extracted';
+  const { data: matchedScenarioId } = useScenarioMatch(locked ? null : strategy);
   return (
     <Card
       className={`group relative transition-all cursor-pointer ${locked ? 'opacity-50' : 'hover:border-primary/30 hover:shadow-md'}`}
@@ -135,7 +138,20 @@ function StrategyCard({
           )}
         </div>
         {!locked && (
-          <div className="flex justify-end mt-3">
+          <div className="flex justify-between items-center mt-3 gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+              disabled={!matchedScenarioId}
+              onClick={(e) => {
+                e.stopPropagation();
+                onWatchDemo(strategy);
+              }}
+            >
+              <Play className="h-3 w-3" />
+              Watch Demo
+            </Button>
             <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
               View Details <ChevronRight className="h-3.5 w-3.5" />
             </Button>
