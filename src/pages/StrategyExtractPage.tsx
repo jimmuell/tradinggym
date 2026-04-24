@@ -247,30 +247,38 @@ export default function StrategyExtractPage() {
   });
 
   const handleSaveStrategy = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveStrategy] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await saveStrategyMut.mutateAsync(strategy);
       qc.invalidateQueries({ queryKey: ['strategies'] });
       toast.success('Strategy saved');
       navigate('/strategies');
     } catch (e) {
+      console.error('[handleSaveStrategy] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save strategy');
     }
   };
 
   const handleSaveChecklist = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveChecklist] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await saveChecklistMut.mutateAsync(strategy);
       qc.invalidateQueries({ queryKey: ['checklist-templates'] });
       toast.success('Checklist template created — available in your pre-trade checklist');
     } catch (e) {
+      console.error('[handleSaveChecklist] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save checklist');
     }
   };
 
   const handleSaveBoth = async () => {
-    if (!strategy) return;
+    console.log('[handleSaveBoth] clicked', { hasStrategy: !!strategy, userId: user?.id });
+    if (!strategy) { toast.error('No strategy to save'); return; }
+    if (!user?.id) { toast.error('You must be signed in to save'); return; }
     try {
       await Promise.all([
         saveStrategyMut.mutateAsync(strategy),
@@ -281,6 +289,7 @@ export default function StrategyExtractPage() {
       toast.success('Strategy and checklist saved');
       navigate('/strategies');
     } catch (e) {
+      console.error('[handleSaveBoth] caught error:', e);
       toast.error(e instanceof Error ? e.message : 'Failed to save');
     }
   };
