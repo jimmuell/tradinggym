@@ -926,26 +926,30 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
           </span>
           <span>Vol{ohlcv.volume}</span>
         </div>
-        <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
-          <div
-            onClick={() => placePosition('short')}
-            className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
-          >
-            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
-            <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
+        {!playbackMode && (
+          <div className="flex items-center gap-1.5 mt-1.5 pointer-events-auto">
+            <div
+              onClick={() => placePosition('short')}
+              className="flex flex-col items-center justify-center bg-[#f23645] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#d42f3d] active:scale-95 transition-all"
+            >
+              <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.50).toFixed(2)}</span>
+              <span className="text-[9px] font-medium leading-tight opacity-90">SELL</span>
+            </div>
+            <div className="flex flex-col items-center justify-center text-[12px] text-muted-foreground leading-tight px-2 py-1.5 bg-muted border border-border rounded-[6px] min-w-[36px]">
+              <span>0.25</span><span>{positions.length}</span>
+            </div>
+            <div
+              onClick={() => placePosition('long')}
+              className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
+            >
+              <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
+              <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
+            </div>
           </div>
-          <div className="flex flex-col items-center justify-center text-[12px] text-muted-foreground leading-tight px-2 py-1.5 bg-muted border border-border rounded-[6px] min-w-[36px]">
-            <span>0.25</span><span>{positions.length}</span>
-          </div>
-          <div
-            onClick={() => placePosition('long')}
-            className="flex flex-col items-center justify-center bg-[#2962ff] text-white rounded-[6px] min-w-[90px] py-1.5 px-3 cursor-pointer hover:bg-[#1e53e5] active:scale-95 transition-all"
-          >
-            <span className="text-[14px] font-bold leading-tight tracking-tight">{(ohlcv.close - 0.25).toFixed(2)}</span>
-            <span className="text-[9px] font-medium leading-tight opacity-90">BUY</span>
-          </div>
-        </div>
-        <div className="text-[12px] text-muted-foreground mt-1">▼ {positions.length}</div>
+        )}
+        {!playbackMode && (
+          <div className="text-[12px] text-muted-foreground mt-1">▼ {positions.length}</div>
+        )}
       </div>
 
       {/* Active positions overlay */}
