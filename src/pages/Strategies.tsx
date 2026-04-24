@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Plus, Lock, ChevronRight, Clock, BarChart3, Target, Sparkles } from 'lucide-react';
+import { BookOpen, Plus, Lock, ChevronRight, Sparkles, Play } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier, TierState } from '@/contexts/TierContext';
+import { useScenarioMatch } from '@/hooks/useScenarioMatch';
 import HelpSheet from '@/components/HelpSheet';
 
 interface Strategy {
