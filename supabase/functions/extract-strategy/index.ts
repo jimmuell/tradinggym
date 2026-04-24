@@ -111,10 +111,16 @@ serve(async (req) => {
     const body = await req.json().catch(() => null);
     if (!body) return json({ error: "Invalid JSON body" }, 400);
 
-    const text = typeof body.text === "string" ? body.text : "";
+    // Accept both legacy `text` and new `source_text` field names
+    const text =
+      typeof body.source_text === "string"
+        ? body.source_text
+        : typeof body.text === "string"
+          ? body.text
+          : "";
     const sourceType = typeof body.source_type === "string" ? body.source_type : "notes";
 
-    if (text.trim().length < 100) {
+    if (text.trim().length < 50) {
       return json({ error: "Text too short to extract a strategy" }, 400);
     }
     if (text.length > 50000) {
@@ -134,10 +140,56 @@ serve(async (req) => {
 
     if (profileErr || !profile) return json({ error: "Profile not found" }, 404);
     if (profile.plan_state === "starter") {
-      return json({ error: "Pro plan required to use AI extraction" }, 403);
+      return json(
+        {
+          error: "Upgrade to Pro to use AI Strategy Extraction.",
+          upgrade_required: true,
+        },
+        403,
+      );
     }
 
-    log("Calling AI gateway", { userId, sourceType, length: text.length });
+    // Usage limit — 2/month for Pro
+    if (profile.plan_state === "pro") {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const { count } = await admin
+        .from("strategy_extractions")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString());
+
+      if ((count ?? 0) >= 2) {
+        return json(
+          {
+            error:
+              "Monthly extraction limit reached (2/month on Pro). Upgrade to Expert for unlimited extractions.",
+            limit_reached: true,
+          },
+          429,
+        );
+      }
+    }
+
+    // Insert a pending extraction record
+    const { data: extraction, error: insertError } = await admin
+      .from("strategy_extractions")
+      .insert({
+        user_id: userId,
+        source_text: text.slice(0, 8000),
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (insertError || !extraction) {
+      log("Failed to create extraction record", { insertError });
+      return json({ error: "Failed to create extraction record" }, 500);
+    }
+
+    log("Calling AI gateway", { userId, sourceType, length: text.length, extractionId: extraction.id });
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
