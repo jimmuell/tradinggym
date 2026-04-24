@@ -53,6 +53,7 @@ const navItems = [
   { title: 'Learning', url: '/learning', icon: BookOpenCheck, feature: null },
   { title: 'Simulator', url: '/simulator', icon: CandlestickChart, feature: 'simulator' },
   { title: 'Strategies', url: '/strategies', icon: BookOpen, feature: 'strategies' },
+  { title: 'AI Extract', url: '/strategies/extract', icon: Sparkles, feature: null, proGated: true },
   { title: 'Backtesting', url: '/backtesting', icon: FlaskConical, feature: 'backtesting' },
   { title: 'Analytics', url: '/analytics', icon: BarChart3, feature: 'analytics' },
   { title: 'My Classes', url: '/classes', icon: GraduationCap, feature: null },
