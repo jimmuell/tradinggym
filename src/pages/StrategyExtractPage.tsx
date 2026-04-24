@@ -181,8 +181,28 @@ export default function StrategyExtractPage() {
 
   const handleTryAgain = () => {
     setStrategy(null);
+    setViewingExtraction(null);
     setCollapsed(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    try {
+      await deleteExtraction.mutateAsync(target.id);
+      toast.success('Extraction deleted — credit restored');
+      // If the deleted row is the one being reviewed, clear the review state
+      if (viewingExtraction?.id === target.id) {
+        setStrategy(null);
+        setViewingExtraction(null);
+        setCollapsed(false);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to delete extraction');
+    } finally {
+      setPendingDelete(null);
+    }
   };
 
   // Save mutations
