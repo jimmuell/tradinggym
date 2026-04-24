@@ -917,6 +917,7 @@ export type Database = {
           is_system: boolean | null
           name: string
           notes: string | null
+          source: string
           tier_required: string | null
           timeframe: string | null
           user_id: string | null
@@ -932,6 +933,7 @@ export type Database = {
           is_system?: boolean | null
           name: string
           notes?: string | null
+          source?: string
           tier_required?: string | null
           timeframe?: string | null
           user_id?: string | null
@@ -947,6 +949,7 @@ export type Database = {
           is_system?: boolean | null
           name?: string
           notes?: string | null
+          source?: string
           tier_required?: string | null
           timeframe?: string | null
           user_id?: string | null
