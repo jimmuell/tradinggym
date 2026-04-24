@@ -508,7 +508,100 @@ export default function StrategyExtractPage() {
         </div>
       )}
 
-      {/* Sticky action bar */}
+      {/* Past Extractions */}
+      {!isStarter && (
+        <section className="space-y-3">
+          <button
+            onClick={() => setHistoryOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors"
+          >
+            {historyOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+            <History className="h-4 w-4" />
+            Past Extractions
+            {history && history.length > 0 && (
+              <Badge variant="secondary" className="ml-1">{history.length}</Badge>
+            )}
+          </button>
+
+          {historyOpen && (
+            <Card>
+              <CardContent className="p-4 space-y-2">
+                {historyLoading ? (
+                  <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : !history || history.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 py-8 text-muted-foreground">
+                    <Sparkles className="h-6 w-6 opacity-50" />
+                    <p className="text-sm">No extractions yet</p>
+                  </div>
+                ) : (
+                  <>
+                    {history.map((row) => {
+                      const name = row.extracted_json?.name || 'Untitled extraction';
+                      const isComplete = row.status === 'complete';
+                      const isFailed = row.status === 'failed';
+                      const clickable = isComplete && !!row.extracted_json;
+                      const relative = timeAgo(row.created_at);
+                      return (
+                        <div
+                          key={row.id}
+                          onClick={() => {
+                            if (!clickable) return;
+                            setStrategy(row.extracted_json as ExtractedStrategy);
+                            setCollapsed(true);
+                            setTimeout(() => {
+                              resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                          }}
+                          className={`flex items-center gap-3 p-3 rounded-md border border-border ${
+                            clickable ? 'cursor-pointer hover:bg-muted/40' : 'opacity-70'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-foreground truncate">{name}</div>
+                            <div className="text-xs text-muted-foreground">{relative}</div>
+                          </div>
+                          {isComplete && (
+                            <Badge className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/15 gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Complete
+                            </Badge>
+                          )}
+                          {isFailed && (
+                            <Badge className="bg-red-500/15 text-red-500 border-red-500/30 hover:bg-red-500/15 gap-1">
+                              <XCircle className="h-3 w-3" />
+                              Failed
+                            </Badge>
+                          )}
+                          {row.saved_strategy_id && (
+                            <Badge className="bg-blue-500/15 text-blue-500 border-blue-500/30 hover:bg-blue-500/15">
+                              Saved
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {isPro && history.length >= 5 && (
+                      <p className="text-xs text-muted-foreground pt-2 text-center">
+                        Upgrade to Expert to see full history
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </section>
+      )}
+
+
       {strategy && (
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur-sm z-40">
           <div className="max-w-4xl mx-auto p-4 flex flex-wrap gap-2 justify-end items-center">
