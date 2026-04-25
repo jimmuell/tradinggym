@@ -637,6 +637,13 @@ export default function StrategyDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" /> Back
           </Button>
           <div className="flex items-center gap-2">
+            {!isNew && (
+              <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-2">
+                <FileCode className="h-4 w-4" />
+                <span className="hidden sm:inline">Export to Pine Script</span>
+                <span className="sm:hidden">Export</span>
+              </Button>
+            )}
             {!readOnly && (
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="gap-2">
                 <Save className="h-4 w-4" />
