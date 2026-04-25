@@ -400,6 +400,12 @@ export default function Strategies() {
           </Card>
         )}
       </section>
+
+      <PineExportModal
+        strategy={exportStrategy}
+        open={!!exportStrategy}
+        onOpenChange={(o) => !o && setExportStrategy(null)}
+      />
     </div>
   );
 }
