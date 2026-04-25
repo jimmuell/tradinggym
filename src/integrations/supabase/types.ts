@@ -1264,6 +1264,7 @@ export type Database = {
       }
       get_user_role: { Args: never; Returns: string }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
       promote_tier: { Args: { target_tier: string }; Returns: Json }
       seed_default_checklists: {
         Args: { target_user_id: string }
