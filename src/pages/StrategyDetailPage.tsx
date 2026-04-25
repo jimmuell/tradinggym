@@ -325,6 +325,7 @@ export default function StrategyDetailPage() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openSections, setOpenSections] = useState<string[]>(['identity']);
+  const [exportOpen, setExportOpen] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
   const { data: strategy, isLoading } = useQuery({
