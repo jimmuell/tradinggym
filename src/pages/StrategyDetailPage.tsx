@@ -681,7 +681,7 @@ export default function StrategyDetailPage() {
           {/* 1 — Identity */}
           <AccordionItem value="identity" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Strategy Identity" fieldCount={counts.identity} />
+              <SectionHeader title="Strategy Identity" icon={FileText} configured={sections.identity.configured} total={sections.identity.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-4">
               <div className="space-y-2">
