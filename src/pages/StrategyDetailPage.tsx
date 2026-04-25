@@ -1018,7 +1018,7 @@ export default function StrategyDetailPage() {
           {/* 7 — Frequency limits */}
           <AccordionItem value="frequency" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Trade Frequency Limits" fieldCount={counts.frequency} locked={isStarter} />
+              <SectionHeader title="Trade Frequency Limits" icon={Hash} configured={sections.frequency.configured} total={sections.frequency.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to set frequency limits') : (
