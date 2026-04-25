@@ -1047,7 +1047,7 @@ export default function StrategyDetailPage() {
           {/* 8 — Filters */}
           <AccordionItem value="filters" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="High Probability Filters" fieldCount={counts.filters} locked={isStarter} />
+              <SectionHeader title="High Probability Filters" icon={Filter} configured={sections.filters.configured} total={sections.filters.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to use filters') : (
