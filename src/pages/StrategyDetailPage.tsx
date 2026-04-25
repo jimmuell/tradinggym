@@ -749,7 +749,7 @@ export default function StrategyDetailPage() {
           {/* 2 — Time */}
           <AccordionItem value="time" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Time Settings" fieldCount={counts.time} locked={isStarter} />
+              <SectionHeader title="Time Settings" icon={Clock} configured={sections.time.configured} total={sections.time.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to configure time settings') : (
