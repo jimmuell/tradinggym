@@ -1,8 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef, ReactNode } from 'react';
-import { ArrowLeft, Lock, Save, Trash2, Info, RotateCcw } from 'lucide-react';
+import {
+  ArrowLeft, Lock, Save, Trash2, Info, RotateCcw,
+  FileText, Clock, Activity, ArrowRightCircle, Shield,
+  TrendingUp, Hash, Filter, ChevronDown,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
