@@ -60,7 +60,8 @@ import CompanionPage from "./pages/CompanionPage";
 import CompanionLayout from "./layouts/CompanionLayout";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import { AdminUsersStubPage, AdminGurusStubPage, AdminRevenueStubPage } from "./pages/admin/AdminStubPages";
+import { AdminGurusStubPage, AdminRevenueStubPage } from "./pages/admin/AdminStubPages";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import InvestorLayout from "./layouts/InvestorLayout";
 import InvestorDashboardPage from "./pages/investor/InvestorDashboardPage";
 import { InvestorKpisStubPage, InvestorDataRoomStubPage, InvestorRoadmapStubPage } from "./pages/investor/InvestorStubPages";
@@ -141,7 +142,7 @@ const App = () => (
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
               <Route path="/admin" element={<LayoutRoute><AdminDashboardPage /></LayoutRoute>} />
-              <Route path="/admin/users" element={<LayoutRoute><AdminUsersStubPage /></LayoutRoute>} />
+              <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGurusStubPage /></LayoutRoute>} />
               <Route path="/admin/revenue" element={<LayoutRoute><AdminRevenueStubPage /></LayoutRoute>} />
               <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
