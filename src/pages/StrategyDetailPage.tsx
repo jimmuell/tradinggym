@@ -973,7 +973,7 @@ export default function StrategyDetailPage() {
           {/* 6 — Trailing Stop */}
           <AccordionItem value="trailing" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Trailing Stop" fieldCount={counts.trailing} locked={isStarter} />
+              <SectionHeader title="Trailing Stop" icon={TrendingUp} configured={sections.trailing.configured} total={sections.trailing.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to use trailing stops') : (
