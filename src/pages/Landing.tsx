@@ -261,7 +261,7 @@ export default function Landing() {
         <HeroChartAnimation />
         <div className="relative max-w-4xl mx-auto text-center">
           <Badge className="mb-6 bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/15">
-            MES Futures • Micro E-mini S&P 500
+            MES • MNQ • ES • NQ • YM Futures
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
             Build.{" "}
