@@ -198,14 +198,15 @@ function LockedOverlay({ message }: { message: string }) {
 }
 
 function SectionHeader({
-  title, fieldCount, locked,
-}: { title: string; fieldCount: number; locked?: boolean }) {
+  title, configured, total, locked, icon: Icon,
+}: { title: string; configured: number; total: number; locked?: boolean; icon: React.ComponentType<{ className?: string }> }) {
   return (
     <div className="flex flex-1 items-center justify-between gap-3 pr-2">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
+        <Icon className="h-4 w-4 text-muted-foreground" />
         <span className="font-semibold text-left">{title}</span>
         <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-          {fieldCount} field{fieldCount === 1 ? '' : 's'}
+          {configured} of {total} configured
         </span>
       </div>
       {locked && (
@@ -214,6 +215,96 @@ function SectionHeader({
         </span>
       )}
     </div>
+  );
+}
+
+// ---------- HMS / HM time picker ----------
+
+function pad(n: number) { return n.toString().padStart(2, '0'); }
+
+function parseTime(value: string, withSeconds: boolean): { h: number; m: number; s: number } {
+  const parts = (value || '').split(':');
+  const h = Number(parts[0] ?? 0) || 0;
+  const m = Number(parts[1] ?? 0) || 0;
+  const s = withSeconds ? (Number(parts[2] ?? 0) || 0) : 0;
+  return { h, m, s };
+}
+
+function TimePicker({
+  value, onChange, withSeconds = false, disabled,
+}: { value: string; onChange: (v: string) => void; withSeconds?: boolean; disabled?: boolean }) {
+  const { h, m, s } = parseTime(value, withSeconds);
+  const set = (next: { h?: number; m?: number; s?: number }) => {
+    const nh = Math.min(23, Math.max(0, next.h ?? h));
+    const nm = Math.min(59, Math.max(0, next.m ?? m));
+    const ns = Math.min(59, Math.max(0, next.s ?? s));
+    onChange(withSeconds ? `${pad(nh)}:${pad(nm)}:${pad(ns)}` : `${pad(nh)}:${pad(nm)}`);
+  };
+  const cell = (label: string, val: number, max: number, key: 'h' | 'm' | 's') => (
+    <div className="flex flex-col items-center">
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">{label}</span>
+      <Input
+        type="number"
+        min={0}
+        max={max}
+        value={pad(val)}
+        onChange={(e) => set({ [key]: Number(e.target.value) })}
+        disabled={disabled}
+        className="w-14 text-center px-1 tabular-nums"
+      />
+    </div>
+  );
+  return (
+    <div className="flex items-end gap-1.5">
+      {cell('H', h, 23, 'h')}
+      <span className="pb-2 text-muted-foreground">:</span>
+      {cell('M', m, 59, 'm')}
+      {withSeconds && (
+        <>
+          <span className="pb-2 text-muted-foreground">:</span>
+          {cell('S', s, 59, 's')}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TimezoneClock({ tz }: { tz: string }) {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const i = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(i);
+  }, []);
+  let display = '';
+  try {
+    display = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour: 'numeric', minute: '2-digit',
+      hour12: true, timeZoneName: 'short',
+    }).format(now);
+  } catch {
+    display = '—';
+  }
+  return (
+    <p className="text-xs text-muted-foreground mt-1">
+      Current time in {tz}: <span className="font-medium text-foreground">{display}</span>
+    </p>
+  );
+}
+
+function HolidayList() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mt-2">
+      <CollapsibleTrigger className="text-xs text-primary hover:underline flex items-center gap-1">
+        <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+        {open ? 'Hide holidays' : 'View holidays'}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2">
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Skips NYSE/CME observed holidays including {NYSE_HOLIDAYS.join(', ')}.
+        </p>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
