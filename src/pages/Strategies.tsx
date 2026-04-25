@@ -68,11 +68,13 @@ function StrategyCard({
   locked,
   onClick,
   onWatchDemo,
+  onExport,
 }: {
   strategy: Strategy;
   locked: boolean;
   onClick: () => void;
   onWatchDemo: (s: Strategy) => void;
+  onExport: (s: Strategy) => void;
 }) {
   const showAiBadge = !strategy.is_system && strategy.source === 'ai_extracted';
   const { data: matchedScenarioId } = useScenarioMatch(locked ? null : strategy);
