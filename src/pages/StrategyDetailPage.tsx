@@ -1136,6 +1136,12 @@ export default function StrategyDetailPage() {
             </Button>
           </div>
         )}
+
+        <PineExportModal
+          strategy={form as unknown as Parameters<typeof PineExportModal>[0]['strategy']}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
       </div>
     </TooltipProvider>
   );
