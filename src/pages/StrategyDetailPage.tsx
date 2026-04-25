@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, ReactNode } from 'react';
 import {
   ArrowLeft, Lock, Save, Trash2, Info, RotateCcw,
   FileText, Clock, Activity, ArrowRightCircle, Shield,
-  TrendingUp, Hash, Filter, ChevronDown,
+  TrendingUp, Hash, Filter, ChevronDown, FileCode,
 } from 'lucide-react';
+import { PineExportModal } from '@/components/strategies/PineExportModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
