@@ -1,8 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef, ReactNode } from 'react';
-import { ArrowLeft, Lock, Save, Trash2, Info, RotateCcw } from 'lucide-react';
+import {
+  ArrowLeft, Lock, Save, Trash2, Info, RotateCcw,
+  FileText, Clock, Activity, ArrowRightCircle, Shield,
+  TrendingUp, Hash, Filter, ChevronDown,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,18 +50,27 @@ interface IndicatorMeta {
   label: string;
   proOnly: boolean;
   defaults: Record<string, number>;
+  group: 'Trend' | 'Momentum' | 'Volatility';
 }
 
 const INDICATORS: IndicatorMeta[] = [
-  { key: 'ema_9', label: 'EMA-9', proOnly: false, defaults: { period: 9 } },
-  { key: 'ema_21', label: 'EMA-21', proOnly: false, defaults: { period: 21 } },
-  { key: 'ema_50', label: 'EMA-50', proOnly: false, defaults: { period: 50 } },
-  { key: 'ema_200', label: 'EMA-200', proOnly: false, defaults: { period: 200 } },
-  { key: 'vwap', label: 'VWAP', proOnly: false, defaults: {} },
-  { key: 'rsi', label: 'RSI', proOnly: true, defaults: { period: 14, overbought: 70, oversold: 30 } },
-  { key: 'macd', label: 'MACD', proOnly: true, defaults: { fast: 12, slow: 26, signal: 9 } },
-  { key: 'bb', label: 'Bollinger Bands', proOnly: true, defaults: { period: 20, deviation: 2 } },
-  { key: 'atr', label: 'ATR', proOnly: true, defaults: { period: 14 } },
+  { key: 'ema_9', label: 'EMA-9', proOnly: false, defaults: { period: 9 }, group: 'Trend' },
+  { key: 'ema_21', label: 'EMA-21', proOnly: false, defaults: { period: 21 }, group: 'Trend' },
+  { key: 'ema_50', label: 'EMA-50', proOnly: false, defaults: { period: 50 }, group: 'Trend' },
+  { key: 'ema_200', label: 'EMA-200', proOnly: false, defaults: { period: 200 }, group: 'Trend' },
+  { key: 'vwap', label: 'VWAP', proOnly: false, defaults: {}, group: 'Trend' },
+  { key: 'rsi', label: 'RSI', proOnly: true, defaults: { period: 14, overbought: 70, oversold: 30 }, group: 'Momentum' },
+  { key: 'macd', label: 'MACD', proOnly: true, defaults: { fast: 12, slow: 26, signal: 9 }, group: 'Momentum' },
+  { key: 'bb', label: 'Bollinger Bands', proOnly: true, defaults: { period: 20, deviation: 2 }, group: 'Volatility' },
+  { key: 'atr', label: 'ATR', proOnly: true, defaults: { period: 14 }, group: 'Volatility' },
+];
+
+const INDICATOR_GROUPS: Array<'Trend' | 'Momentum' | 'Volatility'> = ['Trend', 'Momentum', 'Volatility'];
+
+const NYSE_HOLIDAYS = [
+  "New Year's Day", "Martin Luther King Jr. Day", "Presidents' Day",
+  'Good Friday', 'Memorial Day', 'Independence Day',
+  'Labor Day', 'Thanksgiving Day', 'Christmas Day',
 ];
 
 interface FormState {
@@ -184,14 +198,15 @@ function LockedOverlay({ message }: { message: string }) {
 }
 
 function SectionHeader({
-  title, fieldCount, locked,
-}: { title: string; fieldCount: number; locked?: boolean }) {
+  title, configured, total, locked, icon: Icon,
+}: { title: string; configured: number; total: number; locked?: boolean; icon: React.ComponentType<{ className?: string }> }) {
   return (
     <div className="flex flex-1 items-center justify-between gap-3 pr-2">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
+        <Icon className="h-4 w-4 text-muted-foreground" />
         <span className="font-semibold text-left">{title}</span>
         <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
-          {fieldCount} field{fieldCount === 1 ? '' : 's'}
+          {configured} of {total} configured
         </span>
       </div>
       {locked && (
@@ -200,6 +215,96 @@ function SectionHeader({
         </span>
       )}
     </div>
+  );
+}
+
+// ---------- HMS / HM time picker ----------
+
+function pad(n: number) { return n.toString().padStart(2, '0'); }
+
+function parseTime(value: string, withSeconds: boolean): { h: number; m: number; s: number } {
+  const parts = (value || '').split(':');
+  const h = Number(parts[0] ?? 0) || 0;
+  const m = Number(parts[1] ?? 0) || 0;
+  const s = withSeconds ? (Number(parts[2] ?? 0) || 0) : 0;
+  return { h, m, s };
+}
+
+function TimePicker({
+  value, onChange, withSeconds = false, disabled,
+}: { value: string; onChange: (v: string) => void; withSeconds?: boolean; disabled?: boolean }) {
+  const { h, m, s } = parseTime(value, withSeconds);
+  const set = (next: { h?: number; m?: number; s?: number }) => {
+    const nh = Math.min(23, Math.max(0, next.h ?? h));
+    const nm = Math.min(59, Math.max(0, next.m ?? m));
+    const ns = Math.min(59, Math.max(0, next.s ?? s));
+    onChange(withSeconds ? `${pad(nh)}:${pad(nm)}:${pad(ns)}` : `${pad(nh)}:${pad(nm)}`);
+  };
+  const cell = (label: string, val: number, max: number, key: 'h' | 'm' | 's') => (
+    <div className="flex flex-col items-center">
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">{label}</span>
+      <Input
+        type="number"
+        min={0}
+        max={max}
+        value={pad(val)}
+        onChange={(e) => set({ [key]: Number(e.target.value) })}
+        disabled={disabled}
+        className="w-14 text-center px-1 tabular-nums"
+      />
+    </div>
+  );
+  return (
+    <div className="flex items-end gap-1.5">
+      {cell('H', h, 23, 'h')}
+      <span className="pb-2 text-muted-foreground">:</span>
+      {cell('M', m, 59, 'm')}
+      {withSeconds && (
+        <>
+          <span className="pb-2 text-muted-foreground">:</span>
+          {cell('S', s, 59, 's')}
+        </>
+      )}
+    </div>
+  );
+}
+
+function TimezoneClock({ tz }: { tz: string }) {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const i = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(i);
+  }, []);
+  let display = '';
+  try {
+    display = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour: 'numeric', minute: '2-digit',
+      hour12: true, timeZoneName: 'short',
+    }).format(now);
+  } catch {
+    display = '—';
+  }
+  return (
+    <p className="text-xs text-muted-foreground mt-1">
+      Current time in {tz}: <span className="font-medium text-foreground">{display}</span>
+    </p>
+  );
+}
+
+function HolidayList() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mt-2">
+      <CollapsibleTrigger className="text-xs text-primary hover:underline flex items-center gap-1">
+        <ChevronDown className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
+        {open ? 'Hide holidays' : 'View holidays'}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-2">
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Skips NYSE/CME observed holidays including {NYSE_HOLIDAYS.join(', ')}.
+        </p>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -478,9 +583,47 @@ export default function StrategyDetailPage() {
     </div>
   );
 
-  // counts for headers
-  const counts = {
-    identity: 5, time: 7, indicators: 1, entry: 1, risk: 5, trailing: 1, frequency: 4, filters: 5,
+  // Counts: total fields per section + how many the user has changed from defaults
+  const diff = <K extends keyof FormState>(k: K) =>
+    JSON.stringify(form[k]) !== JSON.stringify(DEFAULTS[k]) ? 1 : 0;
+  const sections = {
+    identity: {
+      total: 5,
+      configured: (form.name.trim() ? 1 : 0) + (form.description ? 1 : 0)
+        + diff('direction_bias') + diff('instrument') + diff('timeframe'),
+    },
+    time: {
+      total: 7,
+      configured: diff('range_start_time') + diff('range_end_time')
+        + diff('trade_start_time') + diff('trade_end_time') + diff('eod_flat_time')
+        + diff('timezone') + diff('skip_holidays'),
+    },
+    indicators: {
+      total: INDICATORS.length,
+      configured: Object.keys(form.indicator_set).length,
+    },
+    entry: {
+      total: 1,
+      configured: diff('entry_method'),
+    },
+    risk: {
+      total: 5,
+      configured: diff('risk_per_trade') + diff('stop_loss_ticks') + diff('take_profit_r')
+        + diff('breakeven_r') + diff('max_contracts'),
+    },
+    trailing: {
+      total: 1,
+      configured: form.trailing_stop_enabled ? 1 : 0,
+    },
+    frequency: {
+      total: 4,
+      configured: (form.max_long_per_day !== '' ? 1 : 0) + (form.max_short_per_day !== '' ? 1 : 0)
+        + (form.max_wins_per_day !== '' ? 1 : 0) + (form.max_losses_per_day !== '' ? 1 : 0),
+    },
+    filters: {
+      total: 5,
+      configured: Object.values(form.filters).filter(Boolean).length,
+    },
   };
 
   return (
@@ -538,7 +681,7 @@ export default function StrategyDetailPage() {
           {/* 1 — Identity */}
           <AccordionItem value="identity" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Strategy Identity" fieldCount={counts.identity} />
+              <SectionHeader title="Strategy Identity" icon={FileText} configured={sections.identity.configured} total={sections.identity.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-4">
               <div className="space-y-2">
@@ -606,45 +749,46 @@ export default function StrategyDetailPage() {
           {/* 2 — Time */}
           <AccordionItem value="time" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Time Settings" fieldCount={counts.time} locked={isStarter} />
+              <SectionHeader title="Time Settings" icon={Clock} configured={sections.time.configured} total={sections.time.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to configure time settings') : (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Start of the opening range window. For ORB, typically 8:00 AM ET.">Range Start</FieldLabel>
-                      <Input type="time" step={1} value={form.range_start_time} onChange={(e) => update('range_start_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="End of the opening range window. Common values: 8:15 (15-min ORB) or 8:30 (30-min ORB).">Range End</FieldLabel>
-                      <Input type="time" step={1} value={form.range_end_time} onChange={(e) => update('range_end_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Earliest time to take trades. RTH open is 9:30 AM ET.">Trade Start</FieldLabel>
-                      <Input type="time" value={form.trade_start_time} onChange={(e) => update('trade_start_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Latest time to enter new trades. Allows 30 min before RTH close.">Trade End</FieldLabel>
-                      <Input type="time" value={form.trade_end_time} onChange={(e) => update('trade_end_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Close all open positions by this time. RTH close is 4:00 PM ET.">EOD Flat</FieldLabel>
-                      <Input type="time" value={form.eod_flat_time} onChange={(e) => update('eod_flat_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="All times are interpreted in this timezone.">Timezone</FieldLabel>
-                      <Select value={form.timezone} onValueChange={(v) => update('timezone', v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-3">
+                    {([
+                      { key: 'range_start_time', label: 'Range Start', tip: 'Start of the opening range window. For ORB, typically 8:00 AM ET.', seconds: true },
+                      { key: 'range_end_time', label: 'Range End', tip: 'End of the opening range window. Common values: 8:15 (15-min ORB) or 8:30 (30-min ORB).', seconds: true },
+                      { key: 'trade_start_time', label: 'Trade Start', tip: 'Earliest time to take trades. RTH open is 9:30 AM ET.', seconds: false },
+                      { key: 'trade_end_time', label: 'Trade End', tip: 'Latest time to enter new trades. Allows 30 min before RTH close.', seconds: false },
+                      { key: 'eod_flat_time', label: 'EOD Flat', tip: 'Close all open positions by this time. RTH close is 4:00 PM ET.', seconds: false },
+                    ] as const).map((row) => (
+                      <div key={row.key} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border p-3">
+                        <FieldLabel tooltip={row.tip}>{row.label}</FieldLabel>
+                        <TimePicker
+                          value={form[row.key] as string}
+                          withSeconds={row.seconds}
+                          onChange={(v) => update(row.key, v)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between rounded-md border p-3">
-                    <FieldLabel tooltip="Skip trading on NYSE/CME holidays.">Skip US Market Holidays</FieldLabel>
-                    <Switch checked={form.skip_holidays} onCheckedChange={(v) => update('skip_holidays', v)} />
+                  <div className="space-y-2">
+                    <FieldLabel tooltip="All times are interpreted in this timezone.">Timezone</FieldLabel>
+                    <Select value={form.timezone} onValueChange={(v) => update('timezone', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <TimezoneClock tz={form.timezone} />
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <FieldLabel tooltip="Skip trading on NYSE/CME holidays.">Skip US Market Holidays</FieldLabel>
+                      <Switch checked={form.skip_holidays} onCheckedChange={(v) => update('skip_holidays', v)} />
+                    </div>
+                    <HolidayList />
                   </div>
                 </div>
               )}
@@ -654,54 +798,81 @@ export default function StrategyDetailPage() {
           {/* 3 — Indicators */}
           <AccordionItem value="indicators" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Indicators" fieldCount={Object.keys(form.indicator_set).length || counts.indicators} />
+              <SectionHeader title="Indicators" icon={Activity} configured={sections.indicators.configured} total={sections.indicators.total} />
             </AccordionTrigger>
-            <AccordionContent className="pt-2 space-y-3">
-              {INDICATORS.map((ind) => {
-                const enabled = !!form.indicator_set[ind.key];
-                const locked = isStarter && ind.proOnly;
+            <AccordionContent className="pt-2 space-y-5">
+              {INDICATOR_GROUPS.map((group) => {
+                const items = INDICATORS.filter((i) => i.group === group);
                 return (
-                  <div key={ind.key} className="rounded-md border p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        {locked ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="flex items-center gap-2 text-muted-foreground cursor-not-allowed">
-                                <Lock className="h-4 w-4" />
-                                <span className="text-sm">{ind.label}</span>
-                                <Badge variant="secondary">Pro</Badge>
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>Upgrade to Pro to use this indicator.</TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <>
-                            <Checkbox
-                              id={`ind-${ind.key}`}
-                              checked={enabled}
-                              onCheckedChange={(v) => toggleIndicator(ind, !!v)}
-                              disabled={readOnly}
-                            />
-                            <Label htmlFor={`ind-${ind.key}`} className="text-sm cursor-pointer">{ind.label}</Label>
-                          </>
-                        )}
-                      </div>
+                  <div key={group} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {group}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {items.map((ind) => {
+                        const enabled = !!form.indicator_set[ind.key];
+                        const locked = isStarter && ind.proOnly;
+                        if (locked) {
+                          return (
+                            <Tooltip key={ind.key}>
+                              <TooltipTrigger asChild>
+                                <div className="relative rounded-md border border-dashed p-2.5 text-xs flex items-center justify-between gap-2 cursor-not-allowed bg-muted/30 opacity-70">
+                                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                                    <Lock className="h-3 w-3" />
+                                    {ind.label}
+                                  </span>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Upgrade to Pro to use this indicator.</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
+                        return (
+                          <button
+                            key={ind.key}
+                            type="button"
+                            onClick={() => !readOnly && toggleIndicator(ind, !enabled)}
+                            disabled={readOnly}
+                            className={cn(
+                              'rounded-md border p-2.5 text-xs flex items-center justify-between gap-2 transition-colors text-left',
+                              enabled
+                                ? 'border-primary bg-primary/10 text-foreground'
+                                : 'border-border hover:border-muted-foreground/40 text-muted-foreground',
+                            )}
+                          >
+                            <span className="font-medium">{ind.label}</span>
+                            <Checkbox checked={enabled} className="pointer-events-none" />
+                          </button>
+                        );
+                      })}
                     </div>
-                    {enabled && Object.keys(ind.defaults).length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in slide-in-from-top-1">
-                        {Object.keys(ind.defaults).map((setting) => (
-                          <div key={setting} className="space-y-1">
-                            <Label className="text-xs capitalize">{setting}</Label>
-                            <Input
-                              type="number"
-                              value={(form.indicator_set[ind.key]?.[setting] as number) ?? ind.defaults[setting]}
-                              onChange={(e) => updateIndicatorSetting(ind.key, setting, Number(e.target.value))}
-                            />
+                    {/* Per-indicator settings, inline below the group when an indicator is enabled */}
+                    {items
+                      .filter((ind) => !!form.indicator_set[ind.key] && Object.keys(ind.defaults).length > 0)
+                      .map((ind) => (
+                        <div
+                          key={`settings-${ind.key}`}
+                          className="rounded-md border bg-muted/20 p-3 animate-in fade-in slide-in-from-top-1"
+                        >
+                          <p className="text-xs font-medium mb-2">{ind.label} settings</p>
+                          <div className="flex flex-wrap gap-3">
+                            {Object.keys(ind.defaults).map((setting) => (
+                              <div key={setting} className="space-y-1">
+                                <Label className="text-[10px] uppercase tracking-wide text-muted-foreground capitalize">
+                                  {setting}
+                                </Label>
+                                <Input
+                                  type="number"
+                                  value={(form.indicator_set[ind.key]?.[setting] as number) ?? ind.defaults[setting]}
+                                  onChange={(e) => updateIndicatorSetting(ind.key, setting, Number(e.target.value))}
+                                  className="w-24 h-8"
+                                />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      ))}
                   </div>
                 );
               })}
@@ -711,7 +882,7 @@ export default function StrategyDetailPage() {
           {/* 4 — Entry Method */}
           <AccordionItem value="entry" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Entry Method" fieldCount={counts.entry} />
+              <SectionHeader title="Entry Method" icon={ArrowRightCircle} configured={sections.entry.configured} total={sections.entry.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-4">
               <div className="space-y-2">
@@ -784,7 +955,7 @@ export default function StrategyDetailPage() {
           {/* 5 — Risk Management */}
           <AccordionItem value="risk" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Risk Management" fieldCount={counts.risk} />
+              <SectionHeader title="Risk Management" icon={Shield} configured={sections.risk.configured} total={sections.risk.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -830,7 +1001,7 @@ export default function StrategyDetailPage() {
           {/* 6 — Trailing Stop */}
           <AccordionItem value="trailing" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Trailing Stop" fieldCount={counts.trailing} locked={isStarter} />
+              <SectionHeader title="Trailing Stop" icon={TrendingUp} configured={sections.trailing.configured} total={sections.trailing.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to use trailing stops') : (
@@ -875,7 +1046,7 @@ export default function StrategyDetailPage() {
           {/* 7 — Frequency limits */}
           <AccordionItem value="frequency" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Trade Frequency Limits" fieldCount={counts.frequency} locked={isStarter} />
+              <SectionHeader title="Trade Frequency Limits" icon={Hash} configured={sections.frequency.configured} total={sections.frequency.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to set frequency limits') : (
@@ -904,7 +1075,7 @@ export default function StrategyDetailPage() {
           {/* 8 — Filters */}
           <AccordionItem value="filters" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="High Probability Filters" fieldCount={counts.filters} locked={isStarter} />
+              <SectionHeader title="High Probability Filters" icon={Filter} configured={sections.filters.configured} total={sections.filters.total} locked={isStarter} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to use filters') : (
