@@ -754,40 +754,41 @@ export default function StrategyDetailPage() {
             <AccordionContent className="pt-2">
               {isStarter ? lockedSection('Upgrade to Pro to configure time settings') : (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Start of the opening range window. For ORB, typically 8:00 AM ET.">Range Start</FieldLabel>
-                      <Input type="time" step={1} value={form.range_start_time} onChange={(e) => update('range_start_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="End of the opening range window. Common values: 8:15 (15-min ORB) or 8:30 (30-min ORB).">Range End</FieldLabel>
-                      <Input type="time" step={1} value={form.range_end_time} onChange={(e) => update('range_end_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Earliest time to take trades. RTH open is 9:30 AM ET.">Trade Start</FieldLabel>
-                      <Input type="time" value={form.trade_start_time} onChange={(e) => update('trade_start_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Latest time to enter new trades. Allows 30 min before RTH close.">Trade End</FieldLabel>
-                      <Input type="time" value={form.trade_end_time} onChange={(e) => update('trade_end_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="Close all open positions by this time. RTH close is 4:00 PM ET.">EOD Flat</FieldLabel>
-                      <Input type="time" value={form.eod_flat_time} onChange={(e) => update('eod_flat_time', e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                      <FieldLabel tooltip="All times are interpreted in this timezone.">Timezone</FieldLabel>
-                      <Select value={form.timezone} onValueChange={(v) => update('timezone', v)}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div className="space-y-3">
+                    {([
+                      { key: 'range_start_time', label: 'Range Start', tip: 'Start of the opening range window. For ORB, typically 8:00 AM ET.', seconds: true },
+                      { key: 'range_end_time', label: 'Range End', tip: 'End of the opening range window. Common values: 8:15 (15-min ORB) or 8:30 (30-min ORB).', seconds: true },
+                      { key: 'trade_start_time', label: 'Trade Start', tip: 'Earliest time to take trades. RTH open is 9:30 AM ET.', seconds: false },
+                      { key: 'trade_end_time', label: 'Trade End', tip: 'Latest time to enter new trades. Allows 30 min before RTH close.', seconds: false },
+                      { key: 'eod_flat_time', label: 'EOD Flat', tip: 'Close all open positions by this time. RTH close is 4:00 PM ET.', seconds: false },
+                    ] as const).map((row) => (
+                      <div key={row.key} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border p-3">
+                        <FieldLabel tooltip={row.tip}>{row.label}</FieldLabel>
+                        <TimePicker
+                          value={form[row.key] as string}
+                          withSeconds={row.seconds}
+                          onChange={(v) => update(row.key, v)}
+                          disabled={readOnly}
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center justify-between rounded-md border p-3">
-                    <FieldLabel tooltip="Skip trading on NYSE/CME holidays.">Skip US Market Holidays</FieldLabel>
-                    <Switch checked={form.skip_holidays} onCheckedChange={(v) => update('skip_holidays', v)} />
+                  <div className="space-y-2">
+                    <FieldLabel tooltip="All times are interpreted in this timezone.">Timezone</FieldLabel>
+                    <Select value={form.timezone} onValueChange={(v) => update('timezone', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TIMEZONES.map((tz) => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <TimezoneClock tz={form.timezone} />
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <FieldLabel tooltip="Skip trading on NYSE/CME holidays.">Skip US Market Holidays</FieldLabel>
+                      <Switch checked={form.skip_holidays} onCheckedChange={(v) => update('skip_holidays', v)} />
+                    </div>
+                    <HolidayList />
                   </div>
                 </div>
               )}
