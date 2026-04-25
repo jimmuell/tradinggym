@@ -50,18 +50,27 @@ interface IndicatorMeta {
   label: string;
   proOnly: boolean;
   defaults: Record<string, number>;
+  group: 'Trend' | 'Momentum' | 'Volatility';
 }
 
 const INDICATORS: IndicatorMeta[] = [
-  { key: 'ema_9', label: 'EMA-9', proOnly: false, defaults: { period: 9 } },
-  { key: 'ema_21', label: 'EMA-21', proOnly: false, defaults: { period: 21 } },
-  { key: 'ema_50', label: 'EMA-50', proOnly: false, defaults: { period: 50 } },
-  { key: 'ema_200', label: 'EMA-200', proOnly: false, defaults: { period: 200 } },
-  { key: 'vwap', label: 'VWAP', proOnly: false, defaults: {} },
-  { key: 'rsi', label: 'RSI', proOnly: true, defaults: { period: 14, overbought: 70, oversold: 30 } },
-  { key: 'macd', label: 'MACD', proOnly: true, defaults: { fast: 12, slow: 26, signal: 9 } },
-  { key: 'bb', label: 'Bollinger Bands', proOnly: true, defaults: { period: 20, deviation: 2 } },
-  { key: 'atr', label: 'ATR', proOnly: true, defaults: { period: 14 } },
+  { key: 'ema_9', label: 'EMA-9', proOnly: false, defaults: { period: 9 }, group: 'Trend' },
+  { key: 'ema_21', label: 'EMA-21', proOnly: false, defaults: { period: 21 }, group: 'Trend' },
+  { key: 'ema_50', label: 'EMA-50', proOnly: false, defaults: { period: 50 }, group: 'Trend' },
+  { key: 'ema_200', label: 'EMA-200', proOnly: false, defaults: { period: 200 }, group: 'Trend' },
+  { key: 'vwap', label: 'VWAP', proOnly: false, defaults: {}, group: 'Trend' },
+  { key: 'rsi', label: 'RSI', proOnly: true, defaults: { period: 14, overbought: 70, oversold: 30 }, group: 'Momentum' },
+  { key: 'macd', label: 'MACD', proOnly: true, defaults: { fast: 12, slow: 26, signal: 9 }, group: 'Momentum' },
+  { key: 'bb', label: 'Bollinger Bands', proOnly: true, defaults: { period: 20, deviation: 2 }, group: 'Volatility' },
+  { key: 'atr', label: 'ATR', proOnly: true, defaults: { period: 14 }, group: 'Volatility' },
+];
+
+const INDICATOR_GROUPS: Array<'Trend' | 'Momentum' | 'Volatility'> = ['Trend', 'Momentum', 'Volatility'];
+
+const NYSE_HOLIDAYS = [
+  "New Year's Day", "Martin Luther King Jr. Day", "Presidents' Day",
+  'Good Friday', 'Memorial Day', 'Independence Day',
+  'Labor Day', 'Thanksgiving Day', 'Christmas Day',
 ];
 
 interface FormState {
