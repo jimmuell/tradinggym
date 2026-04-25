@@ -5,63 +5,62 @@ import { Badge } from "@/components/ui/badge";
 import HeroChartAnimation from "@/components/landing/HeroChartAnimation";
 import {
   BarChart3,
-  BookOpen,
-  Bot,
-  BrainCircuit,
-  ChevronRight,
+  Brain,
+  Sparkles,
+  Clapperboard,
+  FileText,
+  Repeat,
   LineChart,
   Play,
-  Shield,
   Target,
-  TrendingUp,
   Users,
   Zap,
   Check,
   ArrowRight,
 } from "lucide-react";
 
-const problems = [
+const spotlight = [
   {
-    icon: Target,
-    title: "No System or Validation",
-    desc: "Most traders lose because they trade on impulse, chasing setups without a repeatable process or any data to back them up.",
+    icon: Sparkles,
+    title: "AI Strategy Builder",
+    desc: "Paste any trading idea — a TikTok transcript, YouTube breakdown, or your own rules. AI extracts a structured, tradeable strategy in seconds.",
   },
   {
-    icon: BrainCircuit,
-    title: "Information Overload",
-    desc: "Conflicting gurus, hundreds of indicators, and no way to know what actually works for you.",
+    icon: Clapperboard,
+    title: "Strategy Playback",
+    desc: "Watch your strategy execute step-by-step on real MES futures data. See the setup, confirmation, entry, and exit — then try it yourself.",
   },
   {
-    icon: Shield,
-    title: "No Discipline",
-    desc: "Without structured rules and accountability, even great strategies fail. Emotion replaces execution, and losses compound.",
+    icon: BarChart3,
+    title: "Data-Driven Validation",
+    desc: "Track win rates, R-multiples, and performance across every strategy. Know what works before you risk real capital.",
   },
 ];
 
-const steps = [
+const howItWorks = [
   {
     num: "01",
-    icon: BookOpen,
-    title: "Learn",
-    desc: "Foundation modules teach candlestick patterns, market structure, and risk management.",
+    icon: FileText,
+    title: "Describe Your Strategy",
+    desc: "Paste a video transcript, type your rules, or describe your setup in plain English.",
   },
   {
     num: "02",
-    icon: Play,
-    title: "Practice",
-    desc: "Bar-by-bar simulator with real MES data and strategy blueprint overlay.",
+    icon: Brain,
+    title: "AI Extracts It",
+    desc: "AI identifies indicators, entry method, exit rules, risk parameters, and direction bias — structured and ready to save.",
   },
   {
     num: "03",
-    icon: LineChart,
-    title: "Validate",
-    desc: "Backtest against 18 years of historical data with walk-forward analysis.",
+    icon: Play,
+    title: "Watch the Demo",
+    desc: "See your strategy play out step-by-step on real MES data with annotations showing setup, confirmation, entry, and exit.",
   },
   {
     num: "04",
-    icon: Zap,
-    title: "Execute",
-    desc: "Automate validated strategies with broker integration and risk controls.",
+    icon: Repeat,
+    title: "Practice Until You Own It",
+    desc: "Switch to the Simulator and trade the same chart yourself. Repeat until the pattern is second nature.",
   },
 ];
 
@@ -69,106 +68,134 @@ const features = [
   {
     icon: LineChart,
     title: "Trading Simulator",
-    desc: "Professional charting with MES futures replay, real-time P&L, and position tracking.",
+    desc: "Replay real MES futures data bar-by-bar. Place trades, set stops and targets, fast-forward time. Zero risk, maximum reps.",
   },
   {
-    icon: Target,
-    title: "Strategy Blueprints",
-    desc: "Step-by-step execution checklists that enforce discipline and eliminate guesswork.",
-  },
-  {
-    icon: Bot,
+    icon: Brain,
     title: "AI Strategy Ingestion",
-    desc: "Upload a YouTube video or article and get a structured, testable strategy blueprint.",
+    desc: "Paste a YouTube transcript, TikTok breakdown, or describe your setup in plain English. AI extracts indicators, entry rules, exit rules, and risk parameters into a structured strategy.",
+  },
+  {
+    icon: Play,
+    title: "Strategy Playback Trainer",
+    desc: "Watch your saved strategy play out step-by-step on a real chart — setup, confirmation, entry, exit — with annotations, labels, and arrows. Then click 'Try It Yourself' to practice.",
   },
   {
     icon: BarChart3,
-    title: "Backtesting Engine",
-    desc: "Walk-forward validation, Monte Carlo simulation, and win-rate graduation gates.",
+    title: "Analytics & Performance",
+    desc: "Track win rate, R-multiples, equity curves, and per-strategy performance. Identify what's working and what needs adjustment with data, not gut feel.",
   },
   {
     icon: Users,
     title: "Guru Platform",
-    desc: "Run your entire trading education business inside TradingGYM — classes, content, live sessions, and Stripe payouts.",
+    desc: "Run your trading education business inside TradingGYM. Create classes, publish content, host live sessions, track student progress, and earn 20–50% of student subscriptions via Stripe Connect.",
   },
   {
-    icon: Shield,
-    title: "Automated Execution",
-    desc: "Expert-tier broker connection with position sizing, drawdown limits, and kill switches.",
+    icon: Zap,
+    title: "Live Session Companion",
+    desc: "Launch a compact trading companion window alongside your broker. Session-aware with resume capability. Your strategy checklist and execution reference in one click.",
   },
 ];
 
-const tiers = [
-  { name: "Foundation", focus: "Candle reading, structure, risk basics", gate: "Complete all modules" },
-  { name: "Tier 1 — ORB", focus: "Opening Range Breakout strategy", gate: "55% win rate, 100+ trades" },
-  { name: "Tier 2 — VWAP", focus: "VWAP Bounce / Rejection strategy", gate: "55% win rate, 100+ trades" },
-  { name: "Tier 3 — AMD", focus: "Accumulation-Manipulation-Distribution", gate: "55% win rate, 100+ trades" },
+const stats = [
+  { value: "18+", label: "Historical Data (Years)" },
+  { value: "5", label: "Strategy Phases" },
+  { value: "20+", label: "Database Tables" },
+  { value: "$0", label: "Risk While Learning" },
 ];
 
-const pricing = [
+const pricing: Array<{
+  name: string;
+  planKey: string | null;
+  price: string;
+  period: string;
+  highlight: boolean;
+  badge: string | null;
+  features: string[];
+  callout?: string;
+}> = [
   {
-    name: "Starter",
-    planKey: null as string | null,
+    name: "Free",
+    planKey: null,
     price: "$0",
     period: "/forever",
     highlight: false,
-    guru: false,
+    badge: null,
     features: [
       "Trading Simulator",
       "Foundation learning modules",
-      "1-minute MES data",
+      "1 saved strategy",
       "Basic equity tracking",
+      "MES 5-minute data",
+    ],
+  },
+  {
+    name: "Starter",
+    planKey: "starter",
+    price: "$9",
+    period: "/mo",
+    highlight: false,
+    badge: null,
+    features: [
+      "Everything in Free",
+      "3 saved strategies",
+      "ORB Blueprint checklist",
+      "Strategy history & badges",
+      "Basic analytics",
     ],
   },
   {
     name: "Pro",
-    planKey: "pro" as string | null,
+    planKey: "pro",
     price: "$29",
     period: "/mo",
     highlight: true,
-    guru: false,
+    badge: "Most Popular",
     features: [
       "Everything in Starter",
-      "All strategy tiers (ORB, VWAP, AMD)",
-      "AI strategy ingestion",
-      "Advanced analytics",
+      "Unlimited strategies",
+      "AI Strategy Ingestion",
+      "Strategy Playback Trainer",
+      "Advanced analytics & R-multiples",
+      "All entry methods & filters",
+      "Trailing stop management",
       "Multiple timeframes",
-      "Backtesting (engine coming soon)",
+      "Live Session companion",
     ],
   },
   {
     name: "Expert",
-    planKey: "expert" as string | null,
+    planKey: "expert",
     price: "$49",
     period: "/mo",
     highlight: false,
-    guru: false,
+    badge: null,
     features: [
       "Everything in Pro",
-      "Automated execution",
-      "Broker integration",
-      "Risk controls & kill switch",
-      "Monte Carlo validation",
+      "Automated execution (coming soon)",
+      "Broker integration (coming soon)",
+      "Risk controls & kill switch (coming soon)",
+      "Monte Carlo validation (coming soon)",
       "Priority support",
-      "30-day Guru trial included",
     ],
   },
   {
     name: "Guru",
-    planKey: "guru" as string | null,
+    planKey: "guru",
     price: "$99",
     period: "/mo",
     highlight: false,
-    guru: true,
+    badge: "For Coaches",
     features: [
-      "Everything in Expert",
-      "Guru dashboard & class management",
+      "Everything in Pro",
+      "Guru dashboard",
+      "Cohort & student management",
       "Publish educational content",
       "Student progress tracking",
       "Live session broadcasting",
       "Stripe Connect payouts",
-      "Keep 80% of student revenue",
     ],
+    callout: "Earn 20–50% of student subscriptions",
   },
 ];
 
@@ -221,7 +248,7 @@ export default function Landing() {
               </Button>
             </Link>
             <Link to="/auth">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Get Started Free</Button>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Start Free</Button>
             </Link>
           </div>
         </div>
@@ -237,21 +264,28 @@ export default function Landing() {
             MES Futures • Micro E-mini S&P 500
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            Build Your Trading<br />
+            Build.{" "}
             <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Muscle Memory
-            </span>
+              Test.
+            </span>{" "}
+            Master.
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Like any champion, trading demands <span className="text-white font-medium">discipline</span>. Build structure, validate with data, and train until execution becomes instinct.
+            Paste any trading strategy — from a TikTok, YouTube video, or your own rules — and watch AI turn it into a structured plan. Then see it play out step-by-step on real market data. <span className="text-white font-medium">Practice until you own it.</span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 h-12 text-base">
-                Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
+                Start Free <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <a href="#how-it-works">
+            <a
+              href="#how-it-works"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <Button
                 size="lg"
                 variant="outline"
@@ -267,81 +301,40 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Guru Callout Banner */}
-      <section className="py-8 px-6 bg-gradient-to-r from-blue-500/[0.03] via-blue-500/[0.06] to-blue-500/[0.03] border-y border-white/5">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-              <Users className="h-5 w-5 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-white font-semibold text-sm">Are you a trading educator?</p>
-              <p className="text-gray-400 text-sm">
-                Run your entire coaching business inside TradingGYM — classes, live sessions, and Stripe payouts.{" "}
-                <span className="text-blue-400 font-medium">You keep 80%.</span>
-              </p>
-            </div>
-          </div>
-          <a href="#pricing" className="shrink-0">
-            <Button
-              variant="outline"
-              className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/50 whitespace-nowrap"
-            >
-              Start Teaching <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </a>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="py-24 px-6">
+      {/* Feature Spotlight Strip */}
+      <section className="py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">The Problem</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Why 90% of traders fail</h2>
-          <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
-            It's not about intelligence. It's about <span className="text-white font-medium">discipline</span>.
-          </p>
           <div className="grid md:grid-cols-3 gap-6">
-            {problems.map((p) => (
-              <Card key={p.title} className="bg-[#131722] border-white/5 hover:border-white/10 transition-colors">
+            {spotlight.map((s, i) => (
+              <Card
+                key={s.title}
+                className="bg-[#131722] border-white/5 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all group animate-fade-in"
+                style={{ animationDelay: `${i * 100}ms` }}
+              >
                 <CardContent className="p-8">
-                  <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-5">
-                    <p.icon className="h-6 w-6 text-red-400" />
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 border border-blue-500/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                    <s.icon className="h-7 w-7 text-blue-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{p.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{p.desc}</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{s.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-          <p className="text-center text-gray-300 mt-12 text-lg font-medium">
-            TradingGYM builds <span className="text-blue-400">discipline</span> — the one edge that separates winners from the 90%.
-          </p>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="py-24 px-6 bg-[#0d1117]">
-        <div className="max-w-6xl mx-auto">
-          <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">How It Works</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">Four steps to consistent trading</h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            {steps.map((s, i) => (
-              <div key={s.title} className="relative">
-                {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] right-[-40px] h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
-                )}
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-5">
-                    <s.icon className="h-7 w-7 text-blue-400" />
-                  </div>
-                  <span className="text-xs font-mono text-blue-500/60 block mb-2">{s.num}</span>
-                  <h3 className="text-lg font-semibold text-white mb-2">{s.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
-                </div>
+      {/* Stats */}
+      <section className="py-12 px-6 border-y border-white/5 bg-[#0d1117]">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {stats.map((s) => (
+            <div key={s.label} className="text-center">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                {s.value}
               </div>
-            ))}
-          </div>
+              <p className="text-gray-500 text-xs uppercase tracking-widest mt-2">{s.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -369,29 +362,29 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Tier Progress */}
-      <section className="py-24 px-6 bg-[#0d1117]">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">Progression</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Structured trader development</h2>
-          <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
-            Graduate through proven strategy tiers. Each level unlocks after demonstrating consistent performance.
-          </p>
-          <div className="space-y-4">
-            {tiers.map((t, i) => (
-              <div key={t.name} className="flex items-start gap-5 p-6 rounded-xl bg-[#131722] border border-white/5">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-bold ${i === 0 ? "bg-blue-500 text-white" : "bg-white/5 text-gray-400 border border-white/10"}`}
-                >
-                  {i === 0 ? <Check className="h-5 w-5" /> : i + 1}
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 px-6 bg-[#0d1117]">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">How It Works</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">From idea to instinct in four steps</h2>
+          <div className="grid md:grid-cols-4 gap-8">
+            {howItWorks.map((s, i) => (
+              <div
+                key={s.title}
+                className="relative animate-fade-in"
+                style={{ animationDelay: `${i * 120}ms` }}
+              >
+                {i < howItWorks.length - 1 && (
+                  <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] right-[-40px] h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
+                )}
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-5">
+                    <s.icon className="h-7 w-7 text-blue-400" />
+                  </div>
+                  <span className="text-xs font-mono text-blue-500/60 block mb-2">{s.num}</span>
+                  <h3 className="text-lg font-semibold text-white mb-2">{s.title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold">{t.name}</h3>
-                  <p className="text-gray-400 text-sm mt-1">{t.focus}</p>
-                </div>
-                <Badge variant="outline" className="hidden sm:flex border-white/10 text-gray-500 text-xs shrink-0">
-                  Gate: {t.gate}
-                </Badge>
               </div>
             ))}
           </div>
@@ -400,86 +393,128 @@ export default function Landing() {
 
       {/* Pricing */}
       <section id="pricing" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">Pricing</p>
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Start free. Upgrade when ready.</h2>
           <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
             No credit card required. Practice with real data from day one.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pricing.map((p) => (
-              <Card
-                key={p.name}
-                className={`bg-[#131722] border transition-all ${
-                  p.guru
-                    ? "border-amber-500/40 shadow-lg shadow-amber-500/10"
-                    : p.highlight
-                    ? "border-blue-500/40 shadow-lg shadow-blue-500/10"
-                    : "border-white/5"
-                }`}
-              >
-                <CardContent className="p-8 flex flex-col h-full">
-                  {p.guru && (
-                    <Badge className="self-start bg-amber-500/10 text-amber-400 border-amber-500/20 mb-4">
-                      For Educators
-                    </Badge>
-                  )}
-                  {p.highlight && !p.guru && (
-                    <Badge className="self-start bg-blue-500/10 text-blue-400 border-blue-500/20 mb-4">
-                      Most Popular
-                    </Badge>
-                  )}
-                  <h3 className="text-lg font-semibold text-white">{p.name}</h3>
-                  <div className="mt-3 mb-6">
-                    <span className="text-4xl font-bold text-white">{p.price}</span>
-                    <span className="text-gray-500 text-sm">{p.period}</span>
-                  </div>
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {p.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2 text-sm text-gray-300">
-                        <Check
-                          className={`h-4 w-4 shrink-0 mt-0.5 ${
-                            p.guru ? "text-amber-400" : "text-blue-400"
-                          }`}
-                        />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link to={p.planKey ? `/auth?plan=${p.planKey}` : "/auth"}>
-                    <Button
-                      className={`w-full ${
-                        p.guru
-                          ? "bg-amber-500 hover:bg-amber-600 text-white"
+          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5">
+            {pricing.map((p) => {
+              const isGuru = p.name === "Guru";
+              return (
+                <div key={p.name} className="relative pt-4">
+                  {p.badge && (
+                    <div
+                      className={`absolute top-0 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest ${
+                        isGuru
+                          ? "bg-amber-500 text-black"
                           : p.highlight
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
-                          : "bg-white/5 hover:bg-white/10 text-gray-300"
+                          ? "bg-blue-500 text-white"
+                          : "bg-white/10 text-gray-300"
                       }`}
                     >
-                      {p.guru
-                        ? "Start Teaching"
-                        : p.name === "Pro"
-                        ? "Start Pro — $29/mo"
-                        : p.name === "Expert"
-                        ? "Start Expert — $49/mo"
-                        : "Get Started"}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                      {p.badge}
+                    </div>
+                  )}
+                  <Card
+                    className={`bg-[#131722] border transition-all h-full ${
+                      isGuru
+                        ? "border-amber-500/40 shadow-lg shadow-amber-500/10"
+                        : p.highlight
+                        ? "border-blue-500/50 shadow-xl shadow-blue-500/20 ring-1 ring-blue-500/30"
+                        : "border-white/5"
+                    }`}
+                  >
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <h3 className="text-lg font-semibold text-white">{p.name}</h3>
+                      <div className="mt-3 mb-6">
+                        <span className="text-4xl font-bold text-white">{p.price}</span>
+                        <span className="text-gray-500 text-sm">{p.period}</span>
+                      </div>
+                      <ul className="space-y-2.5 mb-6 flex-1">
+                        {p.features.map((f) => {
+                          const isComingSoon = f.includes("(coming soon)");
+                          const cleanText = isComingSoon ? f.replace(" (coming soon)", "") : f;
+                          return (
+                            <li
+                              key={f}
+                              className={`flex items-start gap-2 text-sm ${
+                                isComingSoon ? "text-gray-500" : "text-gray-300"
+                              }`}
+                            >
+                              <Check
+                                className={`h-4 w-4 shrink-0 mt-0.5 ${
+                                  isComingSoon
+                                    ? "text-gray-600"
+                                    : isGuru
+                                    ? "text-amber-400"
+                                    : "text-blue-400"
+                                }`}
+                              />
+                              <span className="flex-1">
+                                {cleanText}
+                                {isComingSoon && (
+                                  <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-white/5 text-gray-400 border border-white/10">
+                                    Soon
+                                  </span>
+                                )}
+                              </span>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {p.callout && (
+                        <div className="mb-4 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-medium text-center">
+                          {p.callout}
+                        </div>
+                      )}
+                      <Link to={p.planKey ? `/auth?plan=${p.planKey}` : "/auth"}>
+                        <Button
+                          className={`w-full ${
+                            isGuru
+                              ? "bg-amber-500 hover:bg-amber-600 text-black"
+                              : p.highlight
+                              ? "bg-blue-600 hover:bg-blue-700 text-white"
+                              : "bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
+                          }`}
+                        >
+                          Get Started
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 px-6 bg-[#0d1117]">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to trade with discipline?</h2>
-          <p className="text-gray-400 text-lg mb-8">Champions aren't born — they're built through discipline and repetition.</p>
+      {/* Guru CTA Band */}
+      <section className="py-20 px-6 bg-gradient-to-r from-amber-500/[0.04] via-amber-500/[0.08] to-amber-500/[0.04] border-y border-amber-500/20 animate-fade-in">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="inline-flex w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 items-center justify-center mb-6">
+            <Users className="h-7 w-7 text-amber-400" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Run Your Trading Education Business</h2>
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
+            Create classes, publish content, host live sessions, and earn revenue — all inside TradingGYM. No separate website needed.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+            <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
+              Earn 20–50% of student subscriptions
+            </span>
+            <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
+              Stripe Connect payouts
+            </span>
+            <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
+              Student progress tracking
+            </span>
+          </div>
           <Link to="/auth">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-10 h-12 text-base">
-              Get Started Free <ArrowRight className="ml-2 h-4 w-4" />
+            <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-black px-10 h-12 text-base font-semibold">
+              Start Teaching <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
