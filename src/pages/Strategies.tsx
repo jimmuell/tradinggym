@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, Plus, Lock, ChevronRight, Sparkles, Play } from 'lucide-react';
+import { BookOpen, Plus, Lock, ChevronRight, Sparkles, Play, FileCode } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTier, TierState } from '@/contexts/TierContext';
 import { useScenarioMatch } from '@/hooks/useScenarioMatch';
 import HelpSheet from '@/components/HelpSheet';
+import { PineExportModal } from '@/components/strategies/PineExportModal';
 
 interface Strategy {
   id: string;
@@ -67,11 +68,13 @@ function StrategyCard({
   locked,
   onClick,
   onWatchDemo,
+  onExport,
 }: {
   strategy: Strategy;
   locked: boolean;
   onClick: () => void;
   onWatchDemo: (s: Strategy) => void;
+  onExport: (s: Strategy) => void;
 }) {
   const showAiBadge = !strategy.is_system && strategy.source === 'ai_extracted';
   const { data: matchedScenarioId } = useScenarioMatch(locked ? null : strategy);
@@ -139,19 +142,38 @@ function StrategyCard({
         </div>
         {!locked && (
           <div className="flex justify-between items-center mt-3 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
-              disabled={!matchedScenarioId}
-              onClick={(e) => {
-                e.stopPropagation();
-                onWatchDemo(strategy);
-              }}
-            >
-              <Play className="h-3 w-3" />
-              Watch Demo
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+                disabled={!matchedScenarioId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onWatchDemo(strategy);
+                }}
+              >
+                <Play className="h-3 w-3" />
+                Watch Demo
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExport(strategy);
+                    }}
+                    aria-label="Export to Pine Script"
+                  >
+                    <FileCode className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export to Pine Script</TooltipContent>
+              </Tooltip>
+            </div>
             <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
               View Details <ChevronRight className="h-3.5 w-3.5" />
             </Button>
@@ -168,6 +190,7 @@ export default function Strategies() {
   const { isUnlocked, currentTier } = useTier();
   const { toast } = useToast();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [exportStrategy, setExportStrategy] = useState<Strategy | null>(null);
 
   const { data: systemStrategies, isLoading: loadingSystem } = useQuery({
     queryKey: ['strategies', 'system'],
@@ -304,6 +327,7 @@ export default function Strategies() {
                   locked={locked}
                   onClick={() => handleCardClick(s, locked)}
                   onWatchDemo={handleWatchDemo}
+                  onExport={setExportStrategy}
                 />
               );
             })}
@@ -344,6 +368,7 @@ export default function Strategies() {
                 locked={false}
                 onClick={() => navigate(`/strategies/${s.id}`)}
                 onWatchDemo={handleWatchDemo}
+                onExport={setExportStrategy}
               />
             ))}
           </div>
@@ -375,6 +400,12 @@ export default function Strategies() {
           </Card>
         )}
       </section>
+
+      <PineExportModal
+        strategy={exportStrategy}
+        open={!!exportStrategy}
+        onOpenChange={(o) => !o && setExportStrategy(null)}
+      />
     </div>
   );
 }

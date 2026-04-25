@@ -4,8 +4,9 @@ import { useState, useEffect, useRef, ReactNode } from 'react';
 import {
   ArrowLeft, Lock, Save, Trash2, Info, RotateCcw,
   FileText, Clock, Activity, ArrowRightCircle, Shield,
-  TrendingUp, Hash, Filter, ChevronDown,
+  TrendingUp, Hash, Filter, ChevronDown, FileCode,
 } from 'lucide-react';
+import { PineExportModal } from '@/components/strategies/PineExportModal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
@@ -324,6 +325,7 @@ export default function StrategyDetailPage() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openSections, setOpenSections] = useState<string[]>(['identity']);
+  const [exportOpen, setExportOpen] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
 
   const { data: strategy, isLoading } = useQuery({
@@ -635,6 +637,13 @@ export default function StrategyDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" /> Back
           </Button>
           <div className="flex items-center gap-2">
+            {!isNew && (
+              <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-2">
+                <FileCode className="h-4 w-4" />
+                <span className="hidden sm:inline">Export to Pine Script</span>
+                <span className="sm:hidden">Export</span>
+              </Button>
+            )}
             {!readOnly && (
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="gap-2">
                 <Save className="h-4 w-4" />
@@ -1127,6 +1136,12 @@ export default function StrategyDetailPage() {
             </Button>
           </div>
         )}
+
+        <PineExportModal
+          strategy={form as unknown as Parameters<typeof PineExportModal>[0]['strategy']}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
       </div>
     </TooltipProvider>
   );
