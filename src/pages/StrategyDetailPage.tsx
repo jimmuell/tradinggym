@@ -800,52 +800,79 @@ export default function StrategyDetailPage() {
             <AccordionTrigger>
               <SectionHeader title="Indicators" icon={Activity} configured={sections.indicators.configured} total={sections.indicators.total} />
             </AccordionTrigger>
-            <AccordionContent className="pt-2 space-y-3">
-              {INDICATORS.map((ind) => {
-                const enabled = !!form.indicator_set[ind.key];
-                const locked = isStarter && ind.proOnly;
+            <AccordionContent className="pt-2 space-y-5">
+              {INDICATOR_GROUPS.map((group) => {
+                const items = INDICATORS.filter((i) => i.group === group);
                 return (
-                  <div key={ind.key} className="rounded-md border p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        {locked ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="flex items-center gap-2 text-muted-foreground cursor-not-allowed">
-                                <Lock className="h-4 w-4" />
-                                <span className="text-sm">{ind.label}</span>
-                                <Badge variant="secondary">Pro</Badge>
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>Upgrade to Pro to use this indicator.</TooltipContent>
-                          </Tooltip>
-                        ) : (
-                          <>
-                            <Checkbox
-                              id={`ind-${ind.key}`}
-                              checked={enabled}
-                              onCheckedChange={(v) => toggleIndicator(ind, !!v)}
-                              disabled={readOnly}
-                            />
-                            <Label htmlFor={`ind-${ind.key}`} className="text-sm cursor-pointer">{ind.label}</Label>
-                          </>
-                        )}
-                      </div>
+                  <div key={group} className="space-y-2">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {group}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {items.map((ind) => {
+                        const enabled = !!form.indicator_set[ind.key];
+                        const locked = isStarter && ind.proOnly;
+                        if (locked) {
+                          return (
+                            <Tooltip key={ind.key}>
+                              <TooltipTrigger asChild>
+                                <div className="relative rounded-md border border-dashed p-2.5 text-xs flex items-center justify-between gap-2 cursor-not-allowed bg-muted/30 opacity-70">
+                                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                                    <Lock className="h-3 w-3" />
+                                    {ind.label}
+                                  </span>
+                                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Pro</Badge>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>Upgrade to Pro to use this indicator.</TooltipContent>
+                            </Tooltip>
+                          );
+                        }
+                        return (
+                          <button
+                            key={ind.key}
+                            type="button"
+                            onClick={() => !readOnly && toggleIndicator(ind, !enabled)}
+                            disabled={readOnly}
+                            className={cn(
+                              'rounded-md border p-2.5 text-xs flex items-center justify-between gap-2 transition-colors text-left',
+                              enabled
+                                ? 'border-primary bg-primary/10 text-foreground'
+                                : 'border-border hover:border-muted-foreground/40 text-muted-foreground',
+                            )}
+                          >
+                            <span className="font-medium">{ind.label}</span>
+                            <Checkbox checked={enabled} className="pointer-events-none" />
+                          </button>
+                        );
+                      })}
                     </div>
-                    {enabled && Object.keys(ind.defaults).length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 animate-in fade-in slide-in-from-top-1">
-                        {Object.keys(ind.defaults).map((setting) => (
-                          <div key={setting} className="space-y-1">
-                            <Label className="text-xs capitalize">{setting}</Label>
-                            <Input
-                              type="number"
-                              value={(form.indicator_set[ind.key]?.[setting] as number) ?? ind.defaults[setting]}
-                              onChange={(e) => updateIndicatorSetting(ind.key, setting, Number(e.target.value))}
-                            />
+                    {/* Per-indicator settings, inline below the group when an indicator is enabled */}
+                    {items
+                      .filter((ind) => !!form.indicator_set[ind.key] && Object.keys(ind.defaults).length > 0)
+                      .map((ind) => (
+                        <div
+                          key={`settings-${ind.key}`}
+                          className="rounded-md border bg-muted/20 p-3 animate-in fade-in slide-in-from-top-1"
+                        >
+                          <p className="text-xs font-medium mb-2">{ind.label} settings</p>
+                          <div className="flex flex-wrap gap-3">
+                            {Object.keys(ind.defaults).map((setting) => (
+                              <div key={setting} className="space-y-1">
+                                <Label className="text-[10px] uppercase tracking-wide text-muted-foreground capitalize">
+                                  {setting}
+                                </Label>
+                                <Input
+                                  type="number"
+                                  value={(form.indicator_set[ind.key]?.[setting] as number) ?? ind.defaults[setting]}
+                                  onChange={(e) => updateIndicatorSetting(ind.key, setting, Number(e.target.value))}
+                                  className="w-24 h-8"
+                                />
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      ))}
                   </div>
                 );
               })}
