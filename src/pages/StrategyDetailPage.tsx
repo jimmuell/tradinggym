@@ -927,7 +927,7 @@ export default function StrategyDetailPage() {
           {/* 5 — Risk Management */}
           <AccordionItem value="risk" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Risk Management" fieldCount={counts.risk} />
+              <SectionHeader title="Risk Management" icon={Shield} configured={sections.risk.configured} total={sections.risk.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
