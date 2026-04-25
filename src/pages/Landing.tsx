@@ -264,11 +264,11 @@ export default function Landing() {
             MES • MNQ • ES • NQ • YM Futures
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            Build.{" "}
+            Build{" "}
             <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Test.
+              Test
             </span>{" "}
-            Master.
+            Master
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             Paste any trading strategy — from a TikTok, YouTube video, or your own rules — and watch AI turn it into a structured plan. Then see it play out step-by-step on real market data. <span className="text-white font-medium">Practice until you own it.</span>
