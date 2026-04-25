@@ -136,8 +136,8 @@ serve(async (req) => {
       limit: 20,
     });
 
-    const matched = subs.data.find((s) =>
-      s.items.data.some((it) => it.price.id === proPriceId || it.price.id === expertPriceId)
+    const matched = subs.data.find((s: any) =>
+      s.items.data.some((it: any) => it.price.id === proPriceId || it.price.id === expertPriceId)
     );
 
     if (!matched) {
@@ -149,7 +149,7 @@ serve(async (req) => {
         402,
       );
     }
-    const planTier = matched.items.data.find((it) => it.price.id === proPriceId)
+    const planTier = matched.items.data.find((it: any) => it.price.id === proPriceId)
       ? "pro"
       : "expert";
     log("subscription matched", { sub: matched.id, plan: planTier });
@@ -286,7 +286,7 @@ serve(async (req) => {
       // Apply month-1-free as a customer balance credit (negative balance = credit)
       try {
         const subItem = matched.items.data.find(
-          (it) => it.price.id === proPriceId || it.price.id === expertPriceId,
+          (it: any) => it.price.id === proPriceId || it.price.id === expertPriceId,
         );
         const unitAmount = subItem?.price.unit_amount ?? 0;
         if (unitAmount > 0) {
