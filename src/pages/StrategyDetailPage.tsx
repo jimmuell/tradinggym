@@ -797,7 +797,7 @@ export default function StrategyDetailPage() {
           {/* 3 — Indicators */}
           <AccordionItem value="indicators" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Indicators" fieldCount={Object.keys(form.indicator_set).length || counts.indicators} />
+              <SectionHeader title="Indicators" icon={Activity} configured={sections.indicators.configured} total={sections.indicators.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-3">
               {INDICATORS.map((ind) => {
