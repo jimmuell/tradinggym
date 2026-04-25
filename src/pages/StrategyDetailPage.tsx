@@ -854,7 +854,7 @@ export default function StrategyDetailPage() {
           {/* 4 — Entry Method */}
           <AccordionItem value="entry" className="border rounded-lg px-4">
             <AccordionTrigger>
-              <SectionHeader title="Entry Method" fieldCount={counts.entry} />
+              <SectionHeader title="Entry Method" icon={ArrowRightCircle} configured={sections.entry.configured} total={sections.entry.total} />
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-4">
               <div className="space-y-2">
