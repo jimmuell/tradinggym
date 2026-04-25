@@ -368,6 +368,7 @@ export default function Strategies() {
                 locked={false}
                 onClick={() => navigate(`/strategies/${s.id}`)}
                 onWatchDemo={handleWatchDemo}
+                onExport={setExportStrategy}
               />
             ))}
           </div>
