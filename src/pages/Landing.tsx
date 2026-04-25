@@ -88,7 +88,7 @@ const features = [
   {
     icon: Users,
     title: "Guru Platform",
-    desc: "Run your trading education business inside TradingGYM. Create classes, publish content, host live sessions, track student progress, and earn 20–50% of student subscriptions via Stripe Connect.",
+    desc: "Run your trading education business inside TradingGYM. Create classes, publish content, host live sessions, track student progress, with built-in monetization & payouts via Stripe Connect.",
   },
   {
     icon: Zap,
@@ -195,7 +195,7 @@ const pricing: Array<{
       "Live session broadcasting",
       "Stripe Connect payouts",
     ],
-    callout: "Earn 20–50% of student subscriptions",
+    callout: "Built-in monetization & payouts",
   },
 ];
 
@@ -499,11 +499,11 @@ export default function Landing() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Run Your Trading Education Business</h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-            Create classes, publish content, host live sessions, and earn revenue — all inside TradingGYM. No separate website needed.
+            Turn your trading expertise into recurring income — create classes, publish content, and host live sessions all inside TradingGYM. No separate website needed.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
             <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
-              Earn 20–50% of student subscriptions
+              Turn your trading expertise into recurring income
             </span>
             <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
               Stripe Connect payouts
