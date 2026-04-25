@@ -286,7 +286,7 @@ serve(async (req) => {
       // Apply month-1-free as a customer balance credit (negative balance = credit)
       try {
         const subItem = matched.items.data.find(
-          (it) => it.price.id === proPriceId || it.price.id === expertPriceId,
+          (it: any) => it.price.id === proPriceId || it.price.id === expertPriceId,
         );
         const unitAmount = subItem?.price.unit_amount ?? 0;
         if (unitAmount > 0) {
