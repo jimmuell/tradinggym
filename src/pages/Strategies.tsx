@@ -327,6 +327,7 @@ export default function Strategies() {
                   locked={locked}
                   onClick={() => handleCardClick(s, locked)}
                   onWatchDemo={handleWatchDemo}
+                  onExport={setExportStrategy}
                 />
               );
             })}
