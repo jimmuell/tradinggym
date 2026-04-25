@@ -907,51 +907,141 @@ export type Database = {
       }
       strategies: {
         Row: {
+          atr_length: number | null
+          atr_multiplier: number | null
+          atr_timeframe: string | null
+          breakeven_r: number | null
+          breakout_threshold: number | null
           created_at: string | null
           description: string | null
           direction_bias: string | null
+          entry_method: string | null
           entry_rules: string | null
+          eod_flat_time: string | null
           exit_rules: string | null
+          filters: Json | null
           id: string
+          indicator_set: Json | null
           instrument: string | null
           is_system: boolean | null
+          limit_order_placement: number | null
+          max_contracts: number | null
+          max_long_per_day: number | null
+          max_losses_per_day: number | null
+          max_short_per_day: number | null
+          max_wins_per_day: number | null
           name: string
           notes: string | null
+          range_end_time: string | null
+          range_start_time: string | null
+          range_stop_loss_pct: number | null
+          retest_entry_type: string | null
+          retest_stop_method: string | null
+          risk_per_trade: number | null
+          skip_holidays: boolean | null
           source: string
+          stop_loss_ticks: number | null
+          take_profit_r: number | null
           tier_required: string | null
           timeframe: string | null
+          timezone: string | null
+          trade_end_time: string | null
+          trade_start_time: string | null
+          trailing_activate_r: number | null
+          trailing_stop_enabled: boolean | null
+          use_breakout_candle_sl: boolean | null
           user_id: string | null
         }
         Insert: {
+          atr_length?: number | null
+          atr_multiplier?: number | null
+          atr_timeframe?: string | null
+          breakeven_r?: number | null
+          breakout_threshold?: number | null
           created_at?: string | null
           description?: string | null
           direction_bias?: string | null
+          entry_method?: string | null
           entry_rules?: string | null
+          eod_flat_time?: string | null
           exit_rules?: string | null
+          filters?: Json | null
           id?: string
+          indicator_set?: Json | null
           instrument?: string | null
           is_system?: boolean | null
+          limit_order_placement?: number | null
+          max_contracts?: number | null
+          max_long_per_day?: number | null
+          max_losses_per_day?: number | null
+          max_short_per_day?: number | null
+          max_wins_per_day?: number | null
           name: string
           notes?: string | null
+          range_end_time?: string | null
+          range_start_time?: string | null
+          range_stop_loss_pct?: number | null
+          retest_entry_type?: string | null
+          retest_stop_method?: string | null
+          risk_per_trade?: number | null
+          skip_holidays?: boolean | null
           source?: string
+          stop_loss_ticks?: number | null
+          take_profit_r?: number | null
           tier_required?: string | null
           timeframe?: string | null
+          timezone?: string | null
+          trade_end_time?: string | null
+          trade_start_time?: string | null
+          trailing_activate_r?: number | null
+          trailing_stop_enabled?: boolean | null
+          use_breakout_candle_sl?: boolean | null
           user_id?: string | null
         }
         Update: {
+          atr_length?: number | null
+          atr_multiplier?: number | null
+          atr_timeframe?: string | null
+          breakeven_r?: number | null
+          breakout_threshold?: number | null
           created_at?: string | null
           description?: string | null
           direction_bias?: string | null
+          entry_method?: string | null
           entry_rules?: string | null
+          eod_flat_time?: string | null
           exit_rules?: string | null
+          filters?: Json | null
           id?: string
+          indicator_set?: Json | null
           instrument?: string | null
           is_system?: boolean | null
+          limit_order_placement?: number | null
+          max_contracts?: number | null
+          max_long_per_day?: number | null
+          max_losses_per_day?: number | null
+          max_short_per_day?: number | null
+          max_wins_per_day?: number | null
           name?: string
           notes?: string | null
+          range_end_time?: string | null
+          range_start_time?: string | null
+          range_stop_loss_pct?: number | null
+          retest_entry_type?: string | null
+          retest_stop_method?: string | null
+          risk_per_trade?: number | null
+          skip_holidays?: boolean | null
           source?: string
+          stop_loss_ticks?: number | null
+          take_profit_r?: number | null
           tier_required?: string | null
           timeframe?: string | null
+          timezone?: string | null
+          trade_end_time?: string | null
+          trade_start_time?: string | null
+          trailing_activate_r?: number | null
+          trailing_stop_enabled?: boolean | null
+          use_breakout_candle_sl?: boolean | null
           user_id?: string | null
         }
         Relationships: []
