@@ -190,6 +190,7 @@ export default function Strategies() {
   const { isUnlocked, currentTier } = useTier();
   const { toast } = useToast();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [exportStrategy, setExportStrategy] = useState<Strategy | null>(null);
 
   const { data: systemStrategies, isLoading: loadingSystem } = useQuery({
     queryKey: ['strategies', 'system'],
