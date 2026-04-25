@@ -583,9 +583,47 @@ export default function StrategyDetailPage() {
     </div>
   );
 
-  // counts for headers
-  const counts = {
-    identity: 5, time: 7, indicators: 1, entry: 1, risk: 5, trailing: 1, frequency: 4, filters: 5,
+  // Counts: total fields per section + how many the user has changed from defaults
+  const diff = <K extends keyof FormState>(k: K) =>
+    JSON.stringify(form[k]) !== JSON.stringify(DEFAULTS[k]) ? 1 : 0;
+  const sections = {
+    identity: {
+      total: 5,
+      configured: (form.name.trim() ? 1 : 0) + (form.description ? 1 : 0)
+        + diff('direction_bias') + diff('instrument') + diff('timeframe'),
+    },
+    time: {
+      total: 7,
+      configured: diff('range_start_time') + diff('range_end_time')
+        + diff('trade_start_time') + diff('trade_end_time') + diff('eod_flat_time')
+        + diff('timezone') + diff('skip_holidays'),
+    },
+    indicators: {
+      total: INDICATORS.length,
+      configured: Object.keys(form.indicator_set).length,
+    },
+    entry: {
+      total: 1,
+      configured: diff('entry_method'),
+    },
+    risk: {
+      total: 5,
+      configured: diff('risk_per_trade') + diff('stop_loss_ticks') + diff('take_profit_r')
+        + diff('breakeven_r') + diff('max_contracts'),
+    },
+    trailing: {
+      total: 1,
+      configured: form.trailing_stop_enabled ? 1 : 0,
+    },
+    frequency: {
+      total: 4,
+      configured: (form.max_long_per_day !== '' ? 1 : 0) + (form.max_short_per_day !== '' ? 1 : 0)
+        + (form.max_wins_per_day !== '' ? 1 : 0) + (form.max_losses_per_day !== '' ? 1 : 0),
+    },
+    filters: {
+      total: 5,
+      configured: Object.values(form.filters).filter(Boolean).length,
+    },
   };
 
   return (
