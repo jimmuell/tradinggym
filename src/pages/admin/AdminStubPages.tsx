@@ -23,9 +23,6 @@ function StubShell({ title, message }: { title: string; message: string }) {
   );
 }
 
-export function AdminUsersStubPage() {
-  return <StubShell title="Users" message="User management coming soon. Use Lovable DB viewer for now." />;
-}
 export function AdminGurusStubPage() {
   return <StubShell title="Gurus" message="Guru application management coming soon. Use SQL editor for approvals." />;
 }
