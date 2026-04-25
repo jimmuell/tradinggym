@@ -142,19 +142,38 @@ function StrategyCard({
         </div>
         {!locked && (
           <div className="flex justify-between items-center mt-3 gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
-              disabled={!matchedScenarioId}
-              onClick={(e) => {
-                e.stopPropagation();
-                onWatchDemo(strategy);
-              }}
-            >
-              <Play className="h-3 w-3" />
-              Watch Demo
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1 border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
+                disabled={!matchedScenarioId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onWatchDemo(strategy);
+                }}
+              >
+                <Play className="h-3 w-3" />
+                Watch Demo
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExport(strategy);
+                    }}
+                    aria-label="Export to Pine Script"
+                  >
+                    <FileCode className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Export to Pine Script</TooltipContent>
+              </Tooltip>
+            </div>
             <Button variant="ghost" size="sm" className="text-xs gap-1 text-primary">
               View Details <ChevronRight className="h-3.5 w-3.5" />
             </Button>
