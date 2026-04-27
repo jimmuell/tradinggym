@@ -113,7 +113,7 @@ export function AppSidebar() {
   ];
 
   // AI Extract lock state
-  const aiExtractLocked = planState === 'starter';
+  const aiExtractLocked = !isAdminPlan && !isAdmin && planState === 'starter';
   const backtestingLocked = !canAccess('backtesting');
   const simulatorLocked = !canAccess('simulator');
   const strategiesLocked = !canAccess('strategies');
