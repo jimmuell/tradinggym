@@ -381,7 +381,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* GURU section */}
-        {isActiveGuru && (
+        {showGuruSection && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
               {!collapsed && 'Guru'}
