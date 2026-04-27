@@ -40,8 +40,8 @@ export default function PlaybackOverlay({
   onTryItYourself,
 }: Props) {
   const navigate = useNavigate();
-  const { planState } = useTier();
-  const isLockedPlan = planState === 'starter';
+  const { planState, isAdmin } = useTier();
+  const isLockedPlan = !isAdmin && planState === 'starter';
   const lockedAfter: PlaybackPhase = 'context'; // Starter sees only Context
 
   const tooltips = (scenario.annotations ?? []).filter(

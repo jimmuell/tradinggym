@@ -316,11 +316,11 @@ export default function StrategyDetailPage() {
   const isNew = id === 'new';
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { planState } = useTier();
+  const { planState, isAdmin } = useTier();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const isStarter = planState === 'starter';
+  const isStarter = !isAdmin && planState === 'starter';
 
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});

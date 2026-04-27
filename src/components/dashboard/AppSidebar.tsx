@@ -56,11 +56,12 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const { canAccess, planState, loading: tierLoading } = useTier();
+  const { canAccess, planState, isAdmin: isAdminPlan, loading: tierLoading } = useTier();
   const { data: guruProfile } = useGuruProfile();
   const { isAdmin } = useUserRole();
   const isActiveGuru = guruProfile?.status === 'active';
-  const showPricingLink = planState !== 'guru';
+  const showGuruSection = isActiveGuru || isAdmin || isAdminPlan;
+  const showPricingLink = !isAdminPlan && !isAdmin && planState !== 'guru';
   const path = location.pathname;
 
   const strategiesActive = path.startsWith('/strategies') || path.startsWith('/backtesting');
@@ -112,7 +113,7 @@ export function AppSidebar() {
   ];
 
   // AI Extract lock state
-  const aiExtractLocked = planState === 'starter';
+  const aiExtractLocked = !isAdminPlan && !isAdmin && planState === 'starter';
   const backtestingLocked = !canAccess('backtesting');
   const simulatorLocked = !canAccess('simulator');
   const strategiesLocked = !canAccess('strategies');
@@ -380,7 +381,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* GURU section */}
-        {isActiveGuru && (
+        {showGuruSection && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-muted-foreground text-xs uppercase tracking-wider px-4">
               {!collapsed && 'Guru'}
