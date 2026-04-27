@@ -47,6 +47,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [currentTier, setCurrentTier] = useState<TierState>('foundation');
   const [planState, setPlanStateLocal] = useState<PlanState>('starter');
+  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTier = useCallback(async () => {
@@ -54,15 +55,17 @@ export function TierProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from('profiles')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('tier_state, plan_state' as any)
+      .select('tier_state, plan_state, role' as any)
       .eq('user_id', user.id)
       .maybeSingle();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const row = data as any;
     const tier = (row?.tier_state as TierState) || 'foundation';
     const plan = (row?.plan_state as PlanState) || 'starter';
+    const userRole = (row?.role as string) || null;
     setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
     setPlanStateLocal(PLAN_VALUES.includes(plan) ? plan : 'starter');
+    setRole(userRole);
     setLoading(false);
   }, [user]);
 
@@ -71,17 +74,20 @@ export function TierProvider({ children }: { children: ReactNode }) {
     fetchTier();
   }, [user, fetchTier]);
 
+  const isAdmin = role === 'admin' || planState === 'admin';
+
   const isUnlocked = useCallback(
-    (tier: TierState) => TIER_ORDER.indexOf(currentTier) >= TIER_ORDER.indexOf(tier),
-    [currentTier],
+    (tier: TierState) => isAdmin || TIER_ORDER.indexOf(currentTier) >= TIER_ORDER.indexOf(tier),
+    [currentTier, isAdmin],
   );
 
   const canAccess = useCallback(
     (feature: string) => {
+      if (isAdmin) return true;
       const required = FEATURE_TIER_MAP[feature];
       return required ? isUnlocked(required) : true;
     },
-    [isUnlocked],
+    [isUnlocked, isAdmin],
   );
 
   const setTierState = useCallback(
@@ -92,7 +98,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TierContext.Provider value={{ currentTier, planState, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, role, isAdmin, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
       {children}
     </TierContext.Provider>
   );
