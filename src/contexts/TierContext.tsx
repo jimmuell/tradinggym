@@ -3,10 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export type TierState = 'foundation' | 'tier1' | 'tier2' | 'tier3' | 'coach';
-export type PlanState = 'starter' | 'pro' | 'expert' | 'guru';
+export type PlanState = 'starter' | 'pro' | 'expert' | 'guru' | 'admin';
 
 const TIER_ORDER: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
-const PLAN_VALUES: PlanState[] = ['starter', 'pro', 'expert', 'guru'];
+const PLAN_VALUES: PlanState[] = ['starter', 'pro', 'expert', 'guru', 'admin'];
 
 const FEATURE_TIER_MAP: Record<string, TierState> = {
   simulator: 'tier1',
