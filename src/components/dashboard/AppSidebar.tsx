@@ -56,11 +56,12 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const { canAccess, planState, loading: tierLoading } = useTier();
+  const { canAccess, planState, isAdmin: isAdminPlan, loading: tierLoading } = useTier();
   const { data: guruProfile } = useGuruProfile();
   const { isAdmin } = useUserRole();
   const isActiveGuru = guruProfile?.status === 'active';
-  const showPricingLink = planState !== 'guru';
+  const showGuruSection = isActiveGuru || isAdmin || isAdminPlan;
+  const showPricingLink = !isAdminPlan && !isAdmin && planState !== 'guru';
   const path = location.pathname;
 
   const strategiesActive = path.startsWith('/strategies') || path.startsWith('/backtesting');
