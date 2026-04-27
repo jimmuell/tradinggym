@@ -21,6 +21,7 @@ const PLAN_RANK: Record<PlanState, number> = {
   pro: 1,
   expert: 2,
   guru: 3,
+  admin: 99,
 };
 
 interface PlanCard {
