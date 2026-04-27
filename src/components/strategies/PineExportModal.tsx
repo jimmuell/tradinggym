@@ -22,13 +22,13 @@ interface Props {
 const PRO_MONTHLY_LIMIT = 10;
 
 export function PineExportModal({ strategy, open, onOpenChange, exportsUsed = 0 }: Props) {
-  const { planState } = useTier();
+  const { planState, isAdmin } = useTier();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [howOpen, setHowOpen] = useState(false);
 
-  const isLocked = planState === 'starter';
-  const isPro = planState === 'pro';
+  const isLocked = !isAdmin && planState === 'starter';
+  const isPro = !isAdmin && planState === 'pro';
   const remaining = Math.max(PRO_MONTHLY_LIMIT - exportsUsed, 0);
   const reachedLimit = isPro && remaining <= 0;
 
