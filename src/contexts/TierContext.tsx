@@ -19,6 +19,8 @@ const FEATURE_TIER_MAP: Record<string, TierState> = {
 interface TierContextType {
   currentTier: TierState;
   planState: PlanState;
+  role: string | null;
+  isAdmin: boolean;
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
@@ -29,6 +31,8 @@ interface TierContextType {
 const TierContext = createContext<TierContextType>({
   currentTier: 'foundation',
   planState: 'starter',
+  role: null,
+  isAdmin: false,
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
