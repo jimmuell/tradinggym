@@ -8,7 +8,7 @@ import { useTodayChecklistSession } from '@/hooks/useChecklistSession';
 import { launchCompanionWindow } from '@/lib/companion';
 
 export default function LaunchSessionCard() {
-  const { planState, loading: tierLoading } = useTier();
+  const { planState, isAdmin, loading: tierLoading } = useTier();
   const { data: session, isLoading: sessionLoading } = useTodayChecklistSession();
 
   if (tierLoading) {
@@ -23,7 +23,7 @@ export default function LaunchSessionCard() {
     );
   }
 
-  const isLocked = planState === 'starter';
+  const isLocked = !isAdmin && planState === 'starter';
   const hasActiveSession = !!session && !sessionLoading;
 
   return (
