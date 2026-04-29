@@ -1,5 +1,5 @@
 import { Navigate, NavLink, useLocation } from 'react-router-dom';
-import { LogOut, BarChart3, FolderOpen, Map, MessageSquare } from 'lucide-react';
+import { LogOut, BarChart3, FolderOpen, Map, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
