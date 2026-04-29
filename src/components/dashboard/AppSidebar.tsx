@@ -256,17 +256,17 @@ export function AppSidebar() {
                         to="/backtesting"
                         end
                         onClick={(e: React.MouseEvent) => {
-                          if (backtestingLocked) {
-                            e.preventDefault();
-                            toast(LOCK_MESSAGES.backtesting);
-                          }
+                          e.preventDefault();
+                          toast('Backtesting is coming soon');
                         }}
-                        className={subItemClass(isActive('/backtesting'), backtestingLocked)}
+                        className={subItemClass(isActive('/backtesting'), false)}
                         activeClassName=""
                       >
                         <FlaskConical className="h-4 w-4 shrink-0" />
                         <span>Backtesting</span>
-                        {backtestingLocked && <Lock size={12} className="ml-auto opacity-50" />}
+                        <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          Coming Soon
+                        </span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
