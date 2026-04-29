@@ -333,6 +333,9 @@ export default function AdminOverviewPage() {
           <Button variant="outline" onClick={() => navigate('/admin/invites')}>
             <Ticket className="h-4 w-4 mr-2" /> Manage Invite Codes
           </Button>
+          <Button variant="outline" onClick={() => navigate('/investor/kpis')}>
+            <TrendingUp className="h-4 w-4 mr-2" /> View Investor Portal
+          </Button>
         </CardContent>
       </Card>
     </div>
