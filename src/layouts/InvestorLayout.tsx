@@ -72,14 +72,11 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
         <aside className="w-56 border-r border-border p-3 shrink-0 hidden md:block">
           <nav className="space-y-1">
             {items.map((item) => {
-              const active = item.end
-                ? location.pathname === item.to
-                : location.pathname.startsWith(item.to);
+              const active = location.pathname.startsWith(item.to);
               return (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.end}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                     active
                       ? 'bg-accent text-accent-foreground font-medium'
