@@ -1,5 +1,5 @@
 import { Navigate, NavLink, useLocation } from 'react-router-dom';
-import { LogOut, BarChart3, FolderOpen, Map, MessageSquare } from 'lucide-react';
+import { LogOut, BarChart3, FolderOpen, Map, MessageSquare, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -71,6 +71,15 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
       <div className="flex-1 flex">
         <aside className="w-56 border-r border-border p-3 shrink-0 hidden md:block">
           <nav className="space-y-1">
+            {isAdmin && (
+              <NavLink
+                to="/admin"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors mb-2 border-b border-border pb-3"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Back to Admin
+              </NavLink>
+            )}
             {items.map((item) => {
               const active = location.pathname.startsWith(item.to);
               return (
