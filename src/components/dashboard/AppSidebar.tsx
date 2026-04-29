@@ -106,10 +106,10 @@ export function AppSidebar() {
     } ${locked ? 'opacity-50' : ''}`;
 
   const adminItems = [
-    { title: 'Dashboard', url: '/admin' },
+    { title: 'Overview', url: '/admin' },
     { title: 'Users', url: '/admin/users' },
-    { title: 'Gurus', url: '/admin/gurus' },
-    { title: 'Revenue', url: '/admin/revenue' },
+    { title: 'Guru Applications', url: '/admin/gurus' },
+    { title: 'Invite Codes', url: '/admin/invites' },
   ];
 
   // AI Extract lock state

@@ -59,9 +59,10 @@ import NotFound from "./pages/NotFound";
 import CompanionPage from "./pages/CompanionPage";
 import CompanionLayout from "./layouts/CompanionLayout";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
-import { AdminGurusStubPage, AdminRevenueStubPage } from "./pages/admin/AdminStubPages";
+import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
+import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import InvestorLayout from "./layouts/InvestorLayout";
 import InvestorDashboardPage from "./pages/investor/InvestorDashboardPage";
 import { InvestorKpisStubPage, InvestorDataRoomStubPage, InvestorRoadmapStubPage } from "./pages/investor/InvestorStubPages";
@@ -141,10 +142,10 @@ const App = () => (
               <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
-              <Route path="/admin" element={<LayoutRoute><AdminDashboardPage /></LayoutRoute>} />
+              <Route path="/admin" element={<LayoutRoute><AdminOverviewPage /></LayoutRoute>} />
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
-              <Route path="/admin/gurus" element={<LayoutRoute><AdminGurusStubPage /></LayoutRoute>} />
-              <Route path="/admin/revenue" element={<LayoutRoute><AdminRevenueStubPage /></LayoutRoute>} />
+              <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
+              <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
               <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
               <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisStubPage /></InvestorLayout>} />
               <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomStubPage /></InvestorLayout>} />

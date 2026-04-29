@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Trash2, Loader2, Search } from 'lucide-react';
+import { ArrowLeft, Search, Copy, AlertTriangle } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,69 +8,108 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
+} from '@/components/ui/table';
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
+} from '@/components/ui/sheet';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-type ProfileRow = {
+type AdminUser = {
   user_id: string;
+  email: string;
   display_name: string | null;
-  role: string;
   plan_state: string;
   tier_state: string;
+  role: string;
   created_at: string;
+  strategy_count: number;
+  trade_count: number;
 };
+
+const PAGE_SIZE = 20;
+const PLAN_OPTIONS = ['starter', 'pro', 'expert', 'guru', 'admin'];
+const ROLE_OPTIONS = ['user', 'guru', 'admin', 'investor'];
+const TIER_OPTIONS = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
 
 export default function AdminUsersPage() {
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const [search, setSearch] = useState('');
-  const [target, setTarget] = useState<ProfileRow | null>(null);
   const qc = useQueryClient();
-  const { toast } = useToast();
+
+  const [search, setSearch] = useState('');
+  const [planFilter, setPlanFilter] = useState<string>('all');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [tierFilter, setTierFilter] = useState<string>('all');
+  const [page, setPage] = useState(0);
+  const [target, setTarget] = useState<AdminUser | null>(null);
+  const [planEdit, setPlanEdit] = useState<string>('');
+  const [roleEdit, setRoleEdit] = useState<string>('');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', search],
+    queryKey: ['admin-users-list'],
     enabled: isAdmin,
     queryFn: async () => {
-      let q = supabase
-        .from('profiles')
-        .select('user_id, display_name, role, plan_state, tier_state, created_at')
-        .order('created_at', { ascending: false })
-        .limit(200);
-      if (search.trim()) q = q.ilike('display_name', `%${search.trim()}%`);
-      const { data, error } = await q;
+      const { data, error } = await supabase.rpc('get_admin_users');
       if (error) throw error;
-      return data as ProfileRow[];
+      return (data ?? []) as AdminUser[];
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (row: ProfileRow) => {
-      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
-        body: { user_id: row.user_id },
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    const s = search.trim().toLowerCase();
+    return data.filter((u) => {
+      if (s && !(u.email?.toLowerCase().includes(s) || (u.display_name ?? '').toLowerCase().includes(s))) return false;
+      if (planFilter !== 'all' && u.plan_state !== planFilter) return false;
+      if (roleFilter !== 'all' && u.role !== roleFilter) return false;
+      if (tierFilter !== 'all' && u.tier_state !== tierFilter) return false;
+      return true;
+    });
+  }, [data, search, planFilter, roleFilter, tierFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageRows = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  const updatePlan = useMutation({
+    mutationFn: async ({ user_id, plan }: { user_id: string; plan: string }) => {
+      const { error } = await supabase.rpc('admin_update_user_plan', {
+        target_user_id: user_id, new_plan_state: plan,
       });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data;
     },
     onSuccess: () => {
-      toast({ title: 'User deleted', description: 'Account and related data removed.' });
-      setTarget(null);
-      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('Plan updated');
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      setTarget((t) => (t ? { ...t, plan_state: planEdit } : t));
     },
-    onError: (e: Error) => {
-      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' });
-    },
+    onError: (e: Error) => toast.error(e.message),
   });
+
+  const updateRole = useMutation({
+    mutationFn: async ({ user_id, role }: { user_id: string; role: string }) => {
+      const { error } = await supabase.rpc('admin_update_user_role', {
+        target_user_id: user_id, new_role: role,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Role updated');
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      setTarget((t) => (t ? { ...t, role: roleEdit } : t));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const openDetail = (u: AdminUser) => {
+    setTarget(u);
+    setPlanEdit(u.plan_state);
+    setRoleEdit(u.role);
+  };
 
   if (roleLoading) {
     return <div className="p-6"><Skeleton className="h-32 w-full" /></div>;
@@ -78,94 +117,201 @@ export default function AdminUsersPage() {
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-4">
+    <div className="p-6 max-w-6xl mx-auto space-y-4">
       <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
         <ArrowLeft className="h-3 w-3" /> Back to Admin
       </Link>
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Users</h1>
+        <span className="text-xs text-muted-foreground">{filtered.length} matching</span>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by display name…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="relative md:col-span-2">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search email or display name…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+            className="pl-9"
+          />
+        </div>
+        <Select value={planFilter} onValueChange={(v) => { setPlanFilter(v); setPage(0); }}>
+          <SelectTrigger><SelectValue placeholder="Plan" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All plans</SelectItem>
+            {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(0); }}>
+          <SelectTrigger><SelectValue placeholder="Role" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All roles</SelectItem>
+            {ROLE_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={tierFilter} onValueChange={(v) => { setTierFilter(v); setPage(0); }}>
+          <SelectTrigger><SelectValue placeholder="Tier" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All tiers</SelectItem>
+            {TIER_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           {isLoading ? (
             <div className="p-6 space-y-2">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
-          ) : !data?.length ? (
-            <p className="p-6 text-sm text-muted-foreground">No users found.</p>
+          ) : pageRows.length === 0 ? (
+            <p className="p-6 text-sm text-muted-foreground">No users match.</p>
           ) : (
-            <div className="divide-y divide-border">
-              {data.map((u) => (
-                <div key={u.user_id} className="flex items-center justify-between gap-4 p-3 px-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">
-                      {u.display_name || '(no name)'}
-                    </div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">
-                      {u.user_id}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="outline">{u.role}</Badge>
-                    <Badge variant="secondary">{u.plan_state}</Badge>
-                    <Badge variant="secondary">{u.tier_state}</Badge>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => setTarget(u)}
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" /> Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Display Name</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="text-right">Strategies</TableHead>
+                  <TableHead className="text-right">Trades</TableHead>
+                  <TableHead>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pageRows.map((u) => (
+                  <TableRow key={u.user_id} className="cursor-pointer" onClick={() => openDetail(u)}>
+                    <TableCell className="font-medium truncate max-w-[220px]">{u.email}</TableCell>
+                    <TableCell className="truncate max-w-[180px]">{u.display_name || <span className="text-muted-foreground">—</span>}</TableCell>
+                    <TableCell><Badge variant="secondary">{u.plan_state}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary">{u.tier_state}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{u.role}</Badge></TableCell>
+                    <TableCell className="text-right tabular-nums">{u.strategy_count}</TableCell>
+                    <TableCell className="text-right tabular-nums">{u.trade_count}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(u.created_at).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      <AlertDialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this user?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This permanently removes <strong>{target?.display_name || target?.user_id}</strong> from
-              authentication and deletes all of their data (trades, strategies, enrollments, etc.).
-              This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                if (target) deleteMutation.mutate(target);
-              }}
-              disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteMutation.isPending ? (
-                <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Deleting…</>
-              ) : (
-                'Delete user'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">
+          Page {page + 1} of {pageCount}
+        </span>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(p => p - 1)}>Previous</Button>
+          <Button size="sm" variant="outline" disabled={page >= pageCount - 1} onClick={() => setPage(p => p + 1)}>Next</Button>
+        </div>
+      </div>
+
+      <Sheet open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>User Details</SheetTitle>
+            <SheetDescription>Manage plan and role for this user</SheetDescription>
+          </SheetHeader>
+
+          {target && (
+            <div className="mt-6 space-y-6">
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Account</h3>
+                <div className="rounded-md border border-border p-3 space-y-1.5 text-sm">
+                  <div><span className="text-muted-foreground">Email:</span> {target.email}</div>
+                  <div><span className="text-muted-foreground">Display name:</span> {target.display_name || '—'}</div>
+                  <div><span className="text-muted-foreground">Joined:</span> {new Date(target.created_at).toLocaleString()}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground text-xs">User ID:</span>
+                    <code className="text-[11px] font-mono truncate flex-1">{target.user_id}</code>
+                    <Button
+                      size="icon" variant="ghost" className="h-6 w-6"
+                      onClick={() => { navigator.clipboard.writeText(target.user_id); toast.success('Copied'); }}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Plan Override</h3>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Current: {target.plan_state}</Badge>
+                </div>
+                <Select value={planEdit} onValueChange={setPlanEdit}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  disabled={planEdit === target.plan_state || updatePlan.isPending}
+                  onClick={() => updatePlan.mutate({ user_id: target.user_id, plan: planEdit })}
+                >
+                  Update Plan
+                </Button>
+                <p className="text-[11px] text-muted-foreground flex items-start gap-1">
+                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                  This overrides the user's Stripe subscription state. Use for beta testing and support only.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Role Override</h3>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">Current: {target.role}</Badge>
+                </div>
+                <Select value={roleEdit} onValueChange={setRoleEdit}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ROLE_OPTIONS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  disabled={roleEdit === target.role || updateRole.isPending}
+                  onClick={() => updateRole.mutate({ user_id: target.user_id, role: roleEdit })}
+                >
+                  Update Role
+                </Button>
+                <p className="text-[11px] text-muted-foreground flex items-start gap-1">
+                  <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                  Changing role affects sidebar visibility and feature access.
+                </p>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-sm font-semibold">Activity</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="rounded-md border border-border p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Strategies</div>
+                    <div className="text-lg font-semibold">{target.strategy_count}</div>
+                  </div>
+                  <div className="rounded-md border border-border p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Trades</div>
+                    <div className="text-lg font-semibold">{target.trade_count}</div>
+                  </div>
+                  <div className="rounded-md border border-border p-3 text-center">
+                    <div className="text-xs text-muted-foreground">Tier</div>
+                    <div className="text-lg font-semibold">{target.tier_state}</div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

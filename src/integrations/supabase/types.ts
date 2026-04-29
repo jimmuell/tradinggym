@@ -593,6 +593,45 @@ export type Database = {
           },
         ]
       }
+      invite_codes: {
+        Row: {
+          assigned_to_email: string | null
+          code: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          purpose: string | null
+          times_used: number | null
+        }
+        Insert: {
+          assigned_to_email?: string | null
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          purpose?: string | null
+          times_used?: number | null
+        }
+        Update: {
+          assigned_to_email?: string | null
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          purpose?: string | null
+          times_used?: number | null
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           author_id: string | null
@@ -1267,6 +1306,53 @@ export type Database = {
       accept_terms: {
         Args: { p_age_verified?: boolean; p_tos_accepted?: boolean }
         Returns: undefined
+      }
+      admin_approve_guru: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      admin_reject_guru: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
+      admin_update_user_plan: {
+        Args: { new_plan_state: string; target_user_id: string }
+        Returns: undefined
+      }
+      admin_update_user_role: {
+        Args: { new_role: string; target_user_id: string }
+        Returns: undefined
+      }
+      get_admin_guru_applications: {
+        Args: never
+        Returns: {
+          application_id: string
+          created_at: string
+          display_name: string
+          email: string
+          existing_presence: string
+          plan_state: string
+          status: string
+          trading_style: string
+          user_id: string
+          what_you_teach: string
+          years_experience: string
+        }[]
+      }
+      get_admin_overview_stats: { Args: never; Returns: Json }
+      get_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          plan_state: string
+          role: string
+          strategy_count: number
+          tier_state: string
+          trade_count: number
+          user_id: string
+        }[]
       }
       get_guru_student_profiles: {
         Args: never
