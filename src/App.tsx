@@ -64,9 +64,11 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import InvestorLayout from "./layouts/InvestorLayout";
-import InvestorDashboardPage from "./pages/investor/InvestorDashboardPage";
-import { InvestorKpisStubPage, InvestorDataRoomStubPage, InvestorRoadmapStubPage } from "./pages/investor/InvestorStubPages";
+import InvestorKpisPage from "./pages/investor/InvestorKpisPage";
+import InvestorDataRoomPage from "./pages/investor/InvestorDataRoomPage";
+import InvestorRoadmapPage from "./pages/investor/InvestorRoadmapPage";
 import InvestorNotesPage from "./pages/investor/InvestorNotesPage";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -146,10 +148,10 @@ const App = () => (
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
               <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
-              <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
-              <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisStubPage /></InvestorLayout>} />
-              <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomStubPage /></InvestorLayout>} />
-              <Route path="/investor/roadmap" element={<InvestorLayout><InvestorRoadmapStubPage /></InvestorLayout>} />
+              <Route path="/investor" element={<InvestorLayout><Navigate to="/investor/kpis" replace /></InvestorLayout>} />
+              <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisPage /></InvestorLayout>} />
+              <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomPage /></InvestorLayout>} />
+              <Route path="/investor/roadmap" element={<InvestorLayout><InvestorRoadmapPage /></InvestorLayout>} />
               <Route path="/investor/notes" element={<InvestorLayout><InvestorNotesPage /></InvestorLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

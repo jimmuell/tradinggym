@@ -1,5 +1,5 @@
 import { Navigate, NavLink, useLocation } from 'react-router-dom';
-import { LogOut, BarChart3, FolderLock, Map, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { LogOut, BarChart3, FolderOpen, Map, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,9 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const items = [
-  { to: '/investor', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/investor/kpis', label: 'KPIs', icon: BarChart3 },
-  { to: '/investor/data-room', label: 'Data Room', icon: FolderLock },
+  { to: '/investor/data-room', label: 'Data Room', icon: FolderOpen },
   { to: '/investor/roadmap', label: 'Roadmap', icon: Map },
   { to: '/investor/notes', label: 'Notes & Q&A', icon: MessageSquare },
 ];
@@ -73,14 +72,11 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
         <aside className="w-56 border-r border-border p-3 shrink-0 hidden md:block">
           <nav className="space-y-1">
             {items.map((item) => {
-              const active = item.end
-                ? location.pathname === item.to
-                : location.pathname.startsWith(item.to);
+              const active = location.pathname.startsWith(item.to);
               return (
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  end={item.end}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
                     active
                       ? 'bg-accent text-accent-foreground font-medium'
