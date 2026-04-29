@@ -148,10 +148,10 @@ const App = () => (
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
               <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
-              <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
-              <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisStubPage /></InvestorLayout>} />
-              <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomStubPage /></InvestorLayout>} />
-              <Route path="/investor/roadmap" element={<InvestorLayout><InvestorRoadmapStubPage /></InvestorLayout>} />
+              <Route path="/investor" element={<InvestorLayout><Navigate to="/investor/kpis" replace /></InvestorLayout>} />
+              <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisPage /></InvestorLayout>} />
+              <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomPage /></InvestorLayout>} />
+              <Route path="/investor/roadmap" element={<InvestorLayout><InvestorRoadmapPage /></InvestorLayout>} />
               <Route path="/investor/notes" element={<InvestorLayout><InvestorNotesPage /></InvestorLayout>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
