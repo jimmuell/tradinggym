@@ -359,7 +359,7 @@ export function AppSidebar() {
                       aria-label="Toggle classes"
                       className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
                     >
-                      {classesOpen || classesActive ? (
+                      {classesOpen ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
