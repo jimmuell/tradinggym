@@ -67,8 +67,27 @@ export function AppSidebar() {
   const strategiesActive = path.startsWith('/strategies') || path.startsWith('/backtesting');
   const classesActive = path.startsWith('/classes') || path.startsWith('/gurus');
 
+  // Manual override: when user explicitly toggles via chevron, respect that choice
+  // until they navigate from outside the section back into it.
   const [strategiesOpen, setStrategiesOpen] = useState(strategiesActive);
   const [classesOpen, setClassesOpen] = useState(classesActive);
+  const prevStrategiesActive = useRef(strategiesActive);
+  const prevClassesActive = useRef(classesActive);
+
+  useEffect(() => {
+    // Auto-expand only when transitioning from outside -> inside the section
+    if (strategiesActive && !prevStrategiesActive.current) {
+      setStrategiesOpen(true);
+    }
+    prevStrategiesActive.current = strategiesActive;
+  }, [strategiesActive]);
+
+  useEffect(() => {
+    if (classesActive && !prevClassesActive.current) {
+      setClassesOpen(true);
+    }
+    prevClassesActive.current = classesActive;
+  }, [classesActive]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
