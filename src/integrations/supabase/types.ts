@@ -1323,6 +1323,7 @@ export type Database = {
         Args: { new_role: string; target_user_id: string }
         Returns: undefined
       }
+      get_admin_detailed_stats: { Args: never; Returns: Json }
       get_admin_guru_applications: {
         Args: never
         Returns: {
