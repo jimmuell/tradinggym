@@ -142,10 +142,10 @@ const App = () => (
               <Route path="/guru/sessions" element={<ProtectedRoute><GuruSessionsPage /></ProtectedRoute>} />
               <Route path="/guru/payouts" element={<ProtectedRoute><GuruPayoutsPage /></ProtectedRoute>} />
               <Route path="/companion" element={<TierProvider><CompanionLayout><CompanionPage /></CompanionLayout></TierProvider>} />
-              <Route path="/admin" element={<LayoutRoute><AdminDashboardPage /></LayoutRoute>} />
+              <Route path="/admin" element={<LayoutRoute><AdminOverviewPage /></LayoutRoute>} />
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
-              <Route path="/admin/gurus" element={<LayoutRoute><AdminGurusStubPage /></LayoutRoute>} />
-              <Route path="/admin/revenue" element={<LayoutRoute><AdminRevenueStubPage /></LayoutRoute>} />
+              <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
+              <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
               <Route path="/investor" element={<InvestorLayout><InvestorDashboardPage /></InvestorLayout>} />
               <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisStubPage /></InvestorLayout>} />
               <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomStubPage /></InvestorLayout>} />
