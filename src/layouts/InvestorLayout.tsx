@@ -1,5 +1,5 @@
 import { Navigate, NavLink, useLocation } from 'react-router-dom';
-import { LogOut, BarChart3, FolderLock, Map, MessageSquare, LayoutDashboard } from 'lucide-react';
+import { LogOut, BarChart3, FolderOpen, Map, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,9 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const items = [
-  { to: '/investor', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/investor/kpis', label: 'KPIs', icon: BarChart3 },
-  { to: '/investor/data-room', label: 'Data Room', icon: FolderLock },
+  { to: '/investor/data-room', label: 'Data Room', icon: FolderOpen },
   { to: '/investor/roadmap', label: 'Roadmap', icon: Map },
   { to: '/investor/notes', label: 'Notes & Q&A', icon: MessageSquare },
 ];
