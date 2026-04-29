@@ -244,7 +244,7 @@ export function AppSidebar() {
                 </div>
               </SidebarMenuItem>
 
-              {!collapsed && (strategiesOpen || strategiesActive) && (
+              {!collapsed && strategiesOpen && (
                 <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
