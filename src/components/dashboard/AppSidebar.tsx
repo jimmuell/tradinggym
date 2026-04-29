@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
   LineChart,
@@ -67,8 +67,27 @@ export function AppSidebar() {
   const strategiesActive = path.startsWith('/strategies') || path.startsWith('/backtesting');
   const classesActive = path.startsWith('/classes') || path.startsWith('/gurus');
 
+  // Manual override: when user explicitly toggles via chevron, respect that choice
+  // until they navigate from outside the section back into it.
   const [strategiesOpen, setStrategiesOpen] = useState(strategiesActive);
   const [classesOpen, setClassesOpen] = useState(classesActive);
+  const prevStrategiesActive = useRef(strategiesActive);
+  const prevClassesActive = useRef(classesActive);
+
+  useEffect(() => {
+    // Auto-expand only when transitioning from outside -> inside the section
+    if (strategiesActive && !prevStrategiesActive.current) {
+      setStrategiesOpen(true);
+    }
+    prevStrategiesActive.current = strategiesActive;
+  }, [strategiesActive]);
+
+  useEffect(() => {
+    if (classesActive && !prevClassesActive.current) {
+      setClassesOpen(true);
+    }
+    prevClassesActive.current = classesActive;
+  }, [classesActive]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -215,7 +234,7 @@ export function AppSidebar() {
                       aria-label="Toggle strategies"
                       className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
                     >
-                      {strategiesOpen || strategiesActive ? (
+                      {strategiesOpen ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
@@ -225,7 +244,7 @@ export function AppSidebar() {
                 </div>
               </SidebarMenuItem>
 
-              {!collapsed && (strategiesOpen || strategiesActive) && (
+              {!collapsed && strategiesOpen && (
                 <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
@@ -340,7 +359,7 @@ export function AppSidebar() {
                       aria-label="Toggle classes"
                       className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
                     >
-                      {classesOpen || classesActive ? (
+                      {classesOpen ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
@@ -350,7 +369,7 @@ export function AppSidebar() {
                 </div>
               </SidebarMenuItem>
 
-              {!collapsed && (classesOpen || classesActive) && (
+              {!collapsed && classesOpen && (
                 <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
