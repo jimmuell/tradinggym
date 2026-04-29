@@ -274,10 +274,6 @@ export function AppSidebar() {
                       <NavLink
                         to="/backtesting"
                         end
-                        onClick={(e: React.MouseEvent) => {
-                          e.preventDefault();
-                          toast('Backtesting is coming soon');
-                        }}
                         className={subItemClass(isActive('/backtesting'), false)}
                         activeClassName=""
                       >
