@@ -369,7 +369,7 @@ export function AppSidebar() {
                 </div>
               </SidebarMenuItem>
 
-              {!collapsed && (classesOpen || classesActive) && (
+              {!collapsed && classesOpen && (
                 <div className="ml-6 border-l-2 border-border pl-2 space-y-0.5">
                   <SidebarMenuItem>
                     <SidebarMenuButton asChild>
