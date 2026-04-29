@@ -234,7 +234,7 @@ export function AppSidebar() {
                       aria-label="Toggle strategies"
                       className="p-1 mr-2 text-muted-foreground hover:text-sidebar-foreground"
                     >
-                      {strategiesOpen || strategiesActive ? (
+                      {strategiesOpen ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
