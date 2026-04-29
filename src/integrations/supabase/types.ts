@@ -552,6 +552,48 @@ export type Database = {
           },
         ]
       }
+      investor_documents: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       investor_notes: {
         Row: {
           author_id: string
@@ -1393,6 +1435,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_investor_kpis: { Args: never; Returns: Json }
       get_profiles_by_user_ids: {
         Args: { user_ids: string[] }
         Returns: {
