@@ -64,9 +64,11 @@ import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import InvestorLayout from "./layouts/InvestorLayout";
-import InvestorDashboardPage from "./pages/investor/InvestorDashboardPage";
-import { InvestorKpisStubPage, InvestorDataRoomStubPage, InvestorRoadmapStubPage } from "./pages/investor/InvestorStubPages";
+import InvestorKpisPage from "./pages/investor/InvestorKpisPage";
+import InvestorDataRoomPage from "./pages/investor/InvestorDataRoomPage";
+import InvestorRoadmapPage from "./pages/investor/InvestorRoadmapPage";
 import InvestorNotesPage from "./pages/investor/InvestorNotesPage";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
