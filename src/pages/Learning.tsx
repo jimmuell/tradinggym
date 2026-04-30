@@ -1,133 +1,174 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { BookOpen, PlayCircle, FileText, Clock, CheckCircle2, Lock, ChevronRight } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { GraduationCap, BookOpen, ArrowRight, ChevronRight, Lock, CheckCircle2 } from 'lucide-react';
+import { useTier, type TierState } from '@/contexts/TierContext';
+import { useFoundationLessons } from '@/hooks/useLessons';
+import { TIER_ORDER } from '@/lib/tierUtils';
 import HelpSheet from '@/components/HelpSheet';
+import TierProgressCard from '@/components/dashboard/TierProgressCard';
 
-const courses = [
+const TIERS = [
   {
-    id: 1, title: "Market Structure Basics", category: "Fundamentals", lessons: 8, completed: 8,
-    description: "Understanding support, resistance, and price action fundamentals.",
-    duration: "2h 15m", status: "completed" as const,
+    key: 'foundation' as TierState,
+    title: 'Foundation — Trading Literacy',
+    description: 'Learn to read candles, market structure, sessions, risk management, and build your trading plan.',
+    modules: 'F1–F5 · 5 modules · Quiz assessment',
+    path: '/learning/foundation',
+    unlockRequirement: null,
   },
   {
-    id: 2, title: "Order Flow & Volume Analysis", category: "Intermediate", lessons: 12, completed: 5,
-    description: "Reading the tape, volume profile, and order flow dynamics.",
-    duration: "4h 30m", status: "in-progress" as const,
+    key: 'tier1' as TierState,
+    title: 'Tier 1 — Pure Price Action (ORB)',
+    description: 'Master the 6-step Opening Range Breakout blueprint using price action only. No indicators.',
+    modules: '6-step ORB blueprint · 20 session graduation gate',
+    path: '/learning/tier1',
+    unlockRequirement: 'Complete Foundation',
   },
   {
-    id: 3, title: "Risk Management Mastery", category: "Fundamentals", lessons: 6, completed: 0,
-    description: "Position sizing, drawdown management, and risk-reward optimization.",
-    duration: "1h 45m", status: "locked" as const,
+    key: 'tier2' as TierState,
+    title: 'Tier 2 — Confirmation Tools (ORB + VWAP)',
+    description: 'Add VWAP as a directional filter to your ORB setups. Only trade in VWAP direction.',
+    modules: 'VWAP filter strategy · 20 session graduation gate',
+    path: '/learning/tier2',
+    unlockRequirement: 'Complete Tier 1',
   },
   {
-    id: 4, title: "Advanced Price Action", category: "Advanced", lessons: 15, completed: 0,
-    description: "Complex patterns, multi-timeframe analysis, and confluence trading.",
-    duration: "5h 20m", status: "locked" as const,
+    key: 'tier3' as TierState,
+    title: 'Tier 3 — Institutional Concepts (AMD + IFVG)',
+    description: 'Learn the AMD model and Inverse Fair Value Gaps. ICT/Smart Money framework.',
+    modules: '7-step AMD blueprint · 20 session graduation gate',
+    path: '/learning/tier3',
+    unlockRequirement: 'Complete Tier 2',
   },
 ];
-
-const articles = [
-  { title: "The Psychology of Losing Streaks", category: "Psychology", readTime: "5 min" },
-  { title: "How to Build a Trading Plan", category: "Strategy", readTime: "8 min" },
-  { title: "Understanding MES Contract Specs", category: "Fundamentals", readTime: "4 min" },
-  { title: "Journaling for Consistent Profits", category: "Habits", readTime: "6 min" },
-];
-
-function StatusIcon({ status }: { status: string }) {
-  if (status === "completed") return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-  if (status === "in-progress") return <PlayCircle className="h-5 w-5 text-primary" />;
-  return <Lock className="h-5 w-5 text-muted-foreground" />;
-}
 
 export default function Learning() {
-  const totalLessons = courses.reduce((a, c) => a + c.lessons, 0);
-  const completedLessons = courses.reduce((a, c) => a + c.completed, 0);
-  const overallProgress = Math.round((completedLessons / totalLessons) * 100);
+  const navigate = useNavigate();
+  const { currentTier, isUnlocked, loading: tierLoading } = useTier();
+  const { data: foundationLessons, isLoading: lessonsLoading } = useFoundationLessons();
+
+  const currentIdx = TIER_ORDER.indexOf(currentTier);
+  const foundationModuleCount = foundationLessons
+    ? new Set(foundationLessons.map((l) => l.module)).size
+    : null;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Learning Center</h1>
-          <p className="text-muted-foreground">Master the fundamentals and sharpen your edge.</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <GraduationCap className="h-6 w-6 text-primary" />
+            Learning Hub
+          </h1>
+          <p className="text-muted-foreground">Your structured path from beginner to advanced trader.</p>
         </div>
         <HelpSheet pageName="Learning" />
       </div>
 
-      {/* Overall Progress */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-foreground">Overall Progress</span>
-            <span className="text-sm text-muted-foreground">{completedLessons}/{totalLessons} lessons</span>
-          </div>
-          <Progress value={overallProgress} className="h-2" />
-          <p className="text-xs text-muted-foreground mt-1">{overallProgress}% complete</p>
-        </CardContent>
-      </Card>
+      {tierLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : (
+        <TierProgressCard currentTier={currentTier} />
+      )}
 
-      <Tabs defaultValue="courses">
-        <TabsList>
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="articles">Articles</TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        {TIERS.map((tier) => {
+          const tierIdx = TIER_ORDER.indexOf(tier.key);
+          const unlocked = isUnlocked(tier.key);
+          const isCompleted = tierIdx < currentIdx;
+          const isCurrent = tier.key === currentTier;
+          const isLocked = !unlocked && !isCompleted;
 
-        <TabsContent value="courses" className="space-y-4">
-          {courses.map((course) => (
-            <Card key={course.id} className={course.status === "locked" ? "opacity-60" : ""}>
+          const modulesText =
+            tier.key === 'foundation' && foundationModuleCount
+              ? `F1–F${foundationModuleCount} · ${foundationModuleCount} modules · Quiz assessment`
+              : tier.modules;
+
+          const borderClass = isCompleted
+            ? 'border-l-4 border-l-green-500'
+            : isCurrent
+            ? 'border-l-4 border-l-primary'
+            : '';
+
+          return (
+            <Card
+              key={tier.key}
+              className={`${borderClass} ${isLocked ? 'opacity-60' : ''}`}
+            >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <StatusIcon status={course.status} />
-                    <div>
-                      <CardTitle className="text-lg">{course.title}</CardTitle>
-                      <CardDescription>{course.description}</CardDescription>
-                    </div>
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">{tier.title}</CardTitle>
+                    <CardDescription>{tier.description}</CardDescription>
                   </div>
-                  <Badge variant={course.status === "completed" ? "default" : "secondary"}>
-                    {course.category}
-                  </Badge>
+                  {isCompleted && (
+                    <Badge className="bg-green-600 hover:bg-green-700 text-white border-green-600 shrink-0">
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Completed
+                    </Badge>
+                  )}
+                  {isCurrent && (
+                    <Badge className="shrink-0">In Progress</Badge>
+                  )}
+                  {isLocked && (
+                    <Badge variant="outline" className="shrink-0">
+                      <Lock className="h-3 w-3 mr-1" />
+                      Locked — {tier.unlockRequirement}
+                    </Badge>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><BookOpen className="h-4 w-4" />{course.lessons} lessons</span>
-                    <span className="flex items-center gap-1"><Clock className="h-4 w-4" />{course.duration}</span>
-                  </div>
-                  {course.status !== "locked" && (
-                    <div className="flex items-center gap-3">
-                      <Progress value={(course.completed / course.lessons) * 100} className="w-24 h-2" />
-                      <span className="text-xs text-muted-foreground">{course.completed}/{course.lessons}</span>
-                      <Button size="sm" variant="ghost"><ChevronRight className="h-4 w-4" /></Button>
-                    </div>
+                <div className="flex items-center justify-between gap-4">
+                  {tier.key === 'foundation' && lessonsLoading ? (
+                    <Skeleton className="h-4 w-64" />
+                  ) : (
+                    <p className="text-xs text-muted-foreground">{modulesText}</p>
+                  )}
+                  {isCompleted && (
+                    <Button size="sm" variant="outline" onClick={() => navigate(tier.path)}>
+                      Review
+                    </Button>
+                  )}
+                  {isCurrent && (
+                    <Button size="sm" onClick={() => navigate(tier.path)}>
+                      Continue
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  )}
+                  {isLocked && (
+                    <Button size="sm" variant="outline" disabled>
+                      <Lock className="h-3 w-3 mr-1" />
+                      Locked
+                    </Button>
                   )}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </TabsContent>
+          );
+        })}
+      </div>
 
-        <TabsContent value="articles" className="space-y-3">
-          {articles.map((article, i) => (
-            <Card key={i} className="cursor-pointer hover:bg-accent/50 transition-colors">
-              <CardContent className="pt-4 pb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{article.title}</p>
-                    <p className="text-xs text-muted-foreground">{article.readTime} read</p>
-                  </div>
-                </div>
-                <Badge variant="outline">{article.category}</Badge>
-              </CardContent>
-            </Card>
-          ))}
-        </TabsContent>
-      </Tabs>
+      <Card
+        className="cursor-pointer hover:bg-accent/50 transition-colors"
+        onClick={() => navigate('/resources')}
+      >
+        <CardContent className="pt-6 pb-6 flex items-center gap-4">
+          <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+            <BookOpen className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-semibold text-foreground">Resources</p>
+            <p className="text-sm text-muted-foreground">
+              Books, YouTube channels, tools, and communities curated for traders.
+            </p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </CardContent>
+      </Card>
     </div>
   );
 }
