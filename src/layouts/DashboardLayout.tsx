@@ -12,7 +12,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <SidebarTrigger className="ml-2 text-muted-foreground hover:text-foreground" />
           </header>
           <main className="flex-1 overflow-auto">
-            {children}
+            <div className="p-6 space-y-6 max-w-7xl mx-auto">
+              {children}
+            </div>
           </main>
         </div>
       </div>

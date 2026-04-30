@@ -70,7 +70,7 @@ const gridClass = (cols: "3" | "2") =>
 
 export default function Resources() {
   return (
-    <div className="p-6 space-y-8">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Resources</h1>
