@@ -71,6 +71,7 @@ export default function AdminInviteCodesPage() {
     queryKey: ['admin-invite-codes'],
     enabled: isAdmin,
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('invite_codes')
         .select('*')
@@ -84,6 +85,7 @@ export default function AdminInviteCodesPage() {
     mutationFn: async () => {
       const purposeMeta = PURPOSES.find((p) => p.value === purpose) || PURPOSES[1];
       const code = `TG-${purposeMeta.short}-${randomSegment(6)}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any).from('invite_codes').insert({
         code,
         created_by: user?.id ?? null,
@@ -110,6 +112,7 @@ export default function AdminInviteCodesPage() {
 
   const deactivate = useMutation({
     mutationFn: async (id: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('invite_codes')
         .update({ is_active: false })
