@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
-import { getPlanDisplayName } from '@/lib/tierUtils';
+import { getPlanDisplayName, getPlanName } from '@/lib/tierUtils';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -130,12 +130,12 @@ export default function Dashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                {getPlanDisplayName(planState)}
+                {getPlanName(planState)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {planState === 'starter'
-                  ? 'Upgrade to unlock all strategy tiers, AI ingestion, and more.'
-                  : `You're on the ${getPlanDisplayName(planState)} plan. Manage your subscription anytime.`}
+                  ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
+                  : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
               </p>
             </div>
             {planState === 'starter' ? (

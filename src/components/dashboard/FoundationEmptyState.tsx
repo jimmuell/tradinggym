@@ -8,6 +8,7 @@ const MODULES = [
   { id: 'F2', title: 'Market Structure' },
   { id: 'F3', title: 'Sessions & Time' },
   { id: 'F4', title: 'Risk Management' },
+  { id: 'F5', title: 'Your Trading Plan' },
 ];
 
 export function FoundationLearningPath() {

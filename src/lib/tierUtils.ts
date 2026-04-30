@@ -12,6 +12,16 @@ export function getTierDisplayName(tierState: string): string {
 
 export const TIER_ORDER = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
 
+export function getPlanName(planState: string): string {
+  switch (planState) {
+    case 'starter': return 'Starter';
+    case 'pro':     return 'Pro';
+    case 'expert':  return 'Expert';
+    case 'guru':    return 'Guru';
+    default:        return 'Starter';
+  }
+}
+
 export function getPlanDisplayName(planState: string): string {
   switch (planState) {
     case 'starter': return 'Starter (Free)';
