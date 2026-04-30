@@ -1,3 +1,6 @@
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
 import TierLessonList from '@/components/learning/TierLessonList';
@@ -5,6 +8,7 @@ import GraduationGateCard from '@/components/learning/GraduationGateCard';
 
 export default function Tier2Learning() {
   const { isUnlocked } = useTier();
+  const navigate = useNavigate();
 
   if (!isUnlocked('tier2')) {
     return (
@@ -18,6 +22,15 @@ export default function Tier2Learning() {
 
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 -ml-2"
+        onClick={() => navigate('/learning')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Learning Hub
+      </Button>
       <div>
         <h1 className="text-2xl font-bold text-foreground">Tier 2 — Confirmation Tools</h1>
         <p className="text-muted-foreground mt-1">

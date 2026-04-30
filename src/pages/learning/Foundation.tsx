@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, History, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, Clock, GraduationCap, History, Lock } from 'lucide-react';
 import { useFoundationLessons } from '@/hooks/useLessons';
 import { useQuizByModule, useBestQuizAttempt, type QuizAttempt } from '@/hooks/useQuizzes';
 import { useQuizAttempts } from '@/hooks/useQuizAttempts';
@@ -62,6 +62,15 @@ export default function FoundationLearning() {
 
   return (
     <div className="space-y-6">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 -ml-2"
+        onClick={() => navigate('/learning')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Learning Hub
+      </Button>
       <div>
         <h1 className="text-2xl font-bold text-foreground">Foundation — Trading Literacy</h1>
         <p className="text-muted-foreground mt-1">Master the basics before your first trade.</p>

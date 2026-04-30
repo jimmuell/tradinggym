@@ -1,5 +1,5 @@
-import { Check, ExternalLink, Loader2, Info } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Check, ExternalLink, Loader2, Info } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -81,6 +81,7 @@ const PLANS: PlanCard[] = [
 ];
 
 export default function PricingPage() {
+  const navigate = useNavigate();
   const { planState, loading } = useTier();
   const checkout = useCreateCheckout();
   const portal = useCustomerPortal();
@@ -92,6 +93,15 @@ export default function PricingPage() {
   return (
     <>
       <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 -ml-2 mb-4"
+          onClick={() => navigate('/dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
         <div className="text-center mb-12">
           <h1 className="text-2xl font-bold text-foreground mb-3">
             Choose Your Plan

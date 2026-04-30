@@ -103,11 +103,14 @@ export default function GuruPublicProfilePage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/gurus">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          All Gurus
-        </Link>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 -ml-2 mb-4"
+        onClick={() => navigate('/gurus')}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Find a Guru
       </Button>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-6">
