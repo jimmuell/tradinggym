@@ -348,7 +348,7 @@ export default function StrategyExtractPage() {
   };
 
   return (
-    <div className="max-w-4xl space-y-6 pb-24">
+    <div className="space-y-6 pb-24">
       {/* Header */}
       <div className="space-y-2">
         <Button
