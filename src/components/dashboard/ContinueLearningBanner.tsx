@@ -7,9 +7,9 @@ import { TierState } from '@/contexts/TierContext';
 const BANNER_CONTENT: Record<TierState, { label?: string; heading: string; subtext: string; buttonText: string; link: string }> = {
   foundation: {
     label: 'YOUR LEARNING PATH',
-    heading: 'Start your Starter training',
+    heading: 'Begin Your Trading Foundation',
     subtext: 'Learn to read candles, market structure, sessions, and risk before your first trade.',
-    buttonText: 'Start Starter',
+    buttonText: 'Start Learning',
     link: '/learning/foundation',
   },
   tier1: {

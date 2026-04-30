@@ -214,33 +214,6 @@ export default function Profile() {
           </CardContent>
         </Card>
 
-        {/* Stats */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">Trading Stats</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Your practice trading overview
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Total Trades', value: '0' },
-                { label: 'Win Rate', value: '—' },
-                { label: 'Avg P&L', value: '—' },
-                { label: 'Best Trade', value: '—' },
-                { label: 'Worst Trade', value: '—' },
-                { label: 'Sessions', value: '0' },
-              ].map((stat) => (
-                <div key={stat.label} className="bg-background rounded-lg p-3 border border-border">
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  <p className="text-lg font-semibold text-foreground mt-1">{stat.value}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Account Details */}
         <Card className="bg-card border-border">
           <CardHeader>
