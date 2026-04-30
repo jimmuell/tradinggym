@@ -77,7 +77,7 @@ export default function Analytics() {
   const showSkeletons = a.isLoading && a.totalTrades === 0;
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -242,6 +242,6 @@ export default function Analytics() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }

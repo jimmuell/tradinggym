@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   return (
     <TooltipProvider>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <>
         <FinancialDisclaimer />
 
         {/* Subscription Status */}
@@ -340,7 +340,7 @@ export default function Dashboard() {
             </Card>
           )}
         </div>
-      </div>
+      </>
     </TooltipProvider>
   );
 }
