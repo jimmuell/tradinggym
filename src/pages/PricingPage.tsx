@@ -91,7 +91,7 @@ export default function PricingPage() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl">
         <div className="text-center mb-12">
           <h1 className="text-2xl font-bold text-foreground mb-3">
             Choose Your Plan
