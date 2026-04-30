@@ -90,10 +90,10 @@ export default function PricingPage() {
   const currentRank = PLAN_RANK[planState] ?? 0;
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10">
+    <>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-3">
             Choose Your Plan
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -309,6 +309,6 @@ export default function PricingPage() {
           </p>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -17,7 +17,7 @@ export default function Tier3Learning() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Tier 3 — Institutional Concepts</h1>
         <p className="text-muted-foreground mt-1">

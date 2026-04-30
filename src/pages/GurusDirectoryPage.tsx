@@ -13,7 +13,7 @@ export default function GurusDirectoryPage() {
 
   if (isLocked) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
         <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <Lock className="h-7 w-7 text-muted-foreground" />
         </div>
@@ -29,7 +29,7 @@ export default function GurusDirectoryPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Find a Guru</h1>
         <p className="text-muted-foreground mt-1">
@@ -54,6 +54,6 @@ export default function GurusDirectoryPage() {
           No Gurus available yet — check back soon.
         </div>
       )}
-    </div>
+    </>
   );
 }
