@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Video, Radio } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +41,7 @@ function preview(body: string, n = 150): string {
 }
 
 export default function ClassDetailPage() {
+  const navigate = useNavigate();
   const { classId } = useParams<{ classId: string }>();
   const { enrolled, isLoading: enrLoading } = useStudentClass(classId);
   const { content, isLoading: contentLoading } = useClassContent(classId);
@@ -69,13 +70,15 @@ export default function ClassDetailPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link
-        to="/classes"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+      <Button
+        variant="ghost"
+        size="sm"
+        className="gap-1 -ml-2"
+        onClick={() => navigate('/classes')}
       >
-        <ArrowLeft className="h-4 w-4 mr-1" />
-        My Classes
-      </Link>
+        <ArrowLeft className="h-4 w-4" />
+        Back to My Classes
+      </Button>
 
       {liveSession && (
         <Card className="border-green-500/40 bg-green-500/5">
