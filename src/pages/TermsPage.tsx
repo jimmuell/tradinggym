@@ -4,8 +4,8 @@ import { TERMS_SECTIONS } from '@/lib/legalContent';
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="max-w-3xl mx-auto px-6 py-12">
+    <div className="text-foreground">
+      <div className="max-w-3xl mx-auto py-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="h-4 w-4" /> Back
         </Link>

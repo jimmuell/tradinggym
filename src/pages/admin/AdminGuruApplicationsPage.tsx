@@ -97,7 +97,7 @@ export default function AdminGuruApplicationsPage() {
   const isPending = approve.isPending || reject.isPending;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-4">
+    <div className="max-w-6xl mx-auto space-y-4">
       <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
         <ArrowLeft className="h-3 w-3" /> Back to Admin
       </Link>

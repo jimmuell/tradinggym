@@ -17,8 +17,8 @@ export default function Settings() {
   const portal = useCustomerPortal();
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10">
-      <h1 className="text-3xl font-bold text-foreground mb-8">Settings</h1>
+    <>
+      <h1 className="text-2xl font-bold text-foreground mb-8">Settings</h1>
 
       <div className="grid gap-6 max-w-2xl">
         {/* Billing & Subscription */}
@@ -189,6 +189,6 @@ export default function Settings() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 }

@@ -61,7 +61,7 @@ export default function FoundationLearning() {
     : null;
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Foundation — Trading Literacy</h1>
         <p className="text-muted-foreground mt-1">Master the basics before your first trade.</p>

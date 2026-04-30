@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export default function Backtesting() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-6 py-16">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-16">
       <div className="max-w-xl text-center space-y-6">
         <div className="flex justify-center">
           <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">

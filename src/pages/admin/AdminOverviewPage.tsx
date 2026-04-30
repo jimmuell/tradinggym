@@ -120,7 +120,7 @@ export default function AdminOverviewPage() {
   }));
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Admin Overview</h1>
         <p className="text-muted-foreground text-sm">Platform operations summary</p>

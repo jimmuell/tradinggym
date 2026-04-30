@@ -112,8 +112,8 @@ export default function Profile() {
   const avatarUrl = profile?.avatar_url ?? null;
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-10">
-      <h1 className="text-3xl font-bold text-foreground mb-8">Profile</h1>
+    <>
+      <h1 className="text-2xl font-bold text-foreground mb-8">Profile</h1>
 
       <div className="grid gap-6 max-w-2xl">
         <Card className="bg-card border-border">
@@ -237,6 +237,6 @@ export default function Profile() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 }
