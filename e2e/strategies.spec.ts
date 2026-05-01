@@ -17,17 +17,28 @@ test.describe("Strategy CRUD lifecycle", () => {
     const page = await browser.newPage();
     await page.goto("/auth");
 
-    await page
-      .getByText("Welcome back")
-      .waitFor({ state: "visible", timeout: 30000 });
-    await page
-      .getByRole("textbox", { name: "you@example.com" })
-      .fill(testEmail);
-    await page.locator('input[type="password"]').fill(testPassword);
-    await page.getByRole("button", { name: /log in/i }).click();
-    await page.waitForURL(/\/(dashboard|strategies|simulator)/, {
-      timeout: 30000,
-    });
+    // If already authenticated, the auth page redirects to /dashboard.
+    // Wait for either the login form OR a post-login page.
+    const loginForm = page.getByText("Welcome back");
+    const dashboard = page.getByRole("heading", { name: /dashboard/i });
+    const landed = await Promise.race([
+      loginForm.waitFor({ state: "visible", timeout: 15000 }).then(() => "auth" as const),
+      dashboard.waitFor({ state: "visible", timeout: 15000 }).then(() => "dashboard" as const),
+      page.waitForURL(/\/(dashboard|strategies|simulator)/, { timeout: 15000 }).then(() => "redirected" as const),
+    ]);
+
+    if (landed === "auth") {
+      // Not logged in — perform login
+      await page
+        .getByRole("textbox", { name: "you@example.com" })
+        .fill(testEmail);
+      await page.locator('input[type="password"]').fill(testPassword);
+      await page.getByRole("button", { name: /log in/i }).click();
+      await page.waitForURL(/\/(dashboard|strategies|simulator)/, {
+        timeout: 30000,
+      });
+    }
+    // else: already logged in, just save the state
 
     await page.context().storageState({ path: "e2e/.auth.json" });
     await page.close();
