@@ -55,8 +55,14 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.getByRole("button", { name: /New Strategy/i }).click();
     await page.waitForURL("**/strategies/new");
 
-    await page.getByPlaceholder("Strategy name").fill(strategyName);
-    await page.getByRole("button", { name: /Save/i }).click();
+    // The name input is inside the Identity accordion (expanded by default)
+    // Placeholder is "e.g. ORB 5min" — use the input#name id instead
+    const nameInput = page.locator("input#name");
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    await nameInput.fill(strategyName);
+
+    // Click the header Save button (not the footer "Save Strategy")
+    await page.getByRole("button", { name: /^Save$/ }).click();
 
     await page.waitForURL(/\/strategies\/(?!new).+/);
 
@@ -73,20 +79,19 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.getByText(strategyName).click();
     await page.waitForURL(/\/strategies\/(?!new).+/);
 
-    const nameInput = page.getByPlaceholder("Strategy name");
+    const nameInput = page.locator("input#name");
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
     await nameInput.clear();
     await nameInput.fill(renamedName);
 
-    await page.getByRole("button", { name: /Save/i }).click();
+    await page.getByRole("button", { name: /^Save$/ }).click();
     await expect(
       page.getByText("Strategy saved", { exact: true }).first(),
     ).toBeVisible();
 
     await page.reload();
-    await page.getByPlaceholder("Strategy name").waitFor({ state: "visible" });
-    await expect(page.getByPlaceholder("Strategy name")).toHaveValue(
-      renamedName,
-    );
+    await expect(page.locator("input#name")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("input#name")).toHaveValue(renamedName);
   });
 
   test("delete the strategy and verify removal", async ({ page }) => {
@@ -96,11 +101,11 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.getByText(renamedName).click();
     await page.waitForURL(/\/strategies\/(?!new).+/);
 
-    // Click the red trash icon button (icon-only, no text)
-    await page.getByRole("button").filter({ hasText: /^$/ }).last().click();
+    // The delete button is a destructive icon-only button wrapping Trash2
+    await page.getByRole("button", { name: /delete/i }).first().click();
 
-    // Confirm in the dialog
-    await page.getByRole("button", { name: /delete/i }).click();
+    // Confirm in the AlertDialog
+    await page.getByRole("button", { name: /delete/i }).last().click();
 
     await page.waitForURL("**/strategies");
     await expect(page.getByText(renamedName)).not.toBeVisible();
