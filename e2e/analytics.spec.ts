@@ -9,7 +9,10 @@ test.describe('Analytics page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/analytics');
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible();
+    // Wait for the page heading first (renders before data loads)
+    await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible({ timeout: 10000 });
+    // Then wait for the Performance tab to appear
+    await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible({ timeout: 10000 });
   });
 
   test('renders page header', async ({ page }) => {

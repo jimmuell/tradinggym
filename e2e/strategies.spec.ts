@@ -39,7 +39,7 @@ test.describe("Strategy CRUD lifecycle", () => {
     page,
   }) => {
     await page.goto("/strategies");
-    await page.getByText("TradeGYM Strategies").waitFor({ state: "visible" });
+    await page.getByText("TradingGYM Strategies").waitFor({ state: "visible" });
 
     await page.getByRole("button", { name: /New Strategy/i }).click();
     await page.waitForURL("**/strategies/new");
@@ -50,14 +50,14 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.waitForURL(/\/strategies\/(?!new).+/);
 
     await page.goto("/strategies");
-    await page.getByText("TradeGYM Strategies").waitFor({ state: "visible" });
+    await page.getByText("TradingGYM Strategies").waitFor({ state: "visible" });
 
     await expect(page.getByText(strategyName)).toBeVisible();
   });
 
   test("edit the strategy name and verify persistence", async ({ page }) => {
     await page.goto("/strategies");
-    await page.getByText("TradeGYM Strategies").waitFor({ state: "visible" });
+    await page.getByText("TradingGYM Strategies").waitFor({ state: "visible" });
 
     await page.getByText(strategyName).click();
     await page.waitForURL(/\/strategies\/(?!new).+/);
@@ -80,7 +80,7 @@ test.describe("Strategy CRUD lifecycle", () => {
 
   test("delete the strategy and verify removal", async ({ page }) => {
     await page.goto("/strategies");
-    await page.getByText("TradeGYM Strategies").waitFor({ state: "visible" });
+    await page.getByText("TradingGYM Strategies").waitFor({ state: "visible" });
 
     await page.getByText(renamedName).click();
     await page.waitForURL(/\/strategies\/(?!new).+/);
