@@ -28,7 +28,6 @@ test.describe("Strategy CRUD lifecycle", () => {
     ]);
 
     if (landed === "auth") {
-      // Not logged in — perform login
       await page
         .getByRole("textbox", { name: "you@example.com" })
         .fill(testEmail);
@@ -38,7 +37,6 @@ test.describe("Strategy CRUD lifecycle", () => {
         timeout: 30000,
       });
     }
-    // else: already logged in, just save the state
 
     await page.context().storageState({ path: "e2e/.auth.json" });
     await page.close();
@@ -55,13 +53,10 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.getByRole("button", { name: /New Strategy/i }).click();
     await page.waitForURL("**/strategies/new");
 
-    // The name input is inside the Identity accordion (expanded by default)
-    // Placeholder is "e.g. ORB 5min" — use the input#name id instead
     const nameInput = page.locator("input#name");
     await expect(nameInput).toBeVisible({ timeout: 5000 });
     await nameInput.fill(strategyName);
 
-    // Click the header Save button (not the footer "Save Strategy")
     await page.getByRole("button", { name: /^Save$/ }).click();
 
     await page.waitForURL(/\/strategies\/(?!new).+/);
@@ -101,11 +96,12 @@ test.describe("Strategy CRUD lifecycle", () => {
     await page.getByText(renamedName).click();
     await page.waitForURL(/\/strategies\/(?!new).+/);
 
-    // The delete button is a destructive icon-only button wrapping Trash2
-    await page.getByRole("button", { name: /delete/i }).first().click();
+    // The delete trigger is a destructive icon-only button (no text/aria-label).
+    // Target it by its CSS class: variant="destructive" size="icon"
+    await page.locator('button.bg-destructive').click();
 
-    // Confirm in the AlertDialog
-    await page.getByRole("button", { name: /delete/i }).last().click();
+    // Confirm in the AlertDialog — the "Delete" action button
+    await page.getByRole("button", { name: /^Delete$/i }).click();
 
     await page.waitForURL("**/strategies");
     await expect(page.getByText(renamedName)).not.toBeVisible();
