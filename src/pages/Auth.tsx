@@ -10,7 +10,7 @@ import { lovable } from '@/integrations/lovable/index';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
 
 export default function Auth() {
@@ -101,6 +101,13 @@ export default function Auth() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#131722]">
       <div className="w-full max-w-md px-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
         <h1 className="text-3xl font-bold text-white text-center mb-8">TradingGYM</h1>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-[#1e222d]">
