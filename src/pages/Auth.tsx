@@ -53,6 +53,23 @@ export default function Auth() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!loginEmail) {
+      toast.error('Please enter your email above first');
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset email sent. Check your inbox.');
+    }
+  };
+
   const handleSignup = async () => {
     if (!tosAccepted) {
       toast.error('You must accept the Terms of Service and Privacy Policy');
@@ -130,7 +147,17 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-gray-300">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-gray-300">Password</Label>
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={loading}
+                      className="text-xs text-blue-400 hover:text-blue-300 hover:underline disabled:opacity-50"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <div className="relative">
                     <Input
                       type={showLoginPassword ? 'text' : 'password'}
