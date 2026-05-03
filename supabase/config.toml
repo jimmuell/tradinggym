@@ -1,1 +1,4 @@
 project_id = "iwvpbnhsabnioxrlddqx"
+
+[functions.tv-webhook]
+verify_jwt = false
