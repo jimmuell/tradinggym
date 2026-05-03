@@ -322,6 +322,45 @@ export type Database = {
           },
         ]
       }
+      cost_settings: {
+        Row: {
+          commission_per_trade: number
+          default_contracts: number
+          max_consecutive_losses: number | null
+          max_daily_loss: number | null
+          monthly_data_fee: number
+          planned_trades: number | null
+          tick_value: number
+          trading_days_per_month: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          commission_per_trade?: number
+          default_contracts?: number
+          max_consecutive_losses?: number | null
+          max_daily_loss?: number | null
+          monthly_data_fee?: number
+          planned_trades?: number | null
+          tick_value?: number
+          trading_days_per_month?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          commission_per_trade?: number
+          default_contracts?: number
+          max_consecutive_losses?: number | null
+          max_daily_loss?: number | null
+          monthly_data_fee?: number
+          planned_trades?: number | null
+          tick_value?: number
+          trading_days_per_month?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       guru_applications: {
         Row: {
           email: string
@@ -826,6 +865,65 @@ export type Database = {
           },
         ]
       }
+      live_trades: {
+        Row: {
+          commission: number
+          contracts: number
+          created_at: string
+          direction: string
+          entry_price: number | null
+          gross_pnl: number | null
+          id: string
+          net_pnl: number | null
+          opened_at: string
+          result: string | null
+          strategy: string | null
+          ticks: number | null
+          trading_session_id: string
+          user_id: string
+        }
+        Insert: {
+          commission?: number
+          contracts?: number
+          created_at?: string
+          direction: string
+          entry_price?: number | null
+          gross_pnl?: number | null
+          id?: string
+          net_pnl?: number | null
+          opened_at?: string
+          result?: string | null
+          strategy?: string | null
+          ticks?: number | null
+          trading_session_id: string
+          user_id: string
+        }
+        Update: {
+          commission?: number
+          contracts?: number
+          created_at?: string
+          direction?: string
+          entry_price?: number | null
+          gross_pnl?: number | null
+          id?: string
+          net_pnl?: number | null
+          opened_at?: string
+          result?: string | null
+          strategy?: string | null
+          ticks?: number | null
+          trading_session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_trades_trading_session_id_fkey"
+            columns: ["trading_session_id"]
+            isOneToOne: false
+            referencedRelation: "trading_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age_verified: boolean | null
@@ -1241,11 +1339,16 @@ export type Database = {
         Row: {
           checklist_session_id: string | null
           closed_at: string | null
+          commission: number | null
+          contracts: number | null
           created_at: string | null
           direction: string | null
           entry_price: number | null
           exit_price: number | null
+          gross_pnl: number | null
           id: string
+          net_pnl: number | null
+          notes: string | null
           opened_at: string | null
           pnl: number | null
           pnl_ticks: number | null
@@ -1253,19 +1356,27 @@ export type Database = {
           session_type: string | null
           steps_completed: number[] | null
           stop_loss: number | null
+          strategy: string | null
           symbol: string | null
           take_profit: number | null
+          ticks: number | null
           timeframe: string | null
+          trading_session_id: string | null
           user_id: string
         }
         Insert: {
           checklist_session_id?: string | null
           closed_at?: string | null
+          commission?: number | null
+          contracts?: number | null
           created_at?: string | null
           direction?: string | null
           entry_price?: number | null
           exit_price?: number | null
+          gross_pnl?: number | null
           id?: string
+          net_pnl?: number | null
+          notes?: string | null
           opened_at?: string | null
           pnl?: number | null
           pnl_ticks?: number | null
@@ -1273,19 +1384,27 @@ export type Database = {
           session_type?: string | null
           steps_completed?: number[] | null
           stop_loss?: number | null
+          strategy?: string | null
           symbol?: string | null
           take_profit?: number | null
+          ticks?: number | null
           timeframe?: string | null
+          trading_session_id?: string | null
           user_id: string
         }
         Update: {
           checklist_session_id?: string | null
           closed_at?: string | null
+          commission?: number | null
+          contracts?: number | null
           created_at?: string | null
           direction?: string | null
           entry_price?: number | null
           exit_price?: number | null
+          gross_pnl?: number | null
           id?: string
+          net_pnl?: number | null
+          notes?: string | null
           opened_at?: string | null
           pnl?: number | null
           pnl_ticks?: number | null
@@ -1293,9 +1412,12 @@ export type Database = {
           session_type?: string | null
           steps_completed?: number[] | null
           stop_loss?: number | null
+          strategy?: string | null
           symbol?: string | null
           take_profit?: number | null
+          ticks?: number | null
           timeframe?: string | null
+          trading_session_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1306,7 +1428,65 @@ export type Database = {
             referencedRelation: "checklist_sessions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trades_trading_session_id_fkey"
+            columns: ["trading_session_id"]
+            isOneToOne: false
+            referencedRelation: "trading_sessions"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      trading_sessions: {
+        Row: {
+          cost_per_trade: number
+          created_at: string | null
+          daily_data_fee: number
+          date: string
+          ended_at: string | null
+          id: string
+          max_consecutive_losses: number | null
+          max_contracts: number | null
+          max_daily_loss: number | null
+          planned_trades: number | null
+          started_at: string
+          status: string
+          tick_value: number
+          user_id: string
+        }
+        Insert: {
+          cost_per_trade?: number
+          created_at?: string | null
+          daily_data_fee?: number
+          date?: string
+          ended_at?: string | null
+          id?: string
+          max_consecutive_losses?: number | null
+          max_contracts?: number | null
+          max_daily_loss?: number | null
+          planned_trades?: number | null
+          started_at?: string
+          status?: string
+          tick_value?: number
+          user_id: string
+        }
+        Update: {
+          cost_per_trade?: number
+          created_at?: string | null
+          daily_data_fee?: number
+          date?: string
+          ended_at?: string | null
+          id?: string
+          max_consecutive_losses?: number | null
+          max_contracts?: number | null
+          max_daily_loss?: number | null
+          planned_trades?: number | null
+          started_at?: string
+          status?: string
+          tick_value?: number
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1411,11 +1591,16 @@ export type Database = {
         Returns: {
           checklist_session_id: string | null
           closed_at: string | null
+          commission: number | null
+          contracts: number | null
           created_at: string | null
           direction: string | null
           entry_price: number | null
           exit_price: number | null
+          gross_pnl: number | null
           id: string
+          net_pnl: number | null
+          notes: string | null
           opened_at: string | null
           pnl: number | null
           pnl_ticks: number | null
@@ -1423,9 +1608,12 @@ export type Database = {
           session_type: string | null
           steps_completed: number[] | null
           stop_loss: number | null
+          strategy: string | null
           symbol: string | null
           take_profit: number | null
+          ticks: number | null
           timeframe: string | null
+          trading_session_id: string | null
           user_id: string
         }[]
         SetofOptions: {
