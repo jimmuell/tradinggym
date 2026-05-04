@@ -1,11 +1,10 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Radio, ExternalLink, Lock } from 'lucide-react';
+import { Radio, ExternalLink, Lock, Monitor } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTier } from '@/contexts/TierContext';
 import { useTodayChecklistSession } from '@/hooks/useChecklistSession';
-import { launchCompanionWindow } from '@/lib/companion';
 
 export default function LaunchSessionCard() {
   const { planState, isAdmin, loading: tierLoading } = useTier();
@@ -57,8 +56,8 @@ export default function LaunchSessionCard() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             {isLocked
-              ? 'Upgrade to Pro to use the Live Trading Companion alongside your trading platform.'
-              : 'Open your pre-trade checklist and trade logger in a separate window. Dock it alongside your trading platform.'}
+              ? 'Upgrade to Pro to use TradingGYM Live alongside your trading platform.'
+              : 'Launch TradingGYM Live to run your pre-trade checklist, log trades, and track net P&L alongside your trading platform.'}
           </p>
 
           <div className="mt-3">
@@ -70,16 +69,25 @@ export default function LaunchSessionCard() {
                 </Link>
               </Button>
             ) : (
-              <Button size="sm" onClick={launchCompanionWindow} className="gap-2">
-                <ExternalLink className="h-4 w-4" />
+              <Button
+                size="sm"
+                onClick={() => {
+                  window.location.href = 'tradinggym://launch';
+                }}
+                className="gap-2"
+              >
+                <Monitor className="h-4 w-4" />
                 {hasActiveSession ? 'Resume Session' : 'Launch Session'}
               </Button>
             )}
           </div>
 
           {!isLocked && (
-            <p className="text-[11px] text-muted-foreground mt-2">
-              Opens in a small window — drag it next to TradingView or your broker
+            <p className="text-[11px] text-muted-foreground mt-2 inline-flex items-center gap-1">
+              Opens TradingGYM Live desktop app —{' '}
+              <a href="#" className="underline hover:text-foreground inline-flex items-center gap-0.5">
+                download it here <ExternalLink className="h-3 w-3" />
+              </a>
             </p>
           )}
         </div>
