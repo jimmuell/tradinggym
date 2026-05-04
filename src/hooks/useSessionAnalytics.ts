@@ -91,6 +91,7 @@ export function useSessionAnalytics(filter: SessionAnalyticsFilter): SessionAnal
           'id, date, started_at, ended_at, status, cost_per_trade, daily_data_fee, tick_value, max_daily_loss, planned_trades, checklist_session_id',
         )
         .eq('user_id', user!.id)
+        .neq('status', 'cancelled')
         .order('started_at', { ascending: false });
 
       if (since) q = q.gte('started_at', since);
