@@ -9,7 +9,7 @@ import { useSettings, type AppTheme } from '@/contexts/SettingsContext';
 import { useTier } from '@/contexts/TierContext';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { getPlanDisplayName } from '@/lib/tierUtils';
-import { launchCompanionWindow } from '@/lib/companion';
+
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
@@ -71,16 +71,16 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Companion Mode */}
+        {/* TradingGYM Live */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground flex items-center gap-2">
-              <PanelRightOpen className="h-5 w-5" /> Companion Mode
+              <PanelRightOpen className="h-5 w-5" /> TradingGYM Live
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               {planState === 'starter'
-                ? 'Upgrade to Pro to use the Live Trading Companion alongside your trading platform.'
-                : 'Open TradingGYM in a slim window to use alongside TradingView'}
+                ? 'Upgrade to Pro to use TradingGYM Live alongside your trading platform.'
+                : 'Launch the TradingGYM Live desktop app to use alongside TradingView.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -95,10 +95,12 @@ export default function Settings() {
               <Button
                 variant="outline"
                 className="border-border text-foreground hover:bg-accent"
-                onClick={launchCompanionWindow}
+                onClick={() => {
+                  window.location.href = 'tradinggym://launch';
+                }}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Open Companion Mode
+                Launch TradingGYM Live
               </Button>
             )}
           </CardContent>
