@@ -19,9 +19,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useAnalytics, AnalyticsFilter } from '@/hooks/useAnalytics';
+import { useSessionAnalytics, type SessionAnalyticsFilter } from '@/hooks/useSessionAnalytics';
 import { EquityCurveChart } from '@/components/analytics/EquityCurveChart';
 import { DailyPnlChart } from '@/components/analytics/DailyPnlChart';
 import { WinLossStats } from '@/components/analytics/WinLossStats';
+import LiveTradingSection from '@/components/analytics/LiveTradingSection';
 
 const fmtCurrency = (v: number) =>
   `${v < 0 ? '-' : ''}$${Math.abs(v).toFixed(2)}`;
@@ -59,9 +61,20 @@ function ChartCard({ title, icon: Icon, children }: { title: string; icon: React
   );
 }
 
+function startOfWeekMon(d: Date): Date {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
 export default function Analytics() {
   const [filter, setFilter] = useState<AnalyticsFilter>('all-time');
   const a = useAnalytics(filter);
+  const [liveFilter, setLiveFilter] = useState<SessionAnalyticsFilter>('30d');
+  const liveAnalytics = useSessionAnalytics(liveFilter);
 
   const metrics = [
     { label: 'Total P&L', value: fmtCurrency(a.totalPnl), icon: DollarSign, negative: a.totalPnl < 0 },
@@ -75,6 +88,26 @@ export default function Analytics() {
   ];
 
   const showSkeletons = a.isLoading && a.totalTrades === 0;
+
+  // Wire up four bottom stats from live trading sessions
+  const weekStart = startOfWeekMon(new Date());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+  const sessionsThisWeek = liveAnalytics.sessions.filter((s) => {
+    const t = new Date(s.started_at);
+    return t >= weekStart && t < weekEnd;
+  }).length;
+
+  const completedSessions = liveAnalytics.sessions.filter((s) => s.ended_at);
+  const avgSessionLengthMin =
+    completedSessions.length > 0
+      ? Math.round(
+          completedSessions.reduce((sum, s) => {
+            const ms = new Date(s.ended_at!).getTime() - new Date(s.started_at).getTime();
+            return sum + ms / 60000;
+          }, 0) / completedSessions.length,
+        )
+      : 0;
 
   return (
     <>
@@ -104,12 +137,30 @@ export default function Analytics() {
         </div>
       </div>
 
-      <Tabs defaultValue="performance">
+      <Tabs defaultValue="live">
         <TabsList>
+          <TabsTrigger value="live">Live Trading</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="distribution">Distribution</TabsTrigger>
           <TabsTrigger value="journal">Journal</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="live" className="mt-4 space-y-6">
+          <div className="flex justify-end">
+            <Select value={liveFilter} onValueChange={(v) => setLiveFilter(v as SessionAnalyticsFilter)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30d">Last 30 days</SelectItem>
+                <SelectItem value="60d">Last 60 days</SelectItem>
+                <SelectItem value="90d">Last 90 days</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <LiveTradingSection data={liveAnalytics} />
+        </TabsContent>
 
         <TabsContent value="performance" className="mt-4 space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -171,7 +222,7 @@ export default function Analytics() {
                   <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Sessions This Week</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">0</span>
+                <span className="text-2xl font-bold text-foreground">{sessionsThisWeek}</span>
                 <span className="text-xs text-muted-foreground ml-1">/ 5</span>
               </CardContent>
             </Card>
@@ -181,7 +232,7 @@ export default function Analytics() {
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground">Avg Session Length</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">0</span>
+                <span className="text-2xl font-bold text-foreground">{avgSessionLengthMin}</span>
                 <span className="text-xs text-muted-foreground ml-1">min</span>
               </CardContent>
             </Card>
