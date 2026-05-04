@@ -1439,6 +1439,7 @@ export type Database = {
       }
       trading_sessions: {
         Row: {
+          checklist_session_id: string | null
           cost_per_trade: number
           created_at: string | null
           daily_data_fee: number
@@ -1455,6 +1456,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          checklist_session_id?: string | null
           cost_per_trade?: number
           created_at?: string | null
           daily_data_fee?: number
@@ -1471,6 +1473,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          checklist_session_id?: string | null
           cost_per_trade?: number
           created_at?: string | null
           daily_data_fee?: number
@@ -1486,7 +1489,15 @@ export type Database = {
           tick_value?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trading_sessions_checklist_session_id_fkey"
+            columns: ["checklist_session_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
