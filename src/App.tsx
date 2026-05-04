@@ -57,8 +57,6 @@ import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
 import TierLessonPage from "./pages/learning/TierLessonPage";
 import NotFound from "./pages/NotFound";
-import CompanionPage from "./pages/CompanionPage";
-import CompanionLayout from "./layouts/CompanionLayout";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
