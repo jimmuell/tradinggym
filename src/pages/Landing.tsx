@@ -257,7 +257,7 @@ export default function Landing() {
             Master
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Paste any trading strategy — from a TikTok, YouTube video, or your own rules — and watch AI turn it into a structured plan. Then see it play out step-by-step on real market data. <span className="text-white font-medium">Zero-risk, unlimited reps — practice until you own it.</span>
+            Turn any trading idea into a structured strategy — then backtest it against real historical data, watch it play out step-by-step on real market charts, and practice until the pattern is second nature. Backtesting, playback, simulated reps, and performance tracking in one system. <span className="text-white font-medium">Zero-risk, unlimited reps — practice until you own it.</span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
