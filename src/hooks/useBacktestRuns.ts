@@ -25,6 +25,15 @@ export interface BacktestRun {
   avg_loser: number | null;
   status: 'pending' | 'running' | 'complete' | 'failed';
   created_at: string;
+  strategy_config: Record<string, unknown> | null;
+  results_detail: Record<string, unknown> | null;
+  equity_curve: Array<{ date: string; equity: number }> | null;
+  ai_signal_code: string | null;
+  error_message: string | null;
+  engine_version: string | null;
+  execution_time_ms: number | null;
+  direction: string | null;
+  commission_pct: number | null;
 }
 
 export interface NewBacktestRun {
