@@ -99,9 +99,9 @@ const features = [
 
 const stats = [
   { value: "18+", label: "Historical Data (Years)" },
-  { value: "5", label: "Strategy Phases" },
-  { value: "20+", label: "Database Tables" },
-  { value: "$0", label: "Risk While Learning" },
+  { value: "3", label: "Strategy Blueprints" },
+  { value: "6", label: "Futures Instruments" },
+  { value: "∞", label: "Zero-Risk Practice Reps" },
 ];
 
 const pricing: Array<{
@@ -125,23 +125,9 @@ const pricing: Array<{
       "Trading Simulator",
       "Foundation learning modules",
       "1 saved strategy",
-      "Basic equity tracking",
-      "MES 5-minute data",
-    ],
-  },
-  {
-    name: "Starter",
-    planKey: "starter",
-    price: "$9",
-    period: "/mo",
-    highlight: false,
-    badge: null,
-    features: [
-      "Everything in Free",
-      "3 saved strategies",
       "ORB Blueprint checklist",
-      "Strategy history & badges",
       "Basic analytics",
+      "MES 5-minute data",
     ],
   },
   {
@@ -152,7 +138,7 @@ const pricing: Array<{
     highlight: true,
     badge: "Most Popular",
     features: [
-      "Everything in Starter",
+      "Everything in Free",
       "Unlimited strategies",
       "AI Strategy Ingestion",
       "Strategy Playback Trainer",
@@ -189,7 +175,7 @@ const pricing: Array<{
     features: [
       "Everything in Pro",
       "Guru dashboard",
-      "Cohort & student management",
+      "Class & student management",
       "Publish educational content",
       "Student progress tracking",
       "Live session broadcasting",
@@ -271,7 +257,7 @@ export default function Landing() {
             Master
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Paste any trading strategy — from a TikTok, YouTube video, or your own rules — and watch AI turn it into a structured plan. Then see it play out step-by-step on real market data. <span className="text-white font-medium">Practice until you own it.</span>
+            Paste any trading strategy — from a TikTok, YouTube video, or your own rules — and watch AI turn it into a structured plan. Then see it play out step-by-step on real market data. <span className="text-white font-medium">Zero-risk, unlimited reps — practice until you own it.</span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
@@ -399,7 +385,7 @@ export default function Landing() {
           <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
             No credit card required. Practice with real data from day one.
           </p>
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {pricing.map((p) => {
               const isGuru = p.name === "Guru";
               return (
@@ -560,7 +546,7 @@ export default function Landing() {
           {/* Disclaimers */}
           <div className="mt-10 pt-6 border-t border-white/5 space-y-2 text-center">
             <p className="text-gray-500 text-xs">
-              Focused exclusively on MES (Micro E-mini S&P 500) futures.
+              Built for MES, MNQ, ES, NQ & YM futures traders.
             </p>
             <p className="text-gray-600 text-xs max-w-3xl mx-auto leading-relaxed">
               TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
