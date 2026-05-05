@@ -189,27 +189,14 @@ export default function AdminConfigPage() {
             <Lock className="h-4 w-4" /> Platform Secrets
           </CardTitle>
           <CardDescription>
-            True secrets (API keys, webhook signing keys) live in Lovable Cloud's secret store.
-            Values are write-only — they cannot be displayed here. To rotate or update one, ask the
-            Lovable assistant: <em>"Update secret SECRET_NAME"</em>.
+            True secrets live in Lovable Cloud's secret store. Click the eye icon to reveal a value
+            (admin-only). To update one, ask the Lovable assistant: <em>"Update secret SECRET_NAME"</em>.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {MANAGED_SECRETS.map((s) => (
-              <div
-                key={s.name}
-                className="flex items-center justify-between gap-4 rounded-md border border-border p-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-mono text-sm font-semibold truncate">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">{s.purpose}</div>
-                  </div>
-                </div>
-                <Badge variant="secondary">Managed</Badge>
-              </div>
+              <SecretRow key={s.name} name={s.name} purpose={s.purpose} />
             ))}
           </div>
         </CardContent>
