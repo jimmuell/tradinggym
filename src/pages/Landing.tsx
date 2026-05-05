@@ -160,7 +160,7 @@ const pricing: Array<{
       "All entry methods & filters",
       "Trailing stop management",
       "Multiple timeframes",
-      "Live Session companion",
+      "Desktop Trading Companion app",
     ],
   },
   {
