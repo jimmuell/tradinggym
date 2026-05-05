@@ -57,6 +57,11 @@ export function useBacktestRuns() {
   const { data, isLoading } = useQuery({
     queryKey: ['backtest_runs', user?.id],
     enabled: !!user?.id,
+    refetchInterval: (query) => {
+      const runs = query.state.data as BacktestRun[] | undefined;
+      const hasActive = runs?.some((r) => r.status === 'pending' || r.status === 'running');
+      return hasActive ? 5000 : false;
+    },
     queryFn: async (): Promise<BacktestRun[]> => {
       const { data, error } = await supabase
         .from('backtest_runs')
