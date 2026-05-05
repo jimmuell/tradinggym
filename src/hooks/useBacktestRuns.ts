@@ -46,6 +46,9 @@ export interface NewBacktestRun {
   stop_loss_ticks: number;
   take_profit_ticks: number;
   max_trades_per_day: number;
+  strategy_config?: Record<string, unknown>;
+  direction?: string;
+  commission_pct?: number;
 }
 
 export function useBacktestRuns() {
