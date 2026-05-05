@@ -14,7 +14,7 @@ import {
   Play,
   Target,
   Users,
-  Zap,
+  Monitor,
   Check,
   ArrowRight,
 } from "lucide-react";
@@ -91,9 +91,9 @@ const features = [
     desc: "Run your trading education business inside TradingGYM. Create classes, publish content, host live sessions, track student progress, with built-in monetization & payouts via Stripe Connect.",
   },
   {
-    icon: Zap,
-    title: "Live Session Companion",
-    desc: "Launch a compact trading companion window alongside your broker. Session-aware with resume capability. Your strategy checklist and execution reference in one click.",
+    icon: Monitor,
+    title: "Desktop Trading Companion",
+    desc: "A lightweight desktop app that floats alongside your broker. Pre-trade checklist, real-time Net P&L with true cost tracking, and auto trade capture from TradingView — always on top, one hotkey away.",
   },
 ];
 
@@ -160,7 +160,7 @@ const pricing: Array<{
       "All entry methods & filters",
       "Trailing stop management",
       "Multiple timeframes",
-      "Live Session companion",
+      "Desktop Trading Companion app",
     ],
   },
   {
