@@ -62,6 +62,7 @@ import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
+import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import InvestorLayout from "./layouts/InvestorLayout";
 import InvestorKpisPage from "./pages/investor/InvestorKpisPage";
 import InvestorDataRoomPage from "./pages/investor/InvestorDataRoomPage";
