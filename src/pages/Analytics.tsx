@@ -111,20 +111,20 @@ export default function Analytics() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-primary" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 text-primary shrink-0" />
             Analytics
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Track your performance, identify patterns, and improve your trading.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <HelpSheet pageName="Analytics" />
           <Select value={filter} onValueChange={(v) => setFilter(v as AnalyticsFilter)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-36 sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -138,7 +138,7 @@ export default function Analytics() {
       </div>
 
       <Tabs defaultValue="live">
-        <TabsList>
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="live">Live Trading</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="distribution">Distribution</TabsTrigger>
