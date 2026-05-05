@@ -270,3 +270,78 @@ export default function AdminConfigPage() {
     </div>
   );
 }
+
+function SecretRow({ name, purpose }: { name: string; purpose: string }) {
+  const [revealed, setRevealed] = useState(false);
+  const [value, setValue] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchValue = async () => {
+    if (value !== null) {
+      setRevealed(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-admin-secret', {
+        body: { name },
+      });
+      if (error) throw error;
+      setValue(data?.value ?? '');
+      setRevealed(true);
+    } catch (e) {
+      toast({
+        title: 'Failed to load secret',
+        description: (e as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copy = async () => {
+    if (value === null) {
+      await fetchValue();
+    }
+    const v = value ?? '';
+    try {
+      await navigator.clipboard.writeText(v);
+      toast({ title: 'Copied to clipboard' });
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="font-mono text-sm font-semibold truncate">{name}</div>
+          <div className="text-xs text-muted-foreground">{purpose}</div>
+          {revealed && (
+            <div className="font-mono text-xs mt-1 break-all bg-muted rounded px-2 py-1">
+              {value || <span className="italic text-muted-foreground">(not set)</span>}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => (revealed ? setRevealed(false) : fetchValue())}
+          disabled={loading}
+          title={revealed ? 'Hide' : 'Show'}
+        >
+          {loading ? <Loader2 className="animate-spin" /> : revealed ? <EyeOff /> : <Eye />}
+        </Button>
+        <Button size="icon" variant="ghost" onClick={copy} disabled={loading} title="Copy">
+          <Copy />
+        </Button>
+        <Badge variant="secondary">Managed</Badge>
+      </div>
+    </div>
+  );
+}
