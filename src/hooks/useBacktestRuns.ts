@@ -96,3 +96,23 @@ export function useCreateBacktestRun() {
     },
   });
 }
+
+export function useDeleteBacktestRun() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('backtest_runs')
+        .delete()
+        .eq('id', runId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['backtest_runs', user?.id] });
+    },
+  });
+}
