@@ -174,13 +174,13 @@ export default function Analytics() {
                   </Card>
                 ))
               : metrics.map((m) => (
-                  <Card key={m.label}>
-                    <CardContent className="pt-4 pb-3 px-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-muted-foreground">{m.label}</span>
-                        <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Card key={m.label} className="min-w-0">
+                    <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{m.label}</span>
+                        <m.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       </div>
-                      <span className={cn('text-lg font-bold', m.negative ? 'text-destructive' : 'text-foreground')}>
+                      <span className={cn('block text-base sm:text-lg font-bold tabular-nums truncate', m.negative ? 'text-destructive' : 'text-foreground')} title={m.value}>
                         {m.value}
                       </span>
                     </CardContent>
