@@ -25,6 +25,15 @@ export interface BacktestRun {
   avg_loser: number | null;
   status: 'pending' | 'running' | 'complete' | 'failed';
   created_at: string;
+  strategy_config: Record<string, unknown> | null;
+  results_detail: Record<string, unknown> | null;
+  equity_curve: Array<{ date: string; equity: number }> | null;
+  ai_signal_code: string | null;
+  error_message: string | null;
+  engine_version: string | null;
+  execution_time_ms: number | null;
+  direction: string | null;
+  commission_pct: number | null;
 }
 
 export interface NewBacktestRun {
@@ -37,6 +46,9 @@ export interface NewBacktestRun {
   stop_loss_ticks: number;
   take_profit_ticks: number;
   max_trades_per_day: number;
+  strategy_config?: Record<string, unknown>;
+  direction?: string;
+  commission_pct?: number;
 }
 
 export function useBacktestRuns() {
@@ -68,7 +80,7 @@ export function useCreateBacktestRun() {
       if (!user?.id) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('backtest_runs')
-        .insert({ ...input, user_id: user.id, status: 'pending' })
+        .insert({ ...input, user_id: user.id, status: 'pending' } as never)
         .select()
         .single();
       if (error) throw error;

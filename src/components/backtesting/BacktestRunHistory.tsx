@@ -13,7 +13,15 @@ function statusBadge(run: BacktestRun) {
     return <Badge variant="outline" className="bg-yellow-500/15 text-yellow-500 border-yellow-500/30">Processing</Badge>;
   }
   if (run.status === 'failed') {
-    return <Badge variant="outline" className="bg-red-500/15 text-red-500 border-red-500/30">Failed</Badge>;
+    return (
+      <Badge
+        variant="outline"
+        className="bg-red-500/15 text-red-500 border-red-500/30"
+        title={run.error_message || 'Unknown error'}
+      >
+        Failed
+      </Badge>
+    );
   }
   if ((run.net_pnl ?? 0) > 0) {
     return <Badge variant="outline" className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30">Profitable</Badge>;
@@ -59,6 +67,11 @@ export default function BacktestRunHistory({ runs }: Props) {
               >
                 {formatCurrency(run.net_pnl)}
               </span>
+              {run.execution_time_ms && (
+                <span className="text-xs text-muted-foreground w-16 text-right">
+                  {(run.execution_time_ms / 1000).toFixed(1)}s
+                </span>
+              )}
             </div>
           </div>
         ))}
