@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Lock, KeyRound } from 'lucide-react';
+import { Plus, Pencil, Trash2, Lock, KeyRound, Eye, EyeOff, Copy, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -189,27 +189,14 @@ export default function AdminConfigPage() {
             <Lock className="h-4 w-4" /> Platform Secrets
           </CardTitle>
           <CardDescription>
-            True secrets (API keys, webhook signing keys) live in Lovable Cloud's secret store.
-            Values are write-only — they cannot be displayed here. To rotate or update one, ask the
-            Lovable assistant: <em>"Update secret SECRET_NAME"</em>.
+            True secrets live in Lovable Cloud's secret store. Click the eye icon to reveal a value
+            (admin-only). To update one, ask the Lovable assistant: <em>"Update secret SECRET_NAME"</em>.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {MANAGED_SECRETS.map((s) => (
-              <div
-                key={s.name}
-                className="flex items-center justify-between gap-4 rounded-md border border-border p-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="min-w-0">
-                    <div className="font-mono text-sm font-semibold truncate">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">{s.purpose}</div>
-                  </div>
-                </div>
-                <Badge variant="secondary">Managed</Badge>
-              </div>
+              <SecretRow key={s.name} name={s.name} purpose={s.purpose} />
             ))}
           </div>
         </CardContent>
@@ -280,6 +267,81 @@ export default function AdminConfigPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function SecretRow({ name, purpose }: { name: string; purpose: string }) {
+  const [revealed, setRevealed] = useState(false);
+  const [value, setValue] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchValue = async () => {
+    if (value !== null) {
+      setRevealed(true);
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-admin-secret', {
+        body: { name },
+      });
+      if (error) throw error;
+      setValue(data?.value ?? '');
+      setRevealed(true);
+    } catch (e) {
+      toast({
+        title: 'Failed to load secret',
+        description: (e as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copy = async () => {
+    if (value === null) {
+      await fetchValue();
+    }
+    const v = value ?? '';
+    try {
+      await navigator.clipboard.writeText(v);
+      toast({ title: 'Copied to clipboard' });
+    } catch {
+      toast({ title: 'Copy failed', variant: 'destructive' });
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <KeyRound className="h-4 w-4 text-muted-foreground shrink-0" />
+        <div className="min-w-0 flex-1">
+          <div className="font-mono text-sm font-semibold truncate">{name}</div>
+          <div className="text-xs text-muted-foreground">{purpose}</div>
+          {revealed && (
+            <div className="font-mono text-xs mt-1 break-all bg-muted rounded px-2 py-1">
+              {value || <span className="italic text-muted-foreground">(not set)</span>}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => (revealed ? setRevealed(false) : fetchValue())}
+          disabled={loading}
+          title={revealed ? 'Hide' : 'Show'}
+        >
+          {loading ? <Loader2 className="animate-spin" /> : revealed ? <EyeOff /> : <Eye />}
+        </Button>
+        <Button size="icon" variant="ghost" onClick={copy} disabled={loading} title="Copy">
+          <Copy />
+        </Button>
+        <Badge variant="secondary">Managed</Badge>
+      </div>
     </div>
   );
 }
