@@ -62,6 +62,7 @@ import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
+import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import InvestorLayout from "./layouts/InvestorLayout";
 import InvestorKpisPage from "./pages/investor/InvestorKpisPage";
 import InvestorDataRoomPage from "./pages/investor/InvestorDataRoomPage";
@@ -148,6 +149,7 @@ const App = () => (
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
               <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
+              <Route path="/admin/config" element={<LayoutRoute><AdminConfigPage /></LayoutRoute>} />
               <Route path="/investor" element={<InvestorLayout><Navigate to="/investor/kpis" replace /></InvestorLayout>} />
               <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisPage /></InvestorLayout>} />
               <Route path="/investor/data-room" element={<InvestorLayout><InvestorDataRoomPage /></InvestorLayout>} />
