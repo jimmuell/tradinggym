@@ -111,20 +111,20 @@ export default function Analytics() {
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-primary" />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 text-primary shrink-0" />
             Analytics
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Track your performance, identify patterns, and improve your trading.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <HelpSheet pageName="Analytics" />
           <Select value={filter} onValueChange={(v) => setFilter(v as AnalyticsFilter)}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-36 sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -138,7 +138,7 @@ export default function Analytics() {
       </div>
 
       <Tabs defaultValue="live">
-        <TabsList>
+        <TabsList className="w-full sm:w-auto overflow-x-auto">
           <TabsTrigger value="live">Live Trading</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="distribution">Distribution</TabsTrigger>
@@ -174,13 +174,13 @@ export default function Analytics() {
                   </Card>
                 ))
               : metrics.map((m) => (
-                  <Card key={m.label}>
-                    <CardContent className="pt-4 pb-3 px-4">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs text-muted-foreground">{m.label}</span>
-                        <m.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                  <Card key={m.label} className="min-w-0">
+                    <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate">{m.label}</span>
+                        <m.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                       </div>
-                      <span className={cn('text-lg font-bold', m.negative ? 'text-destructive' : 'text-foreground')}>
+                      <span className={cn('block text-base sm:text-lg font-bold tabular-nums truncate', m.negative ? 'text-destructive' : 'text-foreground')} title={m.value}>
                         {m.value}
                       </span>
                     </CardContent>
@@ -205,44 +205,44 @@ export default function Analytics() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Current Streak</span>
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Current Streak</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">0</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">0</span>
                 <span className="text-xs text-muted-foreground ml-1">days</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Sessions This Week</span>
+                  <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Sessions This Week</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{sessionsThisWeek}</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{sessionsThisWeek}</span>
                 <span className="text-xs text-muted-foreground ml-1">/ 5</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Avg Session Length</span>
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Avg Session Length</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{avgSessionLengthMin}</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{avgSessionLengthMin}</span>
                 <span className="text-xs text-muted-foreground ml-1">min</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Blueprint Accuracy</span>
+                  <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Blueprint Accuracy</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{a.avgStepAccuracy.toFixed(0)}%</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{a.avgStepAccuracy.toFixed(0)}%</span>
               </CardContent>
             </Card>
           </div>

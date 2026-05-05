@@ -1,79 +1,50 @@
+# Phase 1 — Mobile Quick Wins
 
+Goal: stop content from overflowing on small screens and make the non-chart pages comfortably usable on a phone. The simulator/chart pages are explicitly out of scope (deferred to Phase 2).
 
-# P44 — Quiz Results, Per-Question Review, Module Cross-Reference
+## What will change
 
-## Database
+### 1. Fix the KPI card overflow (the bug in your screenshot)
+File: `src/components/backtesting/BacktestKpiCards.tsx`
 
-**Migration** — add `responses jsonb default '[]'::jsonb` column to `quiz_attempts`.
+- Switch the value font from a fixed `text-2xl` to responsive: `text-lg sm:text-xl lg:text-2xl`.
+- Add `truncate` + `min-w-0` to the value and card so long numbers can't blow past the card edge.
+- Format large dollar amounts compactly (e.g. `-$4.2K` instead of `-$4,185.99`) once the value crosses 10,000, with the full number available on hover via `title`.
+- Tighten card padding on mobile (`p-3 sm:p-4`) and gap (`gap-2 sm:gap-3`).
+- Adjust grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` (currently jumps from 2 → 3 only at `md`, leaving an awkward window).
 
-**Data update (insert tool)** — UPDATE the Foundation quiz row to add `source_lesson_id` (UUID) and `source_slide_index` (default 0) onto each question in the `questions` JSONB. Mapping uses live UUIDs from the lessons table:
+### 2. Apply the same treatment to other stat tiles
+File: `src/components/analytics/WinLossStats.tsx`
+- Responsive font sizing + truncation on the Wins/Losses/Breakevens numbers.
 
-- q1, q2 → `6fd2ef4e…` (F1 — Reading Candles)
-- q3, q4 → `c3f382c6…` (F2 — Market Structure)
-- q5, q6 → `025fdafd…` (F3 — Sessions & Time)
-- q7, q8 → `b50d51f1…` (F4 — Risk Management)
-- q9, q10 → `285130d8…` (F5 — Your Trading Plan)
+### 3. Backtesting page layout
+File: `src/pages/Backtesting.tsx`
+- Current layout is `grid-cols-1 lg:grid-cols-[380px_1fr]`. Already stacks on mobile — good.
+- Audit `BacktestConfigPanel` and `BacktestResultsPanel` for any fixed widths or non-wrapping rows; add `flex-wrap` and `min-w-0` where needed.
+- Make the previous-runs row wrap gracefully on narrow widths (status badge + PnL + time + delete currently sit on one line).
 
-`source_slide_index` defaults to `0` for all questions (slide-level mapping not specified per-question; deep-link still lands inside the right lesson).
+### 4. Analytics page audit
+Files: `src/pages/Analytics.tsx` + chart components (`EquityCurveChart`, `DailyPnlChart`, `FeeDragChart`, `SessionNetPnlChart`)
+- Confirm Recharts `ResponsiveContainer` usage; reduce chart heights on mobile.
+- Stack any side-by-side card grids at `< sm`.
 
-## Hooks
+### 5. Tables become horizontally scrollable on mobile
+Files: any page using `<Table>` (admin pages, strategies list, trades, etc.)
+- Wrap tables in `<div className="overflow-x-auto">` so columns don't compress into illegible mush.
 
-**New `src/hooks/useQuizAttempts.ts`:**
-- `useQuizAttempts(quizId)` — list current user's attempts for a quiz, ordered DESC by `completed_at`. Returns full rows including `responses`.
-- `useSaveQuizAttempt()` — replaces the existing one in `useQuizzes.ts`. Inserts `responses` JSONB alongside legacy `answers` (keeps backward compatibility). Invalidates `['quiz-attempts', quizId]` and best-attempt cache.
+### 6. Dashboard, Profile, Settings, Auth, Learning sweep
+- Quick visual pass at 375px wide; fix any obvious overflow, fixed widths, or non-responsive grids. Most shadcn pieces already handle this — expecting only minor tweaks.
 
-**`useQuizzes.ts`:** extend `QuizQuestion` type with optional `source_lesson_id`, `source_lesson_title`, `source_slide_index`. Extend `QuizAttempt` with `responses`. Re-export old `useSaveQuizAttempt` from new hook file (or delete and switch importers).
+## Out of scope (deferred to Phase 2)
 
-## QuizRunner refactor (`src/components/learning/QuizRunner.tsx`)
+- `/simulator` and any chart-heavy page — these stay desktop/tablet only. Phase 2 will add a friendly "use a larger screen" gate at `< 768px` for these routes.
+- No native app / Capacitor work.
+- No PWA / installable behavior.
 
-Replace the existing finished-state block with a richer results view inside the same component. No new route.
+## How I'll verify
 
-**Behavior changes:**
-- Remove the auto-call to `onComplete` from the save effect. `onComplete` now only fires when the user clicks an explicit action button.
-- On finish, build a `responses[]` array (one entry per question with all denormalized fields per spec) and save via `useSaveQuizAttempt`.
-- Lookup `source_lesson_title` from a new optional `lessonTitleById` prop (Map) passed by the parent — keeps the component DB-agnostic. Falls back to the title baked into the question if present.
+After each change I'll resize the preview to 375px (iPhone SE) and 414px (iPhone Plus) widths to confirm no horizontal scroll and no overflowing values, then back to desktop to confirm nothing regressed.
 
-**Results view layout:**
-1. **Summary card**: score `X / Y (Z%)`, PASSED/NOT PASSED badge, tier-promotion success banner (only when parent passes `promotionMessage` prop).
-2. **Action row**: `Review Answers` (smooth-scrolls to list), `Retake Quiz` (resets state, allows new attempt), and either `Continue to Tier 1 →` (pass) or `Back to Foundation` (fail) — both wired through callbacks.
-3. **Per-question review** using shadcn `Accordion` (`type="multiple"`):
-   - Correct items: green left-border, check icon, collapsed by default.
-   - Wrong items: red left-border, X icon, expanded by default (`defaultValue` includes their ids).
-   - Each item shows question text, all 4 options (user's answer highlighted; correct one marked green), explanation in muted callout.
-   - For wrong answers, footer link: `📖 Review this in: <lesson title> → Slide <n+1>` linking to `/learning/foundation/{source_lesson_id}?slide={source_slide_index}` via `react-router-dom` `Link` (same tab).
+## Estimated scope
 
-## Foundation page (`src/pages/learning/Foundation.tsx`)
-
-Add a **Quiz History** section above the Foundation Assessment card, visible only when `useQuizAttempts(quiz?.id)` returns ≥1 row.
-
-- Table-like compact list: date (formatted), `score/total — %`, pass/fail badge, `Review` button.
-- Default shows latest 5; `Show all` toggle expands to full history.
-- `Review` opens a shadcn `Dialog` rendering a read-only version of the per-question review (reuses a new shared `<QuizResponsesReview responses={…} />` extracted from QuizRunner so the Dialog and live results share code).
-
-## FoundationLesson page (`src/pages/learning/FoundationLesson.tsx`)
-
-Update `QuizView`:
-- Build `lessonTitleById` from `useFoundationLessons` and pass to `QuizRunner`.
-- Move tier-promotion + navigation logic into callback props (`onContinue`, `onBackToFoundation`) instead of the auto-`handleComplete`. Promotion fires when `QuizRunner` reports a passing save (via new `onPassed` callback or by checking inside `onContinue`).
-
-## LessonRenderer deep-link (`src/components/learning/LessonRenderer.tsx`)
-
-- Read `slide` query param via `useSearchParams`.
-- Initialize `index` state with `Math.min(Math.max(parseInt(slideParam ?? '0', 10) || 0, 0), total - 1)`. Use a one-time effect keyed on `lesson?.id` so navigation between slides via Next/Prev still works without the URL forcing reset.
-
-## File touch list
-
-- New: `supabase/migrations/<ts>_quiz_attempts_responses.sql`
-- New: `src/hooks/useQuizAttempts.ts`
-- New: `src/components/learning/QuizResponsesReview.tsx` (shared per-question review block)
-- Edited: `src/hooks/useQuizzes.ts` (types + re-export)
-- Edited: `src/components/learning/QuizRunner.tsx`
-- Edited: `src/components/learning/LessonRenderer.tsx`
-- Edited: `src/pages/learning/Foundation.tsx`
-- Edited: `src/pages/learning/FoundationLesson.tsx`
-- Data update via insert tool: tag Foundation quiz questions with `source_lesson_id`/`source_slide_index`.
-
-## Constraints honored
-
-React Query for all DB IO · TierContext for tier · AuthContext for user · no sidebar/header changes · no design-system changes · skeletons during loads · no new routes · responses JSONB denormalized · unlimited retakes · `promote_tier` RPC unchanged · LessonRenderer existing behavior preserved.
-
+~6–8 files touched, all CSS-class-level changes. No data model, no routing, no behavior changes.

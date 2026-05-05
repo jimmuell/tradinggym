@@ -100,19 +100,19 @@ export default function BacktestRunHistory({ runs }: Props) {
             return (
               <div
                 key={run.id}
-                className="flex items-center justify-between text-sm border border-border rounded-md px-3 py-2"
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm border border-border rounded-md px-3 py-2"
               >
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1 basis-40">
                   <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground truncate">
                     {run.timeframe} · {format(new Date(run.start_date), 'MMM d')} – {format(new Date(run.end_date), 'MMM d, yyyy')}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
                   {statusBadge(run)}
                   <span
                     className={cn(
-                      'font-semibold tabular-nums w-24 text-right',
+                      'font-semibold tabular-nums text-right whitespace-nowrap',
                       (run.net_pnl ?? 0) > 0 && 'text-emerald-500',
                       (run.net_pnl ?? 0) < 0 && 'text-red-500',
                     )}
@@ -120,7 +120,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                     {formatCurrency(run.net_pnl)}
                   </span>
                   {run.execution_time_ms && (
-                    <span className="text-xs text-muted-foreground w-16 text-right">
+                    <span className="hidden sm:inline text-xs text-muted-foreground whitespace-nowrap">
                       {(run.execution_time_ms / 1000).toFixed(1)}s
                     </span>
                   )}
