@@ -16,10 +16,17 @@ export type Database = {
     Tables: {
       backtest_runs: {
         Row: {
+          ai_signal_code: string | null
           avg_loser: number | null
           avg_winner: number | null
+          commission_pct: number | null
           created_at: string
+          direction: string | null
           end_date: string
+          engine_version: string | null
+          equity_curve: Json | null
+          error_message: string | null
+          execution_time_ms: number | null
           id: string
           initial_balance: number
           losses: number | null
@@ -27,9 +34,11 @@ export type Database = {
           max_trades_per_day: number
           net_pnl: number | null
           profit_factor: number | null
+          results_detail: Json | null
           start_date: string
           status: string
           stop_loss_ticks: number
+          strategy_config: Json | null
           strategy_id: string | null
           strategy_name: string
           take_profit_ticks: number
@@ -40,10 +49,17 @@ export type Database = {
           wins: number | null
         }
         Insert: {
+          ai_signal_code?: string | null
           avg_loser?: number | null
           avg_winner?: number | null
+          commission_pct?: number | null
           created_at?: string
+          direction?: string | null
           end_date: string
+          engine_version?: string | null
+          equity_curve?: Json | null
+          error_message?: string | null
+          execution_time_ms?: number | null
           id?: string
           initial_balance?: number
           losses?: number | null
@@ -51,9 +67,11 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          results_detail?: Json | null
           start_date: string
           status?: string
           stop_loss_ticks?: number
+          strategy_config?: Json | null
           strategy_id?: string | null
           strategy_name: string
           take_profit_ticks?: number
@@ -64,10 +82,17 @@ export type Database = {
           wins?: number | null
         }
         Update: {
+          ai_signal_code?: string | null
           avg_loser?: number | null
           avg_winner?: number | null
+          commission_pct?: number | null
           created_at?: string
+          direction?: string | null
           end_date?: string
+          engine_version?: string | null
+          equity_curve?: Json | null
+          error_message?: string | null
+          execution_time_ms?: number | null
           id?: string
           initial_balance?: number
           losses?: number | null
@@ -75,9 +100,11 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          results_detail?: Json | null
           start_date?: string
           status?: string
           stop_loss_ticks?: number
+          strategy_config?: Json | null
           strategy_id?: string | null
           strategy_name?: string
           take_profit_ticks?: number
