@@ -80,7 +80,7 @@ export function useCreateBacktestRun() {
       if (!user?.id) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('backtest_runs')
-        .insert({ ...input, user_id: user.id, status: 'pending' })
+        .insert({ ...input, user_id: user.id, status: 'pending' } as never)
         .select()
         .single();
       if (error) throw error;
