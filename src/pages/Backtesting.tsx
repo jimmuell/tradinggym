@@ -1,32 +1,71 @@
-import { Beaker } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
+import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
+import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
+import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
+  const { runs } = useBacktestRuns();
+  const runBacktest = useRunBacktest();
+  const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
+
+  const latest = runs[0] ?? null;
+  const hasActive = runs.some((r) => r.status === 'pending' || r.status === 'running');
+
+  // Count runs created in current calendar month
+  const now = new Date();
+  const monthlyRunCount = runs.filter((r) => {
+    const d = new Date(r.created_at);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+
+  const handleRun = async (config: BacktestConfig) => {
+    if (!config.strategy) return;
+    setLastConfig(config);
+    try {
+      await runBacktest.mutateAsync({
+        strategy_id: config.strategy.id,
+        strategy_name: config.strategy.name,
+        timeframe: config.timeframe,
+        start_date: config.startDate,
+        end_date: config.endDate,
+        initial_balance: config.initialBalance,
+        stop_loss_ticks: 0,
+        take_profit_ticks: 0,
+        max_trades_per_day: 10,
+        direction: config.direction,
+        commission_pct: config.commissionPct,
+      });
+      toast.success('Backtest started — results will appear shortly');
+    } catch (err) {
+      toast.error(`Failed to start backtest: ${(err as Error).message}`);
+    }
+  };
+
+  const handleRetry = () => {
+    if (lastConfig) handleRun(lastConfig);
+  };
+
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center py-16">
-      <div className="max-w-xl text-center space-y-6">
-        <div className="flex justify-center">
-          <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Beaker className="h-10 w-10 text-primary" />
-          </div>
-        </div>
-        <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          Backtesting Coming Soon
-        </h1>
-        <p className="text-lg text-muted-foreground leading-relaxed">
-          Run your strategies against 18 years of historical MES/ES data. Validate
-          your edge with real market conditions before risking capital.
+    <div className="container mx-auto py-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Backtesting</h1>
+        <p className="text-muted-foreground">
+          Validate your strategies against 18 years of historical MES data.
         </p>
-        <div className="pt-2">
-          <Button
-            size="lg"
-            onClick={() =>
-              toast("We'll let you know when backtesting is available!")
-            }
-          >
-            Notify Me
-          </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+        <BacktestConfigPanel
+          onRun={handleRun}
+          isRunning={runBacktest.isPending || hasActive}
+          monthlyRunCount={monthlyRunCount}
+        />
+        <div className="space-y-6">
+          <BacktestResultsPanel run={latest} onRetry={handleRetry} />
+          <BacktestRunHistory runs={runs} />
         </div>
       </div>
     </div>
