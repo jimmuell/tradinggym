@@ -205,44 +205,44 @@ export default function Analytics() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Current Streak</span>
+                  <TrendingUp className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Current Streak</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">0</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">0</span>
                 <span className="text-xs text-muted-foreground ml-1">days</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Sessions This Week</span>
+                  <Calendar className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Sessions This Week</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{sessionsThisWeek}</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{sessionsThisWeek}</span>
                 <span className="text-xs text-muted-foreground ml-1">/ 5</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Avg Session Length</span>
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Avg Session Length</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{avgSessionLengthMin}</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{avgSessionLengthMin}</span>
                 <span className="text-xs text-muted-foreground ml-1">min</span>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="pt-4 pb-3 px-4">
+            <Card className="min-w-0">
+              <CardContent className="pt-4 pb-3 px-3 sm:px-4 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Blueprint Accuracy</span>
+                  <Target className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Blueprint Accuracy</span>
                 </div>
-                <span className="text-2xl font-bold text-foreground">{a.avgStepAccuracy.toFixed(0)}%</span>
+                <span className="text-lg sm:text-2xl font-bold text-foreground tabular-nums">{a.avgStepAccuracy.toFixed(0)}%</span>
               </CardContent>
             </Card>
           </div>
