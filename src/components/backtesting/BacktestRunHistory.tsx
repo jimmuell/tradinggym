@@ -67,6 +67,11 @@ export default function BacktestRunHistory({ runs }: Props) {
               >
                 {formatCurrency(run.net_pnl)}
               </span>
+              {run.execution_time_ms && (
+                <span className="text-xs text-muted-foreground w-16 text-right">
+                  {(run.execution_time_ms / 1000).toFixed(1)}s
+                </span>
+              )}
             </div>
           </div>
         ))}
