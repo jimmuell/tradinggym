@@ -13,7 +13,15 @@ function statusBadge(run: BacktestRun) {
     return <Badge variant="outline" className="bg-yellow-500/15 text-yellow-500 border-yellow-500/30">Processing</Badge>;
   }
   if (run.status === 'failed') {
-    return <Badge variant="outline" className="bg-red-500/15 text-red-500 border-red-500/30">Failed</Badge>;
+    return (
+      <Badge
+        variant="outline"
+        className="bg-red-500/15 text-red-500 border-red-500/30"
+        title={run.error_message || 'Unknown error'}
+      >
+        Failed
+      </Badge>
+    );
   }
   if ((run.net_pnl ?? 0) > 0) {
     return <Badge variant="outline" className="bg-emerald-500/15 text-emerald-500 border-emerald-500/30">Profitable</Badge>;
