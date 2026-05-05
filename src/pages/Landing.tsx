@@ -14,7 +14,7 @@ import {
   Play,
   Target,
   Users,
-  Zap,
+  Monitor,
   Check,
   ArrowRight,
 } from "lucide-react";
