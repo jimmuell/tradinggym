@@ -46,7 +46,7 @@ const TIERS = [
 
 export default function Learning() {
   const navigate = useNavigate();
-  const { currentTier, planState, isUnlocked, loading: tierLoading } = useTier();
+  const { currentTier, isUnlocked } = useTier();
   const { data: foundationLessons, isLoading: lessonsLoading } = useFoundationLessons();
 
   const currentIdx = TIER_ORDER.indexOf(currentTier);
