@@ -184,13 +184,13 @@ function DevTierSwitcherInner() {
 
       <div className="flex items-center gap-1">
         <span className={labelCls}>LEARNING</span>
-        {TIERS.map(({ label, value }) => (
+        {TIERS.map(({ value }) => (
           <button
             key={value}
             onClick={() => setTierState(value)}
             className={currentTier === value ? activeBtn : inactiveBtn}
           >
-            {label}
+            {getTierDisplayName(value)}
           </button>
         ))}
       </div>
