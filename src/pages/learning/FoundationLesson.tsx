@@ -3,12 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useFoundationLessons, useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
 import { usePromoteTier } from '@/hooks/usePromoteTier';
 import { useTier } from '@/contexts/TierContext';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
+import RiskAcknowledgmentModal from '@/components/learning/RiskAcknowledgmentModal';
 
 const STORAGE_KEY = 'completedLessons';
 
