@@ -9,17 +9,18 @@ test.describe('Analytics page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/analytics');
     await page.waitForLoadState('networkidle');
-    // Wait for the page heading first (renders before data loads)
     await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible({ timeout: 10000 });
-    // Then wait for the Performance tab to appear
-    await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible({ timeout: 10000 });
+    // Default tab is now Live Trading — click Performance to activate it
+    await page.getByRole('tab', { name: /performance/i }).click();
+    await page.waitForTimeout(500);
   });
 
   test('renders page header', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible();
   });
 
-  test('renders three tabs', async ({ page }) => {
+  test('renders four tabs', async ({ page }) => {
+    await expect(page.getByRole('tab', { name: /live trading/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /distribution/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /journal/i })).toBeVisible();
@@ -58,13 +59,13 @@ test.describe('Analytics page', () => {
   });
 
   test('time range selector is present and defaults to All Time', async ({ page }) => {
-    const select = page.getByRole('combobox');
+    const select = page.getByRole('combobox').first();
     await expect(select).toBeVisible();
     await expect(select).toContainText(/all time/i);
   });
 
   test('time range selector changes filter', async ({ page }) => {
-    const select = page.getByRole('combobox');
+    const select = page.getByRole('combobox').first();
     await select.click();
     await page.getByRole('option', { name: /this month/i }).click();
     await expect(select).toContainText(/this month/i);
