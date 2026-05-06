@@ -173,14 +173,10 @@ export default function GuruPublicProfilePage() {
         </section>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-4 mb-8">
         <StatCard label="Win Rate" value={guru.win_rate !== null ? `${guru.win_rate}%` : '—'} />
         <StatCard label="Total Trades" value={guru.total_trades.toLocaleString()} />
         <StatCard label="Active Students" value={guru.active_students.toLocaleString()} />
-        <StatCard
-          label="TradingGYM Tier"
-          value={guru.tier_state ? getTierDisplayName(guru.tier_state) : '—'}
-        />
       </div>
 
       <div className="flex justify-center">
