@@ -53,6 +53,12 @@ export default function AdminUsersPage() {
   const [target, setTarget] = useState<AdminUser | null>(null);
   const [planEdit, setPlanEdit] = useState<string>('');
   const [roleEdit, setRoleEdit] = useState<string>('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+
+  useEffect(() => {
+    if (!showDeleteConfirm) setDeleteConfirmEmail('');
+  }, [showDeleteConfirm]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users-list'],
