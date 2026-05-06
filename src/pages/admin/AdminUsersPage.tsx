@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Search, Copy, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import {
