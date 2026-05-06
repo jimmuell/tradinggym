@@ -34,12 +34,7 @@ export default function RiskAcknowledgmentModal({ open, onAcknowledged }: RiskAc
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent
-        className="max-w-xl"
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <AlertDialogContent className="max-w-xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-green-500" />
