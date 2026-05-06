@@ -1601,6 +1601,7 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      admin_delete_user: { Args: { _target_user_id: string }; Returns: Json }
       admin_reject_guru: {
         Args: { target_user_id: string }
         Returns: undefined
