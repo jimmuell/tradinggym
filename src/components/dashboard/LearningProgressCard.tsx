@@ -143,6 +143,34 @@ export default function LearningProgressCard({ currentTier, planState }: Learnin
           </Button>
         </div>
 
+        {currentTier === 'foundation' && (
+          <ul className="mt-5 space-y-1.5">
+            {FOUNDATION_MODULES.map((m) => {
+              const lessonIds = (foundationLessons ?? [])
+                .filter((l) => l.module === m.module)
+                .map((l) => l.id);
+              const isComplete =
+                lessonIds.length > 0 && lessonIds.every((id) => completedLessonIds.includes(id));
+              return (
+                <li
+                  key={m.id}
+                  className={`flex items-center gap-2 text-sm ${
+                    isComplete ? 'text-foreground' : 'text-muted-foreground'
+                  }`}
+                >
+                  {isComplete ? (
+                    <Check className="h-4 w-4 text-green-500 shrink-0" />
+                  ) : (
+                    <Circle className="h-4 w-4 shrink-0 opacity-50" />
+                  )}
+                  <span className="font-medium">{m.id}</span>
+                  <span>· {m.title}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
         {showBadges && (
           <div className="mt-5 pt-5 border-t border-border">
             {profileLoading ? (
