@@ -129,7 +129,7 @@ export default function PlaybackOverlay({
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-1">Unlock Full Playback</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Watch the full Setup → Entry → Exit walkthrough on Pro. Starter shows the Context phase only.
+              Watch the full Setup → Entry → Exit walkthrough on Pro. Free shows the Context phase only.
             </p>
             <button
               onClick={() => navigate('/pricing')}

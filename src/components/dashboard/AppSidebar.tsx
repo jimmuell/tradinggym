@@ -47,7 +47,7 @@ const LOCK_MESSAGES: Record<string, string> = {
   simulator: 'Complete Foundation to unlock',
   strategies: 'Complete Foundation to unlock',
   analytics: 'Complete Foundation to unlock',
-  backtesting: 'Complete Tier 1 to unlock',
+  backtesting: 'Complete Price Action to unlock',
 };
 
 export function AppSidebar() {

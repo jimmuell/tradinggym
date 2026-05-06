@@ -13,19 +13,19 @@ const BANNER_CONTENT: Record<TierState, { label?: string; heading: string; subte
     link: '/learning/foundation',
   },
   tier1: {
-    heading: 'Continue Tier 1 — ORB Strategy',
+    heading: 'Continue Price Action — ORB Strategy',
     subtext: 'Keep practicing the 6-step ORB blueprint.',
     buttonText: 'Continue',
     link: '/learning/tier1',
   },
   tier2: {
-    heading: 'Continue Tier 2 — ORB + VWAP',
+    heading: 'Continue Confirmation — ORB + VWAP',
     subtext: 'Apply the VWAP filter to your ORB setups.',
     buttonText: 'Continue',
     link: '/learning/tier2',
   },
   tier3: {
-    heading: 'Continue Tier 3 — AMD Strategy',
+    heading: 'Continue Institutional — AMD Strategy',
     subtext: 'Practice the 7-step AMD blueprint.',
     buttonText: 'Continue',
     link: '/learning/tier3',
