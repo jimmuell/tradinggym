@@ -127,10 +127,21 @@ export default function AdminUsersPage() {
     onSuccess: () => {
       toast.success('User deleted');
       setShowDeleteConfirm(false);
-      setTarget(null);
+      setDeleteComplete(true);
       qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+      qc.invalidateQueries({ queryKey: ['admin-orphan-check'] });
     },
     onError: (e: Error) => toast.error(`Delete failed: ${e.message}`),
+  });
+
+  const orphanCheck = useQuery({
+    queryKey: ['admin-orphan-check'],
+    enabled: deleteComplete,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_check_orphan_records');
+      if (error) throw error;
+      return (data ?? []) as { table_name: string; orphan_count: number }[];
+    },
   });
 
   const openDetail = (u: AdminUser) => {
