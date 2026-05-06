@@ -1,5 +1,4 @@
 import HelpSheet from '@/components/HelpSheet';
-import FinancialDisclaimer from '@/components/FinancialDisclaimer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
