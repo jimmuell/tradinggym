@@ -115,6 +115,22 @@ export default function AdminUsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteUser = useMutation({
+    mutationFn: async ({ user_id }: { user_id: string }) => {
+      const { error } = await supabase.rpc('admin_delete_user', {
+        _target_user_id: user_id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('User deleted');
+      setShowDeleteConfirm(false);
+      setTarget(null);
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+    },
+    onError: (e: Error) => toast.error(`Delete failed: ${e.message}`),
+  });
+
   const openDetail = (u: AdminUser) => {
     setTarget(u);
     setPlanEdit(u.plan_state);
