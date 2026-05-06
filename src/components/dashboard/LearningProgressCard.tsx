@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Lock, Check } from 'lucide-react';
+import { ArrowRight, Lock, Check, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { TierState } from '@/contexts/TierContext';
@@ -12,6 +12,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { getTierDisplayName } from '@/lib/tierUtils';
 import { useFoundationLessons } from '@/hooks/useLessons';
 import { toast } from 'sonner';
+
+const FOUNDATION_MODULES = [
+  { id: 'F1', module: 'f1', title: 'Reading Candles' },
+  { id: 'F2', module: 'f2', title: 'Market Structure' },
+  { id: 'F3', module: 'f3', title: 'Sessions & Time' },
+  { id: 'F4', module: 'f4', title: 'Risk Management' },
+  { id: 'F5', module: 'f5', title: 'Your Trading Plan' },
+];
+
 
 interface LearningProgressCardProps {
   currentTier: TierState;
@@ -133,6 +142,34 @@ export default function LearningProgressCard({ currentTier, planState }: Learnin
             <ArrowRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
+
+        {currentTier === 'foundation' && (
+          <ul className="mt-5 space-y-1.5">
+            {FOUNDATION_MODULES.map((m) => {
+              const lessonIds = (foundationLessons ?? [])
+                .filter((l) => l.module === m.module)
+                .map((l) => l.id);
+              const isComplete =
+                lessonIds.length > 0 && lessonIds.every((id) => completedLessonIds.includes(id));
+              return (
+                <li
+                  key={m.id}
+                  className={`flex items-center gap-2 text-sm ${
+                    isComplete ? 'text-foreground' : 'text-muted-foreground'
+                  }`}
+                >
+                  {isComplete ? (
+                    <Check className="h-4 w-4 text-green-500 shrink-0" />
+                  ) : (
+                    <Circle className="h-4 w-4 shrink-0 opacity-50" />
+                  )}
+                  <span className="font-medium">{m.id}</span>
+                  <span>· {m.title}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
         {showBadges && (
           <div className="mt-5 pt-5 border-t border-border">

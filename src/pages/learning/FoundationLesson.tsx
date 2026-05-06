@@ -3,12 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useFoundationLessons, useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
 import { usePromoteTier } from '@/hooks/usePromoteTier';
 import { useTier } from '@/contexts/TierContext';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
+import RiskAcknowledgmentModal from '@/components/learning/RiskAcknowledgmentModal';
 
 const STORAGE_KEY = 'completedLessons';
 
@@ -29,9 +33,25 @@ function QuizView() {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuizByModule('foundation');
   const { data: lessons } = useFoundationLessons();
+  const { user } = useAuth();
   const promote = usePromoteTier();
   const { currentTier } = useTier();
   const [promotionMessage, setPromotionMessage] = useState<string | null>(null);
+  const [showRiskModal, setShowRiskModal] = useState(false);
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile-risk-ack', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('risk_acknowledged_at')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data as { risk_acknowledged_at: string | null } | null;
+    },
+    enabled: !!user?.id,
+  });
 
   const lessonTitleById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -41,13 +61,21 @@ function QuizView() {
     return map;
   }, [lessons]);
 
+  function doPromote() {
+    promote.mutate('tier1', {
+      onSuccess: () => {
+        setPromotionMessage("Welcome to Price Action — the Simulator is now unlocked!");
+      },
+    });
+  }
+
   function handlePassed() {
     if (currentTier === 'foundation') {
-      promote.mutate('tier1', {
-        onSuccess: () => {
-          setPromotionMessage("Congratulations! You've unlocked Tier 1 — Pure Price Action.");
-        },
-      });
+      if (profile?.risk_acknowledged_at) {
+        doPromote();
+      } else {
+        setShowRiskModal(true);
+      }
     } else {
       setPromotionMessage("Congratulations! You've unlocked Tier 1 — Pure Price Action.");
     }
@@ -75,6 +103,13 @@ function QuizView() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
+      <RiskAcknowledgmentModal
+        open={showRiskModal}
+        onAcknowledged={() => {
+          setShowRiskModal(false);
+          doPromote();
+        }}
+      />
       <Button
         variant="ghost"
         size="sm"

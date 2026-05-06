@@ -992,6 +992,7 @@ export type Database = {
           plan_state: string
           referral_source: string | null
           referred_by_guru_id: string | null
+          risk_acknowledged_at: string | null
           role: string
           stripe_customer_id: string | null
           tier_state: string
@@ -1009,6 +1010,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          risk_acknowledged_at?: string | null
           role?: string
           stripe_customer_id?: string | null
           tier_state?: string
@@ -1026,6 +1028,7 @@ export type Database = {
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
+          risk_acknowledged_at?: string | null
           role?: string
           stripe_customer_id?: string | null
           tier_state?: string
@@ -1770,10 +1773,19 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_own_profile: {
-        Args: { p_avatar_url?: string; p_display_name?: string }
-        Returns: undefined
-      }
+      update_own_profile:
+        | {
+            Args: { p_avatar_url?: string; p_display_name?: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_avatar_url?: string
+              p_display_name?: string
+              p_risk_acknowledged_at?: string
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       [_ in never]: never
