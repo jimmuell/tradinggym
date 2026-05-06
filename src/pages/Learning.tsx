@@ -71,7 +71,7 @@ export default function Learning() {
       {tierLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : (
-        <TierProgressCard currentTier={currentTier} />
+        <LearningProgressCard currentTier={currentTier} planState={planState} />
       )}
 
       <div className="space-y-4">
