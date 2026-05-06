@@ -348,36 +348,105 @@ export default function AdminUsersPage() {
                 </div>
               </section>
 
-              <section className="space-y-2 rounded-md border border-destructive/40 p-3">
-                <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
-                <p className="text-xs text-muted-foreground">
-                  Permanently delete this user and all their data. This cannot be undone.
-                  Removes: profile, trades, strategies, backtests, checklist data, enrollments,
-                  and auth account. If this user is a Guru, their classes and enrolled students'
-                  enrollments will also be removed.
-                </p>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  disabled={target.role === 'admin' || deleteUser.isPending}
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  {deleteUser.isPending ? (
+              {deleteComplete ? (
+                <section className="space-y-3 border-t border-border pt-4 mt-4">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    User Deleted
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Cascade verification — checking all tables for orphaned records:
+                  </p>
+
+                  {orphanCheck.isLoading ? (
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                      <Skeleton className="h-6 w-full" />
+                    </div>
+                  ) : orphanCheck.data ? (
                     <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Deleting…
+                      <div className="rounded-md border border-border overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/30">
+                            <tr>
+                              <th className="px-3 py-1.5 text-left font-medium text-muted-foreground">Table</th>
+                              <th className="px-3 py-1.5 text-right font-medium text-muted-foreground">Orphans</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {orphanCheck.data.map((row) => (
+                              <tr key={row.table_name} className="border-t border-border">
+                                <td className="px-3 py-1.5 font-mono">{row.table_name}</td>
+                                <td className={cn(
+                                  "px-3 py-1.5 text-right tabular-nums font-medium",
+                                  row.orphan_count > 0 ? "text-destructive" : "text-green-500"
+                                )}>
+                                  {row.orphan_count}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {orphanCheck.data.every(r => r.orphan_count === 0) ? (
+                        <p className="text-xs text-green-500 flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          All clean — no orphaned records found.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-destructive flex items-center gap-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Orphaned records detected. The admin_delete_user RPC may need updating.
+                        </p>
+                      )}
                     </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-3 w-3" />
-                      Delete User
-                    </>
+                  ) : null}
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setTarget(null);
+                      setDeleteComplete(false);
+                    }}
+                  >
+                    Close
+                  </Button>
+                </section>
+              ) : (
+                <section className="space-y-2 rounded-md border border-destructive/40 p-3">
+                  <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Permanently delete this user and all their data. This cannot be undone.
+                    Removes: profile, trades, strategies, backtests, checklist data, enrollments,
+                    and auth account. If this user is a Guru, their classes and enrolled students'
+                    enrollments will also be removed.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={target.role === 'admin' || deleteUser.isPending}
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    {deleteUser.isPending ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Deleting…
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-3 w-3" />
+                        Delete User
+                      </>
+                    )}
+                  </Button>
+                  {target.role === 'admin' && (
+                    <p className="text-[11px] text-muted-foreground">Admin accounts cannot be deleted.</p>
                   )}
-                </Button>
-                {target.role === 'admin' && (
-                  <p className="text-[11px] text-muted-foreground">Admin accounts cannot be deleted.</p>
-                )}
-              </section>
+                </section>
+              )}
             </div>
           )}
         </SheetContent>
