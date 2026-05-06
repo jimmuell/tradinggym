@@ -12,7 +12,6 @@ export interface PublicGuru {
   primary_strategy: string | null;
   referral_code: string | null;
   referral_discount_pct: number | null;
-  tier_state: string | null;
   win_rate: number | null;
   total_trades: number;
   active_students: number;
