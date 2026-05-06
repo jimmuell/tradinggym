@@ -1,6 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Search, Copy, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Search, Copy, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +53,12 @@ export default function AdminUsersPage() {
   const [target, setTarget] = useState<AdminUser | null>(null);
   const [planEdit, setPlanEdit] = useState<string>('');
   const [roleEdit, setRoleEdit] = useState<string>('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+
+  useEffect(() => {
+    if (!showDeleteConfirm) setDeleteConfirmEmail('');
+  }, [showDeleteConfirm]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-users-list'],
@@ -103,6 +113,22 @@ export default function AdminUsersPage() {
       setTarget((t) => (t ? { ...t, role: roleEdit } : t));
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async ({ user_id }: { user_id: string }) => {
+      const { error } = await supabase.rpc('admin_delete_user', {
+        _target_user_id: user_id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('User deleted');
+      setShowDeleteConfirm(false);
+      setTarget(null);
+      qc.invalidateQueries({ queryKey: ['admin-users-list'] });
+    },
+    onError: (e: Error) => toast.error(`Delete failed: ${e.message}`),
   });
 
   const openDetail = (u: AdminUser) => {
@@ -308,10 +334,85 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
               </section>
+
+              <section className="space-y-2 rounded-md border border-destructive/40 p-3">
+                <h3 className="text-sm font-semibold text-destructive">Danger Zone</h3>
+                <p className="text-xs text-muted-foreground">
+                  Permanently delete this user and all their data. This cannot be undone.
+                  Removes: profile, trades, strategies, backtests, checklist data, enrollments,
+                  and auth account. If this user is a Guru, their classes and enrolled students'
+                  enrollments will also be removed.
+                </p>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={target.role === 'admin' || deleteUser.isPending}
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  {deleteUser.isPending ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Deleting…
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-3 w-3" />
+                      Delete User
+                    </>
+                  )}
+                </Button>
+                {target.role === 'admin' && (
+                  <p className="text-[11px] text-muted-foreground">Admin accounts cannot be deleted.</p>
+                )}
+              </section>
             </div>
           )}
         </SheetContent>
       </Sheet>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete user permanently?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <p>
+                  This will permanently delete <strong>{target?.email}</strong> and{' '}
+                  <strong>all of their records</strong> from the database — including their profile,
+                  trades, strategies, backtests, checklist data, quiz attempts, class enrollments,
+                  and auth account. If this user is a Guru, their classes, lessons, content, and all
+                  student enrollments in those classes will also be deleted.{' '}
+                  <strong>This action cannot be undone.</strong>
+                </p>
+                {target && (
+                  <p className="text-xs text-muted-foreground">
+                    Strategies: {target.strategy_count} · Trades: {target.trade_count}
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            placeholder="Type the user's email to confirm"
+            value={deleteConfirmEmail}
+            onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+            autoComplete="off"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteUser.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteConfirmEmail !== target?.email || deleteUser.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (target) deleteUser.mutate({ user_id: target.user_id });
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUser.isPending ? 'Deleting…' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
