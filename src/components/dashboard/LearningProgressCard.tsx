@@ -64,8 +64,6 @@ const tierIndex = (t: TierState) => TIER_ORDER.indexOf(t);
 export default function LearningProgressCard({ currentTier, planState }: LearningProgressCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const content = BANNER_CONTENT[currentTier];
-
   const showBadges = planState !== 'starter' && currentTier !== 'coach';
 
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -79,8 +77,21 @@ export default function LearningProgressCard({ currentTier, planState }: Learnin
         .maybeSingle();
       return data;
     },
-    enabled: !!user?.id && showBadges,
+    enabled: !!user?.id,
   });
+
+  const hasStarted = (profile?.completed_modules?.length ?? 0) > 0;
+
+  const content =
+    currentTier === 'foundation' && hasStarted
+      ? {
+          label: 'YOUR LEARNING PATH',
+          heading: 'Continue Your Foundation',
+          subtext: 'Pick up where you left off — keep building your trading knowledge.',
+          buttonText: 'Continue',
+          link: '/learning/foundation',
+        }
+      : BANNER_CONTENT[currentTier];
 
   const progressPct = (() => {
     if (currentTier === 'coach') return 100;
