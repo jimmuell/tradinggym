@@ -66,13 +66,6 @@ export default function Learning() {
         </div>
         <HelpSheet pageName="Learning" />
       </div>
-
-      {tierLoading ? (
-        <Skeleton className="h-32 w-full" />
-      ) : (
-        <LearningProgressCard currentTier={currentTier} planState={planState} />
-      )}
-
       <div className="space-y-4">
         {TIERS.map((tier) => {
           const tierIdx = TIER_ORDER.indexOf(tier.key);
