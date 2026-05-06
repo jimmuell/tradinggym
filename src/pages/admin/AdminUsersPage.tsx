@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Search, Copy, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Search, Copy, AlertTriangle, Loader2, Trash2 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
