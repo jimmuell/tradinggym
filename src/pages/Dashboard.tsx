@@ -24,7 +24,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
 import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
-import { FoundationLearningPath, FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
+import { FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
 import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
 import LaunchSessionCard from '@/components/dashboard/LaunchSessionCard';
 
