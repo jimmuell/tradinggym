@@ -174,8 +174,8 @@ export default function Dashboard() {
           <HelpSheet pageName="Dashboard" />
         </div>
 
-        {/* Continue Learning Banner */}
-        <ContinueLearningBanner currentTier={currentTier} />
+        {/* Combined Learning Progress Card */}
+        <LearningProgressCard currentTier={currentTier} planState={planState} />
 
         {/* Guru Trial Banner (Expert tier only) */}
         <GuruTrialBanner />
