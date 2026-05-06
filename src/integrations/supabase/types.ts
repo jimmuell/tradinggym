@@ -1601,6 +1601,13 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: undefined
       }
+      admin_check_orphan_records: {
+        Args: never
+        Returns: {
+          orphan_count: number
+          table_name: string
+        }[]
+      }
       admin_delete_user: { Args: { _target_user_id: string }; Returns: Json }
       admin_reject_guru: {
         Args: { target_user_id: string }
