@@ -252,9 +252,6 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Tier Progress — hidden for Foundation since ContinueLearningBanner + FoundationLearningPath cover it */}
-        {currentTier !== 'foundation' && <TierProgressCard currentTier={currentTier} />}
-
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Equity Curve OR Foundation Learning Path */}
