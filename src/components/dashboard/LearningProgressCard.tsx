@@ -10,6 +10,7 @@ import { TierState } from '@/contexts/TierContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getTierDisplayName } from '@/lib/tierUtils';
+import { useFoundationLessons } from '@/hooks/useLessons';
 import { toast } from 'sonner';
 
 interface LearningProgressCardProps {
