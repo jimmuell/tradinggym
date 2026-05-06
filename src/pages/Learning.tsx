@@ -8,7 +8,6 @@ import { useTier, type TierState } from '@/contexts/TierContext';
 import { useFoundationLessons } from '@/hooks/useLessons';
 import { TIER_ORDER } from '@/lib/tierUtils';
 import HelpSheet from '@/components/HelpSheet';
-import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
 
 const TIERS = [
   {
