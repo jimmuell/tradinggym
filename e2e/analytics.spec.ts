@@ -9,10 +9,10 @@ test.describe('Analytics page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/analytics');
     await page.waitForLoadState('networkidle');
-    // Wait for the page heading first (renders before data loads)
     await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible({ timeout: 10000 });
-    // Then wait for the Performance tab to appear
-    await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible({ timeout: 10000 });
+    // Default tab is now Live Trading — click Performance to activate it
+    await page.getByRole('tab', { name: /performance/i }).click();
+    await page.waitForTimeout(500);
   });
 
   test('renders page header', async ({ page }) => {
