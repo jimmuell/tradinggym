@@ -19,7 +19,8 @@ test.describe('Analytics page', () => {
     await expect(page.getByRole('heading', { name: /analytics/i })).toBeVisible();
   });
 
-  test('renders three tabs', async ({ page }) => {
+  test('renders four tabs', async ({ page }) => {
+    await expect(page.getByRole('tab', { name: /live trading/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /performance/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /distribution/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /journal/i })).toBeVisible();
