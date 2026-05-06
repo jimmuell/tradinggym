@@ -118,7 +118,6 @@ export default function Dashboard() {
   return (
     <TooltipProvider>
       <>
-        <FinancialDisclaimer />
 
         {/* Subscription Status */}
         <Card>
