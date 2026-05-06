@@ -103,6 +103,13 @@ function QuizView() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
+      <RiskAcknowledgmentModal
+        open={showRiskModal}
+        onAcknowledged={() => {
+          setShowRiskModal(false);
+          doPromote();
+        }}
+      />
       <Button
         variant="ghost"
         size="sm"
