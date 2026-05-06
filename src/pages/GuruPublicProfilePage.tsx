@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useEnrollWithGuru } from '@/hooks/useEnrollWithGuru';
 import { usePublicGuru } from '@/hooks/usePublicGurus';
-import { getTierDisplayName } from '@/lib/tierUtils';
+
 
 export default function GuruPublicProfilePage() {
   const { guruId } = useParams<{ guruId: string }>();
