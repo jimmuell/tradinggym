@@ -160,17 +160,12 @@ export default function Dashboard() {
                 )}
               </Button>
             )}
+            <HelpSheet pageName="Dashboard" />
           </CardContent>
         </Card>
 
         {/* Live Trading Session */}
         <LaunchSessionCard />
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div />
-          <HelpSheet pageName="Dashboard" />
-        </div>
 
         {/* Combined Learning Progress Card */}
         <LearningProgressCard currentTier={currentTier} planState={planState} />
