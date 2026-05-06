@@ -24,8 +24,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
-import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
-import TierProgressCard from '@/components/dashboard/TierProgressCard';
+import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
 import { FoundationLearningPath, FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
 import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
 import LaunchSessionCard from '@/components/dashboard/LaunchSessionCard';
@@ -175,8 +174,8 @@ export default function Dashboard() {
           <HelpSheet pageName="Dashboard" />
         </div>
 
-        {/* Continue Learning Banner */}
-        <ContinueLearningBanner currentTier={currentTier} />
+        {/* Combined Learning Progress Card */}
+        <LearningProgressCard currentTier={currentTier} planState={planState} />
 
         {/* Guru Trial Banner (Expert tier only) */}
         <GuruTrialBanner />
@@ -252,9 +251,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         )}
-
-        {/* Tier Progress — hidden for Foundation since ContinueLearningBanner + FoundationLearningPath cover it */}
-        {currentTier !== 'foundation' && <TierProgressCard currentTier={currentTier} />}
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

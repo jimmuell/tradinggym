@@ -2,13 +2,14 @@ import { useTier, TierState } from '@/contexts/TierContext';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { GripHorizontal } from 'lucide-react';
+import { getTierDisplayName } from '@/lib/tierUtils';
 
-const TIERS: { label: string; value: TierState }[] = [
-  { label: 'Foundation', value: 'foundation' },
-  { label: 'Tier 1', value: 'tier1' },
-  { label: 'Tier 2', value: 'tier2' },
-  { label: 'Tier 3', value: 'tier3' },
-  { label: 'Coach', value: 'coach' },
+const TIERS: { value: TierState }[] = [
+  { value: 'foundation' },
+  { value: 'tier1' },
+  { value: 'tier2' },
+  { value: 'tier3' },
+  { value: 'coach' },
 ];
 
 const STORAGE_KEY = 'dev-tier-switcher-position';
@@ -183,13 +184,13 @@ function DevTierSwitcherInner() {
 
       <div className="flex items-center gap-1">
         <span className={labelCls}>LEARNING</span>
-        {TIERS.map(({ label, value }) => (
+        {TIERS.map(({ value }) => (
           <button
             key={value}
             onClick={() => setTierState(value)}
             className={currentTier === value ? activeBtn : inactiveBtn}
           >
-            {label}
+            {getTierDisplayName(value)}
           </button>
         ))}
       </div>
