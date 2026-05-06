@@ -36,7 +36,7 @@ interface PlanCard {
 const PLANS: PlanCard[] = [
   {
     key: 'starter',
-    name: 'Starter',
+    name: 'Free',
     price: '$0',
     period: '/forever',
     highlight: false,
@@ -54,7 +54,7 @@ const PLANS: PlanCard[] = [
     period: '/mo',
     highlight: true,
     features: [
-      'Everything in Starter',
+      'Everything in Free',
       'All strategy tiers (ORB, VWAP, AMD)',
       'AI strategy ingestion',
       'Advanced analytics',

@@ -30,7 +30,7 @@ import { useAdminStats, type AdminStats } from '@/hooks/useAdminStats';
 const fmt = (n: number | undefined) => (n ?? 0).toLocaleString();
 
 const PLAN_COLORS: Record<string, string> = {
-  Starter: 'hsl(var(--muted-foreground))',
+  Free: 'hsl(var(--muted-foreground))',
   Pro: 'hsl(217 91% 60%)',
   Expert: 'hsl(270 91% 65%)',
   Guru: 'hsl(38 92% 50%)',
@@ -39,10 +39,10 @@ const PLAN_COLORS: Record<string, string> = {
 
 const TIER_COLORS: Record<string, string> = {
   Foundation: 'hsl(var(--muted-foreground))',
-  'Tier 1': 'hsl(217 91% 60%)',
-  'Tier 2': 'hsl(160 84% 39%)',
-  'Tier 3': 'hsl(270 91% 65%)',
-  Coach: 'hsl(38 92% 50%)',
+  'Price Action': 'hsl(217 91% 60%)',
+  'Confirmation': 'hsl(160 84% 39%)',
+  'Institutional': 'hsl(270 91% 65%)',
+  Guru: 'hsl(38 92% 50%)',
 };
 
 function MetricCard({
@@ -99,7 +99,7 @@ export default function AdminOverviewPage() {
   const s = data as AdminStats | undefined;
 
   const planData = [
-    { name: 'Starter', value: s?.plan_starter ?? 0 },
+    { name: 'Free', value: s?.plan_starter ?? 0 },
     { name: 'Pro', value: s?.plan_pro ?? 0 },
     { name: 'Expert', value: s?.plan_expert ?? 0 },
     { name: 'Guru', value: s?.plan_guru ?? 0 },
@@ -108,10 +108,10 @@ export default function AdminOverviewPage() {
 
   const tierData = [
     { name: 'Foundation', value: s?.tier_foundation ?? 0 },
-    { name: 'Tier 1', value: s?.tier_1 ?? 0 },
-    { name: 'Tier 2', value: s?.tier_2 ?? 0 },
-    { name: 'Tier 3', value: s?.tier_3 ?? 0 },
-    { name: 'Coach', value: s?.tier_coach ?? 0 },
+    { name: 'Price Action', value: s?.tier_1 ?? 0 },
+    { name: 'Confirmation', value: s?.tier_2 ?? 0 },
+    { name: 'Institutional', value: s?.tier_3 ?? 0 },
+    { name: 'Guru', value: s?.tier_coach ?? 0 },
   ];
 
   const signupTrend = (s?.signup_trend ?? []).map((d) => ({

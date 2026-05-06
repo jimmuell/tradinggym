@@ -180,7 +180,7 @@ export default function AdminUsersPage() {
           <SelectTrigger><SelectValue placeholder="Plan" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All plans</SelectItem>
-            {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p === 'starter' ? 'Free' : p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={roleFilter} onValueChange={(v) => { setRoleFilter(v); setPage(0); }}>
@@ -228,7 +228,7 @@ export default function AdminUsersPage() {
                   <TableRow key={u.user_id} className="cursor-pointer" onClick={() => openDetail(u)}>
                     <TableCell className="font-medium truncate max-w-[220px]">{u.email}</TableCell>
                     <TableCell className="truncate max-w-[180px]">{u.display_name || <span className="text-muted-foreground">—</span>}</TableCell>
-                    <TableCell><Badge variant="secondary">{u.plan_state}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary">{u.plan_state === 'starter' ? 'Free' : u.plan_state}</Badge></TableCell>
                     <TableCell><Badge variant="secondary">{u.tier_state}</Badge></TableCell>
                     <TableCell><Badge variant="outline">{u.role}</Badge></TableCell>
                     <TableCell className="text-right tabular-nums">{u.strategy_count}</TableCell>
@@ -285,12 +285,12 @@ export default function AdminUsersPage() {
               <section className="space-y-2">
                 <h3 className="text-sm font-semibold">Plan Override</h3>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Current: {target.plan_state}</Badge>
+                  <Badge variant="secondary">Current: {target.plan_state === 'starter' ? 'Free' : target.plan_state}</Badge>
                 </div>
                 <Select value={planEdit} onValueChange={setPlanEdit}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    {PLAN_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p === 'starter' ? 'Free' : p.charAt(0).toUpperCase() + p.slice(1)}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Button
