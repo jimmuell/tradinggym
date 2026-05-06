@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Lock, Check } from 'lucide-react';
+import { ArrowRight, Lock, Check, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { TierState } from '@/contexts/TierContext';
@@ -12,6 +12,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { getTierDisplayName } from '@/lib/tierUtils';
 import { useFoundationLessons } from '@/hooks/useLessons';
 import { toast } from 'sonner';
+
+const FOUNDATION_MODULES = [
+  { id: 'F1', module: 'f1', title: 'Reading Candles' },
+  { id: 'F2', module: 'f2', title: 'Market Structure' },
+  { id: 'F3', module: 'f3', title: 'Sessions & Time' },
+  { id: 'F4', module: 'f4', title: 'Risk Management' },
+  { id: 'F5', module: 'f5', title: 'Your Trading Plan' },
+];
+
 
 interface LearningProgressCardProps {
   currentTier: TierState;
