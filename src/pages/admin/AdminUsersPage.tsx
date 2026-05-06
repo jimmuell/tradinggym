@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <Sheet open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
+      <Sheet open={!!target} onOpenChange={(o) => { if (!o) { setTarget(null); setDeleteComplete(false); } }}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle>User Details</SheetTitle>
