@@ -66,21 +66,26 @@ export default function LearningProgressCard({ currentTier, planState }: Learnin
   const { user } = useAuth();
   const showBadges = planState !== 'starter' && currentTier !== 'coach';
 
-  const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['profile-completed-modules', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('completed_modules')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      return data;
+  const { data: foundationLessons } = useFoundationLessons();
+
+  const { data: completedLessonIds = [] } = useQuery({
+    queryKey: ['completed-lessons-local'],
+    queryFn: () => {
+      try {
+        const raw = localStorage.getItem('completedLessons');
+        return raw ? (JSON.parse(raw) as string[]) : [];
+      } catch {
+        return [];
+      }
     },
-    enabled: !!user?.id,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
-  const hasStarted = (profile?.completed_modules?.length ?? 0) > 0;
+  const foundationCompletedCount =
+    foundationLessons?.filter((l) => completedLessonIds.includes(l.id)).length ?? 0;
+  const foundationTotal = foundationLessons?.length ?? 5;
+  const hasStarted = foundationCompletedCount > 0;
 
   const content =
     currentTier === 'foundation' && hasStarted
@@ -93,11 +98,12 @@ export default function LearningProgressCard({ currentTier, planState }: Learnin
         }
       : BANNER_CONTENT[currentTier];
 
+  const profileLoading = false;
+
   const progressPct = (() => {
     if (currentTier === 'coach') return 100;
     if (currentTier === 'foundation') {
-      const completed = profile?.completed_modules?.length ?? 0;
-      return Math.min(100, Math.round((completed / 5) * 100));
+      return Math.min(100, Math.round((foundationCompletedCount / Math.max(1, foundationTotal)) * 100));
     }
     if (currentTier === 'tier1') return 25;
     if (currentTier === 'tier2') return 50;
