@@ -24,8 +24,7 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 
-import ContinueLearningBanner from '@/components/dashboard/ContinueLearningBanner';
-import TierProgressCard from '@/components/dashboard/TierProgressCard';
+import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
 import { FoundationLearningPath, FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
 import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
 import LaunchSessionCard from '@/components/dashboard/LaunchSessionCard';
