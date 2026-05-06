@@ -56,6 +56,7 @@ export default function AdminUsersPage() {
   const [roleEdit, setRoleEdit] = useState<string>('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+  const [deleteComplete, setDeleteComplete] = useState(false);
 
   useEffect(() => {
     if (!showDeleteConfirm) setDeleteConfirmEmail('');
