@@ -252,37 +252,34 @@ export default function Dashboard() {
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Equity Curve OR Foundation Learning Path */}
-          {isFoundationEmpty ? (
-            <FoundationLearningPath />
-          ) : (
-            <Card>
-              <div className="p-6 pb-0"><h3 className="text-base font-semibold">Equity Curve</h3></div>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-48 w-full" />
-                ) : computed.equityCurve.length > 1 ? (
-                  <ResponsiveContainer width="100%" height={192}>
-                    <ReLineChart data={computed.equityCurve}>
-                      <YAxis hide domain={['dataMin', 'dataMax']} />
-                      <ReTooltip
-                        formatter={(value: number) => ['$' + value.toFixed(2), 'P&L']}
-                        contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                        labelStyle={{ display: 'none' }}
-                      />
-                      <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </ReLineChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm">
-                    <LineChart className="h-10 w-10 mb-3 opacity-30" />
-                    <p>Complete your first trading session</p>
-                    <p className="text-xs">to see your equity curve</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* Equity Curve */}
+          <Card>
+            <div className="p-6 pb-0"><h3 className="text-base font-semibold">Equity Curve</h3></div>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-48 w-full" />
+              ) : computed.equityCurve.length > 1 ? (
+                <ResponsiveContainer width="100%" height={192}>
+                  <ReLineChart data={computed.equityCurve}>
+                    <YAxis hide domain={['dataMin', 'dataMax']} />
+                    <ReTooltip
+                      formatter={(value: number) => ['$' + value.toFixed(2), 'P&L']}
+                      contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
+                      labelStyle={{ display: 'none' }}
+                    />
+                    <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  </ReLineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm">
+                  <LineChart className="h-10 w-10 mb-3 opacity-30" />
+                  <p>Complete your first trading session</p>
+                  <p className="text-xs">to see your equity curve</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
 
           {/* Recent Trades OR Foundation Empty */}
           {isFoundationEmpty ? (
