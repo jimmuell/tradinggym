@@ -59,13 +59,13 @@ test.describe('Analytics page', () => {
   });
 
   test('time range selector is present and defaults to All Time', async ({ page }) => {
-    const select = page.getByRole('combobox');
+    const select = page.getByRole('combobox').first();
     await expect(select).toBeVisible();
     await expect(select).toContainText(/all time/i);
   });
 
   test('time range selector changes filter', async ({ page }) => {
-    const select = page.getByRole('combobox');
+    const select = page.getByRole('combobox').first();
     await select.click();
     await page.getByRole('option', { name: /this month/i }).click();
     await expect(select).toContainText(/this month/i);
