@@ -282,36 +282,17 @@ serve(async (req) => {
         })
         .eq("user_id", user.id);
 
-      // Apply month-1-free as a customer balance credit (negative balance = credit)
-      try {
-        const subItem = matched.items.data.find(
-          (it: Stripe.SubscriptionItem) => it.price.id === proPriceId || it.price.id === expertPriceId,
-        );
-        const unitAmount = subItem?.price.unit_amount ?? 0;
-        if (unitAmount > 0) {
-          await stripe.customers.createBalanceTransaction(customer.id, {
-            amount: -unitAmount, // negative = credit toward future invoices
-            currency: subItem?.price.currency ?? "usd",
-            description: `Coach referral credit (${appliedReferralCode}) — first month free`,
-          });
-          log("balance credit applied", { amount: unitAmount });
-        }
-
-        // Mark referral as redeemed in guru_referrals if a row exists for this code
-        await admin
-          .from("guru_referrals")
-          .update({
-            redeemed_at: new Date().toISOString(),
-            referred_user_id: user.id,
-            stripe_subscription_id: matched.id,
-            status: "redeemed",
-          })
-          .eq("referral_code", appliedReferralCode!)
-          .eq("guru_id", guruId);
-      } catch (creditErr) {
-        // Don't fail enrollment if credit fails — log and continue
-        log("balance credit error (non-fatal)", String(creditErr));
-      }
+      // Mark referral as redeemed in guru_referrals if a row exists for this code
+      await admin
+        .from("guru_referrals")
+        .update({
+          redeemed_at: new Date().toISOString(),
+          referred_user_id: user.id,
+          stripe_subscription_id: matched.id,
+          status: "redeemed",
+        })
+        .eq("referral_code", appliedReferralCode!)
+        .eq("guru_id", guruId);
     }
 
     return json({
