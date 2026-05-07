@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import type { CandlestickData, IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
-import FinancialDisclaimer from '@/components/FinancialDisclaimer';
+
 import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button';
 
 export default function Simulator() {
   const { user } = useAuth();
+  const { canAccess } = useTier();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
