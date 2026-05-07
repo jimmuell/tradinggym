@@ -129,19 +129,6 @@ export default function GuruPublicProfilePage() {
         </div>
       </div>
 
-      {showFreeMonth && (
-        <Card className="mb-6 border-primary/50 bg-primary/5">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-primary shrink-0" />
-            <div>
-              <div className="font-semibold text-foreground">First month free</div>
-              <div className="text-sm text-muted-foreground">
-                Use referral code <span className="font-mono">{guru.referral_code}</span> at checkout.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {isAuthed && planState === 'expert' && !referralCode && (
         <Card className="mb-6 border-primary/50 bg-primary/5">
