@@ -147,6 +147,10 @@ export default function Simulator() {
     },
   });
 
+  const handleTradeClose = (data: TradeCloseData) => {
+    saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
+  };
+
   if (!canAccess('simulator')) {
     return (
       <SidebarProvider>
