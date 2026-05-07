@@ -95,7 +95,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/simulator" element={<ProtectedRoute><TierProvider><><Simulator /><DevTierSwitcher /></></TierProvider></ProtectedRoute>} />
+              <Route path="/simulator" element={<ProtectedRoute><><Simulator /><DevTierSwitcher /></></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies/extract" element={<LayoutRoute><StrategyExtractPage /></LayoutRoute>} />
               <Route path="/strategies/:id" element={<LayoutRoute><StrategyDetailPage /></LayoutRoute>} />
