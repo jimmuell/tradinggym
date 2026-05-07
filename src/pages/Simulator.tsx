@@ -147,9 +147,32 @@ export default function Simulator() {
     },
   });
 
-  const handleTradeClose = (data: TradeCloseData) => {
-    saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
-  };
+  if (!canAccess('simulator')) {
+    return (
+      <SidebarProvider>
+        <div className="flex h-screen w-screen overflow-hidden bg-background">
+          <AppSidebar />
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex items-center bg-card border-b border-border">
+              <SidebarTrigger className="ml-2 text-muted-foreground hover:text-foreground shrink-0" />
+            </div>
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center px-6">
+                <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+                <h1 className="text-2xl font-bold text-foreground mb-2">Simulator Locked</h1>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Complete all 5 Foundation modules and pass the assessment to unlock the Trading Simulator.
+                </p>
+                <Button asChild>
+                  <Link to="/foundation">Go to Foundation</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
     <SidebarProvider>
