@@ -163,31 +163,31 @@ export default function GuruPublicProfilePage() {
             <Link to="/auth">Sign in to join</Link>
           </Button>
         ) : isFoundation ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}>
-                  <Button size="lg" disabled>
-                    Join Class
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Complete Foundation to enroll with a Guru.</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card className="max-w-md border-primary/50 bg-primary/5">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+              <GraduationCap className="h-8 w-8 text-primary" />
+              <div className="font-semibold text-foreground">Complete Foundation first</div>
+              <p className="text-sm text-muted-foreground">
+                Finish all 5 Foundation modules and pass the assessment to enroll with a Guru.
+              </p>
+              <Button asChild>
+                <Link to="/learning">Go to Foundation</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : isStarter ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}>
-                  <Button size="lg" disabled>
-                    Join Class
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Pro or Expert subscription required to enroll.</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card className="max-w-md border-primary/50 bg-primary/5">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+              <Sparkles className="h-8 w-8 text-primary" />
+              <div className="font-semibold text-foreground">Upgrade to join this class</div>
+              <p className="text-sm text-muted-foreground">
+                Pro or Expert subscription required to enroll with a Guru.
+              </p>
+              <Button asChild>
+                <Link to="/pricing">View Plans</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <Button size="lg" onClick={handleJoin} disabled={enroll.isPending}>
             {enroll.isPending ? (
