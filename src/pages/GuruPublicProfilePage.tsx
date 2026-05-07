@@ -36,11 +36,9 @@ export default function GuruPublicProfilePage() {
             title: result.enrollment_type === 'expert_trial'
               ? '30-day trial started!'
               : 'Welcome to the class!',
-            description: result.enrollment_type === 'referred'
-              ? 'First month free credit applied.'
-              : result.enrollment_type === 'expert_trial'
-                ? 'Your Expert trial is active. Coaching is free for 30 days.'
-                : 'Your enrollment is confirmed.',
+            description: result.enrollment_type === 'expert_trial'
+              ? 'Your Expert trial is active. Coaching is free for 30 days.'
+              : 'Your enrollment is confirmed.',
           });
           navigate(`/classes/${result.class_id}`);
         },
