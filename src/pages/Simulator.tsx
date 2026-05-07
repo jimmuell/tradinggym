@@ -28,6 +28,7 @@ import { Sparkles, BookOpen, Lock } from 'lucide-react';
 import { useTier } from '@/contexts/TierContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Simulator() {
   const { user } = useAuth();
