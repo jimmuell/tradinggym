@@ -78,6 +78,22 @@ const PLANS: PlanCard[] = [
       '30-day Guru trial included',
     ],
   },
+  {
+    key: 'guru',
+    name: 'Guru',
+    price: '$99',
+    period: '/mo',
+    highlight: false,
+    features: [
+      'Everything in Expert',
+      'Guru dashboard & class management',
+      'Publish educational content',
+      'Student progress tracking',
+      'Live session broadcasting',
+      'Stripe Connect payouts',
+      'Keep 80% of student revenue',
+    ],
+  },
 ];
 
 export default function PricingPage() {
@@ -122,14 +138,15 @@ export default function PricingPage() {
         )}
 
         {loading ? (
-          <div className="grid md:grid-cols-3 gap-6">
-            {[0, 1, 2].map((i) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[0, 1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-[480px] w-full rounded-lg" />
             ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {PLANS.map((p) => {
+              const isGuru = p.key === 'guru';
               const isCurrent = p.key === planState;
               const isLower = PLAN_RANK[p.key] < currentRank;
               const isUpgrade = PLAN_RANK[p.key] > currentRank;
@@ -144,16 +161,22 @@ export default function PricingPage() {
                     isCurrent
                       ? 'border-green-500/50 shadow-lg shadow-green-500/10'
                       : isHighlighted
-                      ? 'border-blue-500/60 shadow-lg shadow-blue-500/20 ring-2 ring-blue-500/30'
+                      ? `${isGuru ? 'border-amber-500/60 shadow-lg shadow-amber-500/20 ring-2 ring-amber-500/30' : 'border-blue-500/60 shadow-lg shadow-blue-500/20 ring-2 ring-blue-500/30'}`
+                      : isGuru
+                      ? 'border-amber-500/40 shadow-lg shadow-amber-500/10'
                       : p.highlight
                       ? 'border-blue-500/40 shadow-lg shadow-blue-500/10'
                       : 'border-border'
                   }`}
                 >
-                  <CardContent className="p-8 flex flex-col h-full">
+                  <CardContent className="p-6 flex flex-col h-full">
                     {isCurrent ? (
                       <Badge className="self-start bg-green-500/10 text-green-500 border-green-500/20 mb-4">
                         Current Plan
+                      </Badge>
+                    ) : isGuru ? (
+                      <Badge className="self-start bg-amber-500/10 text-amber-400 border-amber-500/20 mb-4">
+                        For Educators
                       </Badge>
                     ) : p.highlight ? (
                       <Badge className="self-start bg-blue-500/10 text-blue-400 border-blue-500/20 mb-4">
@@ -169,10 +192,10 @@ export default function PricingPage() {
                       <span className="text-muted-foreground text-sm">{p.period}</span>
                     </div>
 
-                    <ul className="space-y-3 mb-8 flex-1">
+                    <ul className="space-y-2 mb-6 flex-1">
                       {p.features.map((f) => (
                         <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <Check className="h-4 w-4 shrink-0 mt-0.5 text-blue-400" />
+                          <Check className={`h-4 w-4 shrink-0 mt-0.5 ${isGuru ? 'text-amber-400' : 'text-blue-400'}`} />
                           <span>{f}</span>
                         </li>
                       ))}
@@ -188,7 +211,7 @@ export default function PricingPage() {
                       <Button
                         onClick={() => checkout.mutate(priceId)}
                         disabled={checkout.isPending}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        className={`w-full ${isGuru ? 'bg-amber-500 hover:bg-amber-600 text-amber-950' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                       >
                         {pending ? (
                           <>
