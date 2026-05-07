@@ -75,9 +75,7 @@ const queryClient = new QueryClient();
 function LayoutRoute({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute>
-      <TierProvider>
-        <DashboardLayout>{children}</DashboardLayout>
-      </TierProvider>
+      <DashboardLayout>{children}</DashboardLayout>
     </ProtectedRoute>
   );
 }
@@ -90,13 +88,14 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <SettingsProvider>
+            <TierProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
-              <Route path="/simulator" element={<ProtectedRoute><TierProvider><><Simulator /><DevTierSwitcher /></></TierProvider></ProtectedRoute>} />
+              <Route path="/simulator" element={<ProtectedRoute><><Simulator /><DevTierSwitcher /></></ProtectedRoute>} />
               <Route path="/dashboard" element={<LayoutRoute><Dashboard /></LayoutRoute>} />
               <Route path="/strategies/extract" element={<LayoutRoute><StrategyExtractPage /></LayoutRoute>} />
               <Route path="/strategies/:id" element={<LayoutRoute><StrategyDetailPage /></LayoutRoute>} />
@@ -126,7 +125,7 @@ const App = () => (
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
               <Route path="/pricing" element={<LayoutRoute><PricingPage /></LayoutRoute>} />
-              <Route path="/guru/apply" element={<ProtectedRoute><TierProvider><GuruApplyPage /></TierProvider></ProtectedRoute>} />
+              <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
               <Route path="/guru/classes/new" element={<ProtectedRoute><GuruClassFormPage /></ProtectedRoute>} />
@@ -158,6 +157,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <ChecklistFab />
+            </TierProvider>
           </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
