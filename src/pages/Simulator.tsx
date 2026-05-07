@@ -24,7 +24,10 @@ import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
 import AnnotationLayer from '@/components/playback/AnnotationLayer';
-import { Sparkles, BookOpen } from 'lucide-react';
+import { Sparkles, BookOpen, Lock } from 'lucide-react';
+import { useTier } from '@/contexts/TierContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function Simulator() {
   const { user } = useAuth();
