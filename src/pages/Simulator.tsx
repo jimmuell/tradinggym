@@ -152,7 +152,7 @@ export default function Simulator() {
     saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
   };
 
-  if (tierLoading) {
+  if (tierLoading && !planState) {
     return (
       <SidebarProvider>
         <div className="flex h-screen w-screen overflow-hidden bg-background">
