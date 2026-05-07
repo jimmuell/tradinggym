@@ -1,32 +1,15 @@
 import { Link } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { useTier } from '@/contexts/TierContext';
 import { usePublicGurus } from '@/hooks/usePublicGurus';
 import { GuruCard } from '@/components/coaches/GuruCard';
 import { GuruCardSkeleton } from '@/components/coaches/GuruCardSkeleton';
 
 export default function GurusDirectoryPage() {
-  const { currentTier } = useTier();
-  const isLocked = currentTier === 'foundation';
+  const { planState } = useTier();
   const { data: gurus, isLoading } = usePublicGurus();
-
-  if (isLocked) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Lock className="h-7 w-7 text-muted-foreground" />
-        </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">Find a Guru</h1>
-        <p className="text-muted-foreground max-w-md mb-6">
-          Complete Foundation to unlock Guru coaching.
-        </p>
-        <Button asChild>
-          <Link to="/learning">Go to Foundation</Link>
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -36,6 +19,23 @@ export default function GurusDirectoryPage() {
           Connect with experienced traders who can guide your next phase.
         </p>
       </div>
+
+      {planState === 'starter' && (
+        <Card className="mb-6 border-primary/50 bg-primary/5">
+          <CardContent className="p-4 flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-foreground">Upgrade to enroll with a Guru</div>
+              <div className="text-sm text-muted-foreground">
+                Browse profiles below — Pro or Expert subscription required to join a class.
+              </div>
+            </div>
+            <Button asChild size="sm">
+              <Link to="/pricing">View Plans</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
