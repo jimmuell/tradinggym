@@ -170,9 +170,6 @@ export default function Simulator() {
               />
             </div>
           </div>
-          <div className="px-3 pt-2">
-            <FinancialDisclaimer />
-          </div>
           {!isPlaybackMode && !isPracticeWithScenario && <SimulatorHintBanner />}
           {isPracticeWithScenario && scenario && (
             <div className="px-3 py-2 bg-primary/10 border-b border-primary/30 flex items-center gap-2">
