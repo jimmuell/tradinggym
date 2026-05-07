@@ -91,7 +91,6 @@ export default function GuruPublicProfilePage() {
   }
 
   const initials = (guru.display_name ?? '?').trim().charAt(0).toUpperCase();
-  const showFreeMonth = guru.referral_discount_pct === 100 && !!guru.referral_code;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
