@@ -14,7 +14,7 @@ const PLAN_PRICE_MAP: Record<string, string> = {
   guru: 'price_1TNuSfLMQSLv70CqAGpPSnnU',
 };
 
-const GURU_PRICE_ID = PLAN_PRICE_MAP.guru;
+
 
 const PLAN_RANK: Record<PlanState, number> = {
   starter: 0,
