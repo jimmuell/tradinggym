@@ -176,9 +176,8 @@ serve(async (req) => {
 
       if (codeMatchesGuru && !priorUse) {
         enrollmentType = "referred";
-        commissionRate = null; // month 1 free — no commission
         appliedReferralCode = referralCode;
-        discountApplied = true;
+        discountApplied = false;
         log("referral valid", { referralCode, guruReferralCode: guru.referral_code });
       } else {
         log("referral invalid — proceeding organic", {
