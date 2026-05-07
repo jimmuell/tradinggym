@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, ArrowRight, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import HelpSheet from '@/components/HelpSheet';
 import { useStudentEnrollments } from '@/hooks/useStudentEnrollments';
+import { useTier } from '@/contexts/TierContext';
 
 export default function ClassesPage() {
   const { enrollments, isLoading } = useStudentEnrollments();
+  const { planState } = useTier();
 
   return (
     <>
@@ -32,8 +35,15 @@ export default function ClassesPage() {
             <GraduationCap className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No classes yet</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              You haven't joined any classes. Ask your Guru for an enrollment link.
+              {planState === 'starter'
+                ? 'Upgrade to Pro or Expert to enroll with a Guru and access their classes.'
+                : "You haven't joined any classes. Browse the Guru directory to find a coach."}
             </p>
+            <Button asChild className="mt-4">
+              <Link to={planState === 'starter' ? '/pricing' : '/gurus'}>
+                {planState === 'starter' ? 'View Plans' : 'Find a Guru'}
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (

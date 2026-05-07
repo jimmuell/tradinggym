@@ -1,16 +1,10 @@
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Loader2, Sparkles } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
@@ -42,11 +36,9 @@ export default function GuruPublicProfilePage() {
             title: result.enrollment_type === 'expert_trial'
               ? '30-day trial started!'
               : 'Welcome to the class!',
-            description: result.enrollment_type === 'referred'
-              ? 'First month free credit applied.'
-              : result.enrollment_type === 'expert_trial'
-                ? 'Your Expert trial is active. Coaching is free for 30 days.'
-                : 'Your enrollment is confirmed.',
+            description: result.enrollment_type === 'expert_trial'
+              ? 'Your Expert trial is active. Coaching is free for 30 days.'
+              : 'Your enrollment is confirmed.',
           });
           navigate(`/classes/${result.class_id}`);
         },
@@ -99,7 +91,6 @@ export default function GuruPublicProfilePage() {
   }
 
   const initials = (guru.display_name ?? '?').trim().charAt(0).toUpperCase();
-  const showFreeMonth = guru.referral_discount_pct === 100 && !!guru.referral_code;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -138,19 +129,6 @@ export default function GuruPublicProfilePage() {
         </div>
       </div>
 
-      {showFreeMonth && (
-        <Card className="mb-6 border-primary/50 bg-primary/5">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Sparkles className="h-5 w-5 text-primary shrink-0" />
-            <div>
-              <div className="font-semibold text-foreground">First month free</div>
-              <div className="text-sm text-muted-foreground">
-                Use referral code <span className="font-mono">{guru.referral_code}</span> at checkout.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {isAuthed && planState === 'expert' && !referralCode && (
         <Card className="mb-6 border-primary/50 bg-primary/5">
@@ -185,31 +163,31 @@ export default function GuruPublicProfilePage() {
             <Link to="/auth">Sign in to join</Link>
           </Button>
         ) : isFoundation ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}>
-                  <Button size="lg" disabled>
-                    Join Class
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Complete Foundation to enroll with a Guru.</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card className="max-w-md border-primary/50 bg-primary/5">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+              <GraduationCap className="h-8 w-8 text-primary" />
+              <div className="font-semibold text-foreground">Complete Foundation first</div>
+              <p className="text-sm text-muted-foreground">
+                Finish all 5 Foundation modules and pass the assessment to enroll with a Guru.
+              </p>
+              <Button asChild>
+                <Link to="/learning">Go to Foundation</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : isStarter ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span tabIndex={0}>
-                  <Button size="lg" disabled>
-                    Join Class
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Pro or Expert subscription required to enroll.</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Card className="max-w-md border-primary/50 bg-primary/5">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-3">
+              <Sparkles className="h-8 w-8 text-primary" />
+              <div className="font-semibold text-foreground">Upgrade to join this class</div>
+              <p className="text-sm text-muted-foreground">
+                Pro or Expert subscription required to enroll with a Guru.
+              </p>
+              <Button asChild>
+                <Link to="/pricing">View Plans</Link>
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <Button size="lg" onClick={handleJoin} disabled={enroll.isPending}>
             {enroll.isPending ? (
