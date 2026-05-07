@@ -19,15 +19,19 @@ import { toast } from 'sonner';
 import { DrawingTool } from '@/lib/drawingTypes';
 import type { CandlestickData, IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
-import FinancialDisclaimer from '@/components/FinancialDisclaimer';
+
 import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
 import AnnotationLayer from '@/components/playback/AnnotationLayer';
-import { Sparkles, BookOpen } from 'lucide-react';
+import { Sparkles, BookOpen, Lock } from 'lucide-react';
+import { useTier } from '@/contexts/TierContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 export default function Simulator() {
   const { user } = useAuth();
+  const { canAccess } = useTier();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -147,6 +151,33 @@ export default function Simulator() {
     saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
   };
 
+  if (!canAccess('simulator')) {
+    return (
+      <SidebarProvider>
+        <div className="flex h-screen w-screen overflow-hidden bg-background">
+          <AppSidebar />
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex items-center bg-card border-b border-border">
+              <SidebarTrigger className="ml-2 text-muted-foreground hover:text-foreground shrink-0" />
+            </div>
+            <div className="flex flex-1 items-center justify-center">
+              <div className="text-center px-6">
+                <Lock className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+                <h1 className="text-2xl font-bold text-foreground mb-2">Simulator Locked</h1>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Complete all 5 Foundation modules and pass the assessment to unlock the Trading Simulator.
+                </p>
+                <Button asChild>
+                  <Link to="/foundation">Go to Foundation</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SidebarProvider>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-screen overflow-hidden bg-background">
@@ -165,9 +196,6 @@ export default function Simulator() {
                 onInstrumentChange={handleInstrumentChange}
               />
             </div>
-          </div>
-          <div className="px-3 pt-2">
-            <FinancialDisclaimer />
           </div>
           {!isPlaybackMode && !isPracticeWithScenario && <SimulatorHintBanner />}
           {isPracticeWithScenario && scenario && (
