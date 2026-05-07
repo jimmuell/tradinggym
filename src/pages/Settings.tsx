@@ -20,7 +20,7 @@ export default function Settings() {
     <>
       <h1 className="text-2xl font-bold text-foreground mb-8">Settings</h1>
 
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid gap-6 md:grid-cols-2 max-w-5xl">
         {/* Billing & Subscription */}
         <Card className="bg-card border-border">
           <CardHeader>
