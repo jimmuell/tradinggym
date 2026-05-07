@@ -152,29 +152,8 @@ export default function Simulator() {
     saveTradeMutation.mutate({ ...data, stepsCompleted: blueprintSteps });
   };
 
-  if (tierLoading && !planState) {
-    return (
-      <SidebarProvider>
-        <div className="flex h-screen w-screen overflow-hidden bg-background">
-          <AppSidebar />
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <div className="flex items-center bg-card border-b border-border">
-              <SidebarTrigger className="ml-2 text-muted-foreground hover:text-foreground shrink-0" />
-            </div>
-            <div className="flex flex-1 items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-8 w-8 rounded-full" />
-                  <Skeleton className="h-6 w-24" />
-                </div>
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </SidebarProvider>
-    );
+  if (tierLoading) {
+    return null;
   }
 
   if (!canAccess('simulator')) {
