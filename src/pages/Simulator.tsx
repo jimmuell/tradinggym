@@ -32,7 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Simulator() {
   const { user } = useAuth();
-  const { canAccess, loading: tierLoading } = useTier();
+  const { canAccess, loading: tierLoading, planState } = useTier();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
