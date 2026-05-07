@@ -1,12 +1,15 @@
 import { Link } from 'react-router-dom';
 import { GraduationCap, ArrowRight, BookOpen } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import HelpSheet from '@/components/HelpSheet';
 import { useStudentEnrollments } from '@/hooks/useStudentEnrollments';
+import { useTier } from '@/contexts/TierContext';
 
 export default function ClassesPage() {
   const { enrollments, isLoading } = useStudentEnrollments();
+  const { planState } = useTier();
 
   return (
     <>
