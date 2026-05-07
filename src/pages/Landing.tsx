@@ -381,9 +381,9 @@ export default function Landing() {
       <section id="pricing" className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-sm font-medium text-blue-400 text-center mb-3 tracking-widest uppercase">Pricing</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Start free. Upgrade when ready.</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Start free Upgrade when ready</h2>
           <p className="text-gray-400 text-center max-w-xl mx-auto mb-16">
-            No credit card required. Practice with real data from day one.
+            No credit card required Practice with real data from day one
           </p>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {pricing.map((p) => {

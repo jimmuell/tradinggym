@@ -115,7 +115,7 @@ export default function Profile() {
     <>
       <h1 className="text-2xl font-bold text-foreground mb-8">Profile</h1>
 
-      <div className="grid gap-6 max-w-2xl">
+      <div className="grid gap-6 md:grid-cols-2 max-w-5xl">
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="text-foreground">Account Information</CardTitle>

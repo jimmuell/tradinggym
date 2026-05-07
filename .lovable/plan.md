@@ -1,50 +1,29 @@
-# Phase 1 — Mobile Quick Wins
+# Plan
 
-Goal: stop content from overflowing on small screens and make the non-chart pages comfortably usable on a phone. The simulator/chart pages are explicitly out of scope (deferred to Phase 2).
+## 1. Landing page — remove periods from pricing headline
+**File:** `src/pages/Landing.tsx` (line 384–386)
+- "Start free. Upgrade when ready." → "Start free Upgrade when ready"
+- "No credit card required. Practice with real data from day one." → "No credit card required Practice with real data from day one"
 
-## What will change
+## 2. Settings & Profile — two-column layout
+**File:** `src/pages/Settings.tsx` (line 23)
+- Change wrapper from `grid gap-6 max-w-2xl` → `grid gap-6 md:grid-cols-2 max-w-5xl`
+- The 6 cards (Billing, Live, Appearance, Notifications, Security, Danger Zone) flow into a two-column grid on md+, single column on mobile.
 
-### 1. Fix the KPI card overflow (the bug in your screenshot)
-File: `src/components/backtesting/BacktestKpiCards.tsx`
+**File:** `src/pages/Profile.tsx` (line 118)
+- Change wrapper from `grid gap-6 max-w-2xl` → `grid gap-6 md:grid-cols-2 max-w-5xl`
+- Account Information card and Account Details card sit side-by-side.
 
-- Switch the value font from a fixed `text-2xl` to responsive: `text-lg sm:text-xl lg:text-2xl`.
-- Add `truncate` + `min-w-0` to the value and card so long numbers can't blow past the card edge.
-- Format large dollar amounts compactly (e.g. `-$4.2K` instead of `-$4,185.99`) once the value crosses 10,000, with the full number available on hover via `title`.
-- Tighten card padding on mobile (`p-3 sm:p-4`) and gap (`gap-2 sm:gap-3`).
-- Adjust grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-5` (currently jumps from 2 → 3 only at `md`, leaving an awkward window).
+## 3. Pricing page — 4 cards horizontally
+**File:** `src/pages/PricingPage.tsx`
+- Merge the standalone Guru card into the main `PLANS` grid so all four (Free, Pro, Expert, Guru) render in one 4-column row.
+- Add `guru` entry to `PLANS` array with name "Guru", price "$99", `/mo`, and the existing Guru feature list (lines 253–261).
+- Change both grids (loading skeleton line 125, real grid line 131) from `md:grid-cols-3` → `md:grid-cols-2 lg:grid-cols-4`; render 4 skeletons.
+- Reduce card padding from `p-8` → `p-6` and feature `space-y-3` → `space-y-2` so cards stay compact.
+- Inside the map, branch styling/CTA when `p.key === 'guru'`: amber border/badge ("For Educators"), amber subscribe button using `GURU_PRICE_ID`, "Current Plan" state when active.
+- Delete the standalone Guru section (lines 214–292).
+- Keep the bottom "Manage Subscription" / footer note block as-is.
 
-### 2. Apply the same treatment to other stat tiles
-File: `src/components/analytics/WinLossStats.tsx`
-- Responsive font sizing + truncation on the Wins/Losses/Breakevens numbers.
-
-### 3. Backtesting page layout
-File: `src/pages/Backtesting.tsx`
-- Current layout is `grid-cols-1 lg:grid-cols-[380px_1fr]`. Already stacks on mobile — good.
-- Audit `BacktestConfigPanel` and `BacktestResultsPanel` for any fixed widths or non-wrapping rows; add `flex-wrap` and `min-w-0` where needed.
-- Make the previous-runs row wrap gracefully on narrow widths (status badge + PnL + time + delete currently sit on one line).
-
-### 4. Analytics page audit
-Files: `src/pages/Analytics.tsx` + chart components (`EquityCurveChart`, `DailyPnlChart`, `FeeDragChart`, `SessionNetPnlChart`)
-- Confirm Recharts `ResponsiveContainer` usage; reduce chart heights on mobile.
-- Stack any side-by-side card grids at `< sm`.
-
-### 5. Tables become horizontally scrollable on mobile
-Files: any page using `<Table>` (admin pages, strategies list, trades, etc.)
-- Wrap tables in `<div className="overflow-x-auto">` so columns don't compress into illegible mush.
-
-### 6. Dashboard, Profile, Settings, Auth, Learning sweep
-- Quick visual pass at 375px wide; fix any obvious overflow, fixed widths, or non-responsive grids. Most shadcn pieces already handle this — expecting only minor tweaks.
-
-## Out of scope (deferred to Phase 2)
-
-- `/simulator` and any chart-heavy page — these stay desktop/tablet only. Phase 2 will add a friendly "use a larger screen" gate at `< 768px` for these routes.
-- No native app / Capacitor work.
-- No PWA / installable behavior.
-
-## How I'll verify
-
-After each change I'll resize the preview to 375px (iPhone SE) and 414px (iPhone Plus) widths to confirm no horizontal scroll and no overflowing values, then back to desktop to confirm nothing regressed.
-
-## Estimated scope
-
-~6–8 files touched, all CSS-class-level changes. No data model, no routing, no behavior changes.
+## Notes
+- No DB or routing changes.
+- No changes to other components or layout shells.
