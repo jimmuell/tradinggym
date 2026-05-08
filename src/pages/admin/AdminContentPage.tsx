@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, Plus } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,33 +13,23 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 
+const TIER_LABELS: Record<string, string> = {
+  foundation: 'Foundation',
+  tier1: 'Tier 1',
+  tier2: 'Tier 2',
+  tier3: 'Tier 3',
+};
+
 const MODULE_LABELS: Record<string, string> = {
-  f1_candles: 'F1 — Reading Candles',
-  f2_structure: 'F2 — Market Structure',
-  f3_sessions: 'F3 — Sessions & Time',
-  f4_risk: 'F4 — Risk Management',
-  f5_plan: 'F5 — Your Trading Plan',
   foundation: 'Foundation (Quiz)',
   tier1_orb: 'Tier 1 — Price Action (ORB)',
   tier2_vwap: 'Tier 2 — Confirmation (VWAP)',
   tier3_amd: 'Tier 3 — Institutional (AMD)',
 };
-
-function getModuleLabel(module: string): string {
-  return MODULE_LABELS[module] ?? module;
-}
-
-function getShortLabel(module: string): string {
-  if (module.startsWith('f') && module.includes('_')) return module.split('_')[0].toUpperCase();
-  if (module === 'foundation') return 'Foundation';
-  if (module === 'tier1_orb') return 'Tier 1';
-  if (module === 'tier2_vwap') return 'Tier 2';
-  if (module === 'tier3_amd') return 'Tier 3';
-  return module;
-}
 
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -51,28 +41,18 @@ function relativeTime(iso: string): string {
   if (hr < 24) return `${hr} hr ago`;
   const day = Math.round(hr / 24);
   if (day < 30) return `${day} day${day === 1 ? '' : 's'} ago`;
-  const mo = Math.round(day / 30);
-  if (mo < 12) return `${mo} mo ago`;
-  return `${Math.round(mo / 12)} yr ago`;
+  return `${Math.round(day / 30)} mo ago`;
 }
 
-const MODULE_FILTERS = [
-  { value: 'all', label: 'All Modules' },
-  { value: 'foundation', label: 'Foundation (F1–F5)' },
-  { value: 'tier1_orb', label: 'Tier 1 — Price Action' },
-  { value: 'tier2_vwap', label: 'Tier 2 — Confirmation' },
-  { value: 'tier3_amd', label: 'Tier 3 — Institutional' },
-];
-
-type LessonRow = {
+type CourseRow = {
   id: string;
   title: string;
-  module: string;
-  module_order: number;
-  slides: unknown;
-  estimated_minutes: number | null;
+  description: string | null;
+  tier_required: string;
+  display_order: number;
   is_published: boolean | null;
   updated_at: string;
+  chapters: Array<{ id: string; lessons: Array<{ id: string }> | null }> | null;
 };
 
 type QuizRow = {
@@ -93,20 +73,9 @@ function PublishedBadge({ published }: { published: boolean | null }) {
   );
 }
 
-function NewContentButton({ label, to }: { label: string; to: string }) {
-  return (
-    <Button asChild>
-      <Link to={to}>
-        <Plus className="h-4 w-4" /> {label}
-      </Link>
-    </Button>
-  );
-}
-
 function TableSkeleton() {
   return (
     <div className="p-6 space-y-2">
-      <Skeleton className="h-10 w-full" />
       <Skeleton className="h-10 w-full" />
       <Skeleton className="h-10 w-full" />
       <Skeleton className="h-10 w-full" />
@@ -118,18 +87,17 @@ export default function AdminContentPage() {
   const { isAdmin, isLoading: roleLoading } = useUserRole();
   const [moduleFilter, setModuleFilter] = useState<string>('all');
 
-  const lessonsQuery = useQuery({
-    queryKey: ['admin-content-lessons'],
+  const coursesQuery = useQuery({
+    queryKey: ['admin-content-courses'],
     enabled: isAdmin,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('lessons')
-        .select('id, title, module, module_order, slides, estimated_minutes, is_published, updated_at')
+        .from('courses')
+        .select('id, title, description, tier_required, display_order, is_published, updated_at, chapters ( id, lessons:lessons ( id ) )')
         .eq('content_type', 'platform')
-        .order('module', { ascending: true })
-        .order('module_order', { ascending: true });
+        .order('display_order', { ascending: true });
       if (error) throw error;
-      return (data ?? []) as LessonRow[];
+      return (data ?? []) as unknown as CourseRow[];
     },
   });
 
@@ -147,23 +115,9 @@ export default function AdminContentPage() {
     },
   });
 
-  const filteredLessons = useMemo(() => {
-    const rows = lessonsQuery.data ?? [];
-    if (moduleFilter === 'all') return rows;
-    if (moduleFilter === 'foundation') {
-      return rows.filter((r) => r.module.startsWith('f') && r.module.includes('_'));
-    }
-    return rows.filter((r) => r.module === moduleFilter);
-  }, [lessonsQuery.data, moduleFilter]);
-
   const filteredQuizzes = useMemo(() => {
     const rows = quizzesQuery.data ?? [];
     if (moduleFilter === 'all') return rows;
-    if (moduleFilter === 'foundation') {
-      return rows.filter((r) =>
-        r.module === 'foundation' || (r.module.startsWith('f') && r.module.includes('_'))
-      );
-    }
     return rows.filter((r) => r.module === moduleFilter);
   }, [quizzesQuery.data, moduleFilter]);
 
@@ -173,161 +127,184 @@ export default function AdminContentPage() {
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-        <ArrowLeft className="h-3 w-3" /> Back to Admin
-      </Link>
+    <TooltipProvider>
+      <div className="space-y-4 p-4 md:p-6">
+        <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <ArrowLeft className="h-3 w-3" /> Back to Admin
+        </Link>
 
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6" /> Content Manager
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Manage Foundation modules, Tier strategy lessons, and quizzes.
-        </p>
-      </div>
-
-      <Tabs defaultValue="lessons" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="lessons">Lessons</TabsTrigger>
-          <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-        </TabsList>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Select value={moduleFilter} onValueChange={setModuleFilter}>
-            <SelectTrigger className="w-full sm:w-[280px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MODULE_FILTERS.map((m) => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <BookOpen className="h-6 w-6" /> Content Manager
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Manage platform courses, chapters, lessons, and quizzes.
+          </p>
         </div>
 
-        <TabsContent value="lessons" className="space-y-3">
-          <div className="flex justify-end">
-            <NewContentButton label="New Lesson" to="/admin/content/lesson/new" />
-          </div>
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              {lessonsQuery.isLoading ? (
-                <TableSkeleton />
-              ) : filteredLessons.length === 0 ? (
-                <p className="p-6 text-sm text-muted-foreground">
-                  No platform lessons found. Use the + New Lesson button to create one.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Module</TableHead>
-                      <TableHead className="text-right">Order</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="text-right">Slides</TableHead>
-                      <TableHead className="text-right">Est. Time</TableHead>
-                      <TableHead>Published</TableHead>
-                      <TableHead>Updated</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLessons.map((l) => {
-                      const slideCount = Array.isArray(l.slides) ? l.slides.length : 0;
-                      return (
-                        <TableRow key={l.id}>
-                          <TableCell>
-                            <Badge variant="outline" title={getModuleLabel(l.module)}>
-                              {getShortLabel(l.module)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right tabular-nums text-muted-foreground">
-                            {l.module_order}
-                          </TableCell>
-                          <TableCell className="font-medium">{l.title}</TableCell>
-                          <TableCell className="text-right tabular-nums">{slideCount}</TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {l.estimated_minutes != null ? `${l.estimated_minutes} min` : '—'}
-                          </TableCell>
-                          <TableCell><PublishedBadge published={l.is_published} /></TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {relativeTime(l.updated_at)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {/* TODO: CM-2 will add the form page at this route. */}
-                            <Button asChild size="sm" variant="outline">
-                              <Link to={`/admin/content/lesson/${l.id}`}>Edit</Link>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <Tabs defaultValue="courses" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="courses">Courses</TabsTrigger>
+            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="quizzes" className="space-y-3">
-          <div className="flex justify-end">
-            <NewContentButton label="New Quiz" to="/admin/content/quiz/new" />
-          </div>
-          <Card>
-            <CardContent className="p-0 overflow-x-auto">
-              {quizzesQuery.isLoading ? (
-                <TableSkeleton />
-              ) : filteredQuizzes.length === 0 ? (
-                <p className="p-6 text-sm text-muted-foreground">
-                  No platform quizzes found. Use the + New Quiz button to create one.
-                </p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Module</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="text-right">Questions</TableHead>
-                      <TableHead className="text-right">Pass Threshold</TableHead>
-                      <TableHead>Published</TableHead>
-                      <TableHead>Updated</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredQuizzes.map((q) => {
-                      const qCount = Array.isArray(q.questions) ? q.questions.length : 0;
-                      return (
-                        <TableRow key={q.id}>
-                          <TableCell>
-                            <Badge variant="outline" title={getModuleLabel(q.module)}>
-                              {getShortLabel(q.module)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">{q.title}</TableCell>
-                          <TableCell className="text-right tabular-nums">{qCount}</TableCell>
-                          <TableCell className="text-right tabular-nums">{q.pass_threshold}%</TableCell>
-                          <TableCell><PublishedBadge published={q.is_published} /></TableCell>
-                          <TableCell className="text-xs text-muted-foreground">
-                            {relativeTime(q.created_at)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {/* TODO: CM-2 will add the form page at this route. */}
-                            <Button asChild size="sm" variant="outline">
-                              <Link to={`/admin/content/quiz/${q.id}`}>Edit</Link>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          <TabsContent value="courses" className="space-y-3">
+            <div className="flex justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={0}>
+                    <Button disabled>
+                      <Plus className="h-4 w-4" /> New Course
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Coming in CC-2</TooltipContent>
+              </Tooltip>
+            </div>
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                {coursesQuery.isLoading ? (
+                  <TableSkeleton />
+                ) : (coursesQuery.data ?? []).length === 0 ? (
+                  <p className="p-6 text-sm text-muted-foreground">
+                    No courses found.
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-right">Order</TableHead>
+                        <TableHead>Course</TableHead>
+                        <TableHead>Tier</TableHead>
+                        <TableHead className="text-right">Chapters</TableHead>
+                        <TableHead className="text-right">Lessons</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Updated</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(coursesQuery.data ?? []).map((c) => {
+                        const chapters = c.chapters ?? [];
+                        const chapterCount = chapters.length;
+                        const lessonCount = chapters.reduce(
+                          (sum, ch) => sum + (ch.lessons?.length ?? 0), 0
+                        );
+                        return (
+                          <TableRow key={c.id}>
+                            <TableCell className="text-right tabular-nums text-muted-foreground">
+                              {c.display_order}
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">{c.title}</div>
+                              {c.description && (
+                                <div className="text-xs text-muted-foreground line-clamp-1 max-w-md">
+                                  {c.description}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {TIER_LABELS[c.tier_required] ?? c.tier_required}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">{chapterCount}</TableCell>
+                            <TableCell className="text-right tabular-nums">{lessonCount}</TableCell>
+                            <TableCell><PublishedBadge published={c.is_published} /></TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {relativeTime(c.updated_at)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button asChild size="sm" variant="outline">
+                                <Link to={`/admin/content/course/${c.id}`}>
+                                  Manage <ChevronRight className="h-3 w-3" />
+                                </Link>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="quizzes" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Select value={moduleFilter} onValueChange={setModuleFilter}>
+                <SelectTrigger className="w-full sm:w-[280px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Quizzes</SelectItem>
+                  <SelectItem value="foundation">Foundation</SelectItem>
+                  <SelectItem value="tier1_orb">Tier 1 — Price Action</SelectItem>
+                  <SelectItem value="tier2_vwap">Tier 2 — Confirmation</SelectItem>
+                  <SelectItem value="tier3_amd">Tier 3 — Institutional</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button asChild>
+                <Link to="/admin/content/quiz/new">
+                  <Plus className="h-4 w-4" /> New Quiz
+                </Link>
+              </Button>
+            </div>
+            <Card>
+              <CardContent className="p-0 overflow-x-auto">
+                {quizzesQuery.isLoading ? (
+                  <TableSkeleton />
+                ) : filteredQuizzes.length === 0 ? (
+                  <p className="p-6 text-sm text-muted-foreground">
+                    No platform quizzes found.
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Module</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead className="text-right">Questions</TableHead>
+                        <TableHead className="text-right">Pass</TableHead>
+                        <TableHead>Published</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredQuizzes.map((q) => {
+                        const qCount = Array.isArray(q.questions) ? q.questions.length : 0;
+                        return (
+                          <TableRow key={q.id}>
+                            <TableCell>
+                              <Badge variant="outline" title={MODULE_LABELS[q.module] ?? q.module}>
+                                {q.module}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">{q.title}</TableCell>
+                            <TableCell className="text-right tabular-nums">{qCount}</TableCell>
+                            <TableCell className="text-right tabular-nums">{q.pass_threshold}%</TableCell>
+                            <TableCell><PublishedBadge published={q.is_published} /></TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {relativeTime(q.created_at)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button asChild size="sm" variant="outline">
+                                <Link to={`/admin/content/quiz/${q.id}`}>Edit</Link>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </TooltipProvider>
   );
 }
