@@ -157,34 +157,53 @@ export default function AdminLessonFormPage() {
     if (err) { toast.error(err); return; }
     setSaving(true);
     try {
-      const row = {
-        title: title.trim(),
-        description: description.trim() || null,
-        module,
-        module_order: moduleOrder,
-        tier_required: tierRequired,
-        estimated_minutes: estimatedMinutes,
-        is_published: publish,
-        slides: slides as unknown as never,
-        content_type: 'platform',
-        author_id: null,
-        class_id: null,
-      };
+      const slidesJson = JSON.parse(JSON.stringify(slides));
+
       if (existingLesson?.id) {
         const { error } = await supabase
-          .from('lessons').update(row)
-          .eq('id', existingLesson.id).eq('content_type', 'platform');
+          .from('lessons')
+          .update({
+            title: title.trim(),
+            description: description.trim() || null,
+            module,
+            module_order: moduleOrder,
+            tier_required: tierRequired,
+            estimated_minutes: estimatedMinutes,
+            is_published: publish,
+            slides: slidesJson,
+          })
+          .eq('id', existingLesson.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('lessons').insert(row);
+        const { error } = await supabase
+          .from('lessons')
+          .insert({
+            title: title.trim(),
+            description: description.trim() || null,
+            module,
+            module_order: moduleOrder,
+            tier_required: tierRequired,
+            estimated_minutes: estimatedMinutes,
+            is_published: publish,
+            slides: slidesJson,
+            content_type: 'platform' as const,
+            author_id: null,
+            class_id: null,
+          });
         if (error) throw error;
       }
       qc.invalidateQueries({ queryKey: ['admin-content-lessons'] });
       qc.invalidateQueries({ queryKey: ['admin-lesson', lessonId] });
       toast.success(publish ? 'Lesson published.' : 'Lesson saved as draft.');
       navigate('/admin/content');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to save lesson');
+    } catch (e: unknown) {
+      console.error('Admin lesson save error:', e);
+      const msg = e instanceof Error
+        ? e.message
+        : (e && typeof e === 'object' && 'message' in e)
+          ? String((e as { message: unknown }).message)
+          : 'Failed to save lesson';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -200,8 +219,14 @@ export default function AdminLessonFormPage() {
       qc.invalidateQueries({ queryKey: ['admin-content-lessons'] });
       toast.success('Lesson deleted');
       navigate('/admin/content');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to delete lesson');
+    } catch (e: unknown) {
+      console.error('Admin lesson delete error:', e);
+      const msg = e instanceof Error
+        ? e.message
+        : (e && typeof e === 'object' && 'message' in e)
+          ? String((e as { message: unknown }).message)
+          : 'Failed to delete lesson';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

@@ -78,3 +78,9 @@ Mutations invalidate `['admin-content-lessons']` / `['admin-content-quizzes']` s
 - No student-facing pages or hooks changed.
 - No guru lesson authoring pages touched.
 - No data migration needed — DB values were already correct, code was wrong.
+
+## CM-2-FIX-3 — Save Draft Failure (Type Poisoning)
+- Replaced `slides as unknown as never` / `questions as unknown as never` with `JSON.parse(JSON.stringify(...))` to prevent TS `never` poisoning the Supabase update payload.
+- Update calls now only send mutable fields (omit `content_type`/`author_id`/`class_id`/`lesson_id`).
+- Added `console.error` and PostgrestError-aware message extraction in save/delete catch blocks.
+- Files: `src/pages/admin/AdminLessonFormPage.tsx`, `src/pages/admin/AdminQuizFormPage.tsx`.
