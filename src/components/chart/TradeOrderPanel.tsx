@@ -65,15 +65,15 @@ export default function TradeOrderPanel({ onClose, lastPrice, onBuy, onSell, ext
   const margin = (units * 68.21).toFixed(2);
   const totalMargin = '2,208.75';
 
-  const contractLabel = `${instrument}M2026`;
+  const contractLabel = instrument;
 
   return (
     <div className="w-[340px] flex-shrink-0 bg-card border-l border-border flex flex-col h-full overflow-y-auto text-foreground">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-[#2962ff] rounded flex items-center justify-center">
-            <span className="text-white text-[10px] font-bold">TV</span>
+          <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
+            <span className="text-white text-[10px] font-bold">TG</span>
           </div>
           <span className="text-foreground font-semibold text-sm">{contractLabel}</span>
         </div>

@@ -112,7 +112,6 @@ export default function TopBar({ onTradeClick, timeframe, onTimeframeChange, onR
         <ChevronDown size={10} className="text-muted-foreground" />
         <div className="w-px h-5 bg-border mx-1" />
         <button onClick={onTradeClick} className="px-3 py-1 rounded hover:bg-accent text-foreground">Trade</button>
-        <button className="px-3 py-1.5 rounded bg-[#2962ff] text-white font-medium hover:bg-[#1e53e5]">Publish</button>
       </div>
     </div>
     </>

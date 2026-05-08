@@ -80,7 +80,7 @@ export default function Settings() {
             <CardDescription className="text-muted-foreground">
               {planState === 'starter'
                 ? 'Upgrade to Pro to use TradingGYM Live alongside your trading platform.'
-                : 'Launch the TradingGYM Live desktop app to use alongside TradingView.'}
+                : 'Launch the TradingGYM Live desktop app to use alongside your trading platform.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
