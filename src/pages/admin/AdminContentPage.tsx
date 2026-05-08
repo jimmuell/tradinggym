@@ -209,7 +209,7 @@ export default function AdminContentPage() {
 
         <TabsContent value="lessons" className="space-y-3">
           <div className="flex justify-end">
-            <DisabledNewButton label="New Lesson" />
+            <NewContentButton label="New Lesson" to="/admin/content/lesson/new" />
           </div>
           <Card>
             <CardContent className="p-0 overflow-x-auto">
@@ -273,7 +273,7 @@ export default function AdminContentPage() {
 
         <TabsContent value="quizzes" className="space-y-3">
           <div className="flex justify-end">
-            <DisabledNewButton label="New Quiz" />
+            <NewContentButton label="New Quiz" to="/admin/content/quiz/new" />
           </div>
           <Card>
             <CardContent className="p-0 overflow-x-auto">
