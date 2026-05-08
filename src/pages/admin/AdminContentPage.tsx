@@ -13,9 +13,6 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import {
-  Tooltip, TooltipContent, TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -96,18 +93,13 @@ function PublishedBadge({ published }: { published: boolean | null }) {
   );
 }
 
-function DisabledNewButton({ label }: { label: string }) {
+function NewContentButton({ label, to }: { label: string; to: string }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span tabIndex={0}>
-          <Button disabled className="pointer-events-none">
-            <Plus className="h-4 w-4" /> {label}
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>Coming in CM-2</TooltipContent>
-    </Tooltip>
+    <Button asChild>
+      <Link to={to}>
+        <Plus className="h-4 w-4" /> {label}
+      </Link>
+    </Button>
   );
 }
 
@@ -214,7 +206,7 @@ export default function AdminContentPage() {
 
         <TabsContent value="lessons" className="space-y-3">
           <div className="flex justify-end">
-            <DisabledNewButton label="New Lesson" />
+            <NewContentButton label="New Lesson" to="/admin/content/lesson/new" />
           </div>
           <Card>
             <CardContent className="p-0 overflow-x-auto">
@@ -278,7 +270,7 @@ export default function AdminContentPage() {
 
         <TabsContent value="quizzes" className="space-y-3">
           <div className="flex justify-end">
-            <DisabledNewButton label="New Quiz" />
+            <NewContentButton label="New Quiz" to="/admin/content/quiz/new" />
           </div>
           <Card>
             <CardContent className="p-0 overflow-x-auto">
