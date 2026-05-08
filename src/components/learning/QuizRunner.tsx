@@ -81,6 +81,11 @@ export default function QuizRunner({
   useEffect(() => {
     if (!finished || savedOnce) return;
     setSavedOnce(true);
+    if (previewMode) {
+      onComplete?.(score, total, passed);
+      if (passed) onPassed?.();
+      return;
+    }
     saveAttempt.mutate(
       {
         quiz_id: quiz.id,
@@ -97,7 +102,7 @@ export default function QuizRunner({
         },
       }
     );
-  }, [finished, savedOnce, saveAttempt, quiz.id, score, total, passed, answers, responses, onComplete, onPassed]);
+  }, [finished, savedOnce, saveAttempt, quiz.id, score, total, passed, answers, responses, onComplete, onPassed, previewMode]);
 
   function handleSelect(optIndex: number) {
     if (selected !== null) return;
