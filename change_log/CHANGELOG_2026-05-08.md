@@ -84,3 +84,12 @@ Mutations invalidate `['admin-content-lessons']` / `['admin-content-quizzes']` s
 - Update calls now only send mutable fields (omit `content_type`/`author_id`/`class_id`/`lesson_id`).
 - Added `console.error` and PostgrestError-aware message extraction in save/delete catch blocks.
 - Files: `src/pages/admin/AdminLessonFormPage.tsx`, `src/pages/admin/AdminQuizFormPage.tsx`.
+
+## CC-1 — Three-Level Content Architecture (Course → Chapter → Lesson)
+- DB: created `courses` and `chapters` tables with full admin RLS + platform/guru/student read policies.
+- DB: added `lessons.chapter_id` and `quizzes.course_id` (nullable; module column preserved for student pages).
+- DB: seeded 4 platform courses + 12 chapters with deterministic UUIDs; backfilled chapter_id on all platform lessons and course_id on Foundation quiz.
+- DB: extended `admin_delete_user` RPC to cascade guru-authored chapters and courses.
+- UI: rebuilt `AdminContentPage` as a course list (chapters/lessons counts, tier badge, Manage button). New Course button stubbed with "Coming in CC-2" tooltip. Quizzes tab preserved.
+- UI: added new `AdminCourseDetailPage` at `/admin/content/course/:courseId` showing chapters with collapsible lessons and the linked course quiz. Add Chapter / Add Lesson buttons stubbed.
+- Routing: registered `/admin/content/course/:courseId`. Existing lesson/quiz edit routes unchanged.

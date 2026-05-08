@@ -154,6 +154,44 @@ export type Database = {
           },
         ]
       }
+      chapters: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          description: string | null
+          display_order: number
+          id: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chapters_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checklist_sessions: {
         Row: {
           created_at: string
@@ -417,6 +455,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      courses: {
+        Row: {
+          author_id: string | null
+          class_id: string | null
+          content_type: string
+          created_at: string | null
+          description: string | null
+          display_order: number
+          id: string
+          is_published: boolean | null
+          tier_required: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          class_id?: string | null
+          content_type?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_published?: boolean | null
+          tier_required?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          class_id?: string | null
+          content_type?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_published?: boolean | null
+          tier_required?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       guru_applications: {
         Row: {
@@ -773,6 +861,7 @@ export type Database = {
       lessons: {
         Row: {
           author_id: string | null
+          chapter_id: string | null
           class_id: string | null
           content_type: string
           created_at: string
@@ -789,6 +878,7 @@ export type Database = {
         }
         Insert: {
           author_id?: string | null
+          chapter_id?: string | null
           class_id?: string | null
           content_type?: string
           created_at?: string
@@ -805,6 +895,7 @@ export type Database = {
         }
         Update: {
           author_id?: string | null
+          chapter_id?: string | null
           class_id?: string | null
           content_type?: string
           created_at?: string
@@ -820,6 +911,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lessons_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lessons_class_id_fkey"
             columns: ["class_id"]
@@ -1101,6 +1199,7 @@ export type Database = {
         Row: {
           author_id: string | null
           content_type: string
+          course_id: string | null
           created_at: string
           id: string
           is_published: boolean | null
@@ -1113,6 +1212,7 @@ export type Database = {
         Insert: {
           author_id?: string | null
           content_type?: string
+          course_id?: string | null
           created_at?: string
           id?: string
           is_published?: boolean | null
@@ -1125,6 +1225,7 @@ export type Database = {
         Update: {
           author_id?: string | null
           content_type?: string
+          course_id?: string | null
           created_at?: string
           id?: string
           is_published?: boolean | null
@@ -1135,6 +1236,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quizzes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quizzes_lesson_id_fkey"
             columns: ["lesson_id"]
