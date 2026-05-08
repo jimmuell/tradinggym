@@ -49,11 +49,7 @@ function getEmptyMessage(subTab: TradingSubTab): string {
   }
 }
 
-const TVIcon = () => (
-  <svg width="16" height="12" viewBox="0 0 40 28" className="inline-block">
-    <path d="M8 0h24L40 28H0z" fill="#2962ff" />
-  </svg>
-);
+const StrategyIcon = () => (
 
 const StrategyIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="inline-block text-muted-foreground">
