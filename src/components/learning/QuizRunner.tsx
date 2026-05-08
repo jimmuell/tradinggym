@@ -39,6 +39,7 @@ export default function QuizRunner({
   onPassed,
   onComplete,
   onReviewLesson,
+  previewMode = false,
 }: QuizRunnerProps) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
