@@ -130,6 +130,7 @@ export function AppSidebar() {
     { title: 'Guru Applications', url: '/admin/gurus' },
     { title: 'Invite Codes', url: '/admin/invites' },
     { title: 'Configuration', url: '/admin/config' },
+    { title: 'Content', url: '/admin/content' },
   ];
 
   // AI Extract lock state
