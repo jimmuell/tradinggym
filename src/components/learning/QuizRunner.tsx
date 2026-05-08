@@ -24,6 +24,8 @@ interface QuizRunnerProps {
   /** Legacy: kept for backward compatibility — not used for navigation anymore. */
   onComplete?: (score: number, total: number, passed: boolean) => void;
   onReviewLesson?: () => void;
+  /** When true, skip persisting the attempt to the database (admin/guru preview). */
+  previewMode?: boolean;
 }
 
 const LETTERS = ['A', 'B', 'C', 'D'];
