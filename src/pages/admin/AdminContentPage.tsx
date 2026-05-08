@@ -150,16 +150,11 @@ export default function AdminContentPage() {
 
           <TabsContent value="courses" className="space-y-3">
             <div className="flex justify-end">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0}>
-                    <Button disabled>
-                      <Plus className="h-4 w-4" /> New Course
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Coming in CC-2</TooltipContent>
-              </Tooltip>
+              <Button asChild>
+                <Link to="/admin/content/course/new">
+                  <Plus className="h-4 w-4" /> New Course
+                </Link>
+              </Button>
             </div>
             <Card>
               <CardContent className="p-0 overflow-x-auto">
