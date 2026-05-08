@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Eye, Save, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,9 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -24,17 +21,13 @@ import type { QuizQuestion } from '@/hooks/useQuizzes';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-const MODULE_OPTIONS = [
-  { value: 'foundation', label: 'Foundation (Assessment)' },
-  { value: 'f1_candles', label: 'F1 — Reading Candles' },
-  { value: 'f2_structure', label: 'F2 — Market Structure' },
-  { value: 'f3_sessions', label: 'F3 — Sessions & Time' },
-  { value: 'f4_risk', label: 'F4 — Risk Management' },
-  { value: 'f5_plan', label: 'F5 — Your Trading Plan' },
-  { value: 'tier1_orb', label: 'Tier 1 — Price Action (ORB)' },
-  { value: 'tier2_vwap', label: 'Tier 2 — Confirmation (VWAP)' },
-  { value: 'tier3_amd', label: 'Tier 3 — Institutional (AMD)' },
-];
+function deriveQuizModule(tierRequired: string): string {
+  if (tierRequired === 'foundation') return 'foundation';
+  if (tierRequired === 'tier1') return 'tier1_orb';
+  if (tierRequired === 'tier2') return 'tier2_vwap';
+  if (tierRequired === 'tier3') return 'tier3_amd';
+  return 'platform_custom';
+}
 
 function newQuestion(): QuizQuestion {
   return {
