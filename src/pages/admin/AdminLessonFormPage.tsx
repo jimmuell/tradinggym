@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Eye, Save, Send, FileUp,
 } from 'lucide-react';
@@ -11,9 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from '@/components/ui/collapsible';
@@ -28,16 +25,13 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import type { Lesson, LessonSlide } from '@/hooks/useLessons';
 
-const MODULE_OPTIONS = [
-  { value: 'f1_candles', label: 'F1 — Reading Candles', tier: 'foundation' },
-  { value: 'f2_structure', label: 'F2 — Market Structure', tier: 'foundation' },
-  { value: 'f3_sessions', label: 'F3 — Sessions & Time', tier: 'foundation' },
-  { value: 'f4_risk', label: 'F4 — Risk Management', tier: 'foundation' },
-  { value: 'f5_plan', label: 'F5 — Your Trading Plan', tier: 'foundation' },
-  { value: 'tier1_orb', label: 'Tier 1 — Price Action (ORB)', tier: 'tier1' },
-  { value: 'tier2_vwap', label: 'Tier 2 — Confirmation (VWAP)', tier: 'tier2' },
-  { value: 'tier3_amd', label: 'Tier 3 — Institutional (AMD)', tier: 'tier3' },
-];
+function deriveModule(tierRequired: string, chapterOrder: number): string {
+  if (tierRequired === 'foundation') return `f${chapterOrder}_custom`;
+  if (tierRequired === 'tier1') return 'tier1_orb';
+  if (tierRequired === 'tier2') return 'tier2_vwap';
+  if (tierRequired === 'tier3') return 'tier3_amd';
+  return 'platform_custom';
+}
 
 function newSlide(): LessonSlide {
   return { id: crypto.randomUUID(), title: '', body: '', bullet_points: [], tip: '' };
