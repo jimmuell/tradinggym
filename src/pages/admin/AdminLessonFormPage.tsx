@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, Eye, Save, Send, FileUp,
 } from 'lucide-react';
@@ -11,9 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import {
   Collapsible, CollapsibleContent, CollapsibleTrigger,
 } from '@/components/ui/collapsible';
@@ -28,16 +25,13 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import type { Lesson, LessonSlide } from '@/hooks/useLessons';
 
-const MODULE_OPTIONS = [
-  { value: 'f1_candles', label: 'F1 — Reading Candles', tier: 'foundation' },
-  { value: 'f2_structure', label: 'F2 — Market Structure', tier: 'foundation' },
-  { value: 'f3_sessions', label: 'F3 — Sessions & Time', tier: 'foundation' },
-  { value: 'f4_risk', label: 'F4 — Risk Management', tier: 'foundation' },
-  { value: 'f5_plan', label: 'F5 — Your Trading Plan', tier: 'foundation' },
-  { value: 'tier1_orb', label: 'Tier 1 — Price Action (ORB)', tier: 'tier1' },
-  { value: 'tier2_vwap', label: 'Tier 2 — Confirmation (VWAP)', tier: 'tier2' },
-  { value: 'tier3_amd', label: 'Tier 3 — Institutional (AMD)', tier: 'tier3' },
-];
+function deriveModule(tierRequired: string, chapterOrder: number): string {
+  if (tierRequired === 'foundation') return `f${chapterOrder}_custom`;
+  if (tierRequired === 'tier1') return 'tier1_orb';
+  if (tierRequired === 'tier2') return 'tier2_vwap';
+  if (tierRequired === 'tier3') return 'tier3_amd';
+  return 'platform_custom';
+}
 
 function newSlide(): LessonSlide {
   return { id: crypto.randomUUID(), title: '', body: '', bullet_points: [], tip: '' };
@@ -45,6 +39,9 @@ function newSlide(): LessonSlide {
 
 export default function AdminLessonFormPage() {
   const { lessonId } = useParams<{ lessonId: string }>();
+  const [searchParams] = useSearchParams();
+  const paramChapterId = searchParams.get('chapterId');
+  const paramCourseId = searchParams.get('courseId');
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
@@ -67,26 +64,45 @@ export default function AdminLessonFormPage() {
     },
   });
 
-  // For module_order default on new lessons
-  const { data: moduleCounts } = useQuery({
-    queryKey: ['admin-lesson-module-counts'],
-    enabled: !!isAdmin && isNew,
+  const effectiveChapterId = paramChapterId ?? existingLesson?.chapter_id ?? null;
+
+  const { data: chapterContext } = useQuery({
+    queryKey: ['admin-chapter-context', effectiveChapterId],
+    enabled: !!isAdmin && !!effectiveChapterId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('id, title, display_order, course_id, courses:courses(id, title, tier_required)')
+        .eq('id', effectiveChapterId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as unknown as {
+        id: string;
+        title: string;
+        display_order: number;
+        course_id: string;
+        courses: { id: string; title: string; tier_required: string } | null;
+      } | null;
+    },
+  });
+
+  // Suggest next lesson number from chapter's lesson count
+  const { data: chapterLessonCount } = useQuery({
+    queryKey: ['admin-chapter-lesson-count', effectiveChapterId],
+    enabled: !!isAdmin && isNew && !!effectiveChapterId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lessons')
-        .select('module')
-        .eq('content_type', 'platform');
+        .select('id')
+        .eq('chapter_id', effectiveChapterId!);
       if (error) throw error;
-      const counts: Record<string, number> = {};
-      for (const r of data ?? []) counts[r.module] = (counts[r.module] ?? 0) + 1;
-      return counts;
+      return (data ?? []).length;
     },
   });
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [module, setModule] = useState<string>('');
-  const [moduleOrder, setModuleOrder] = useState<number>(1);
+  const [lessonNumber, setLessonNumber] = useState<number>(1);
   const [estimatedMinutes, setEstimatedMinutes] = useState(10);
   const [slides, setSlides] = useState<LessonSlide[]>([newSlide()]);
 
@@ -103,32 +119,28 @@ export default function AdminLessonFormPage() {
     if (existingLesson) {
       setTitle(existingLesson.title);
       setDescription(existingLesson.description ?? '');
-      setModule(existingLesson.module);
-      setModuleOrder(existingLesson.module_order ?? 1);
+      setLessonNumber(existingLesson.module_order ?? 1);
       setEstimatedMinutes(existingLesson.estimated_minutes ?? 10);
       setSlides(existingLesson.slides.length > 0 ? existingLesson.slides : [newSlide()]);
     }
   }, [existingLesson]);
 
-  // Auto-update module_order suggestion when module changes (new lessons only)
+  // Auto-suggest next lesson number for new lessons
   useEffect(() => {
-    if (isNew && module && moduleCounts) {
-      setModuleOrder((moduleCounts[module] ?? 0) + 1);
+    if (isNew && typeof chapterLessonCount === 'number') {
+      setLessonNumber(chapterLessonCount + 1);
     }
-  }, [isNew, module, moduleCounts]);
+  }, [isNew, chapterLessonCount]);
 
-  const tierRequired = useMemo(
-    () => MODULE_OPTIONS.find((m) => m.value === module)?.tier ?? 'foundation',
-    [module],
-  );
+  const tierRequired = chapterContext?.courses?.tier_required ?? 'foundation';
 
   const previewLesson: Lesson = useMemo(
     () => ({
       id: existingLesson?.id ?? 'preview',
       title: title || 'Untitled lesson',
       description,
-      module: module || 'preview',
-      module_order: moduleOrder,
+      module: 'preview',
+      module_order: lessonNumber,
       tier_required: tierRequired,
       content_type: 'platform',
       author_id: null,
@@ -139,25 +151,34 @@ export default function AdminLessonFormPage() {
       created_at: '',
       updated_at: '',
     }),
-    [existingLesson, title, description, module, moduleOrder, tierRequired, slides, estimatedMinutes],
+    [existingLesson, title, description, lessonNumber, tierRequired, slides, estimatedMinutes],
   );
 
   function validate(): string | null {
     if (!title.trim()) return 'Title is required';
-    if (!module) return 'Please select a module';
-    if (!moduleOrder || moduleOrder < 1) return 'Module order must be 1 or greater';
+    if (!lessonNumber || lessonNumber < 1) return 'Lesson # must be 1 or greater';
     for (const s of slides) {
       if (!s.title.trim()) return 'Every slide needs a title';
     }
     return null;
   }
 
+  function extractMessage(e: unknown, fallback: string): string {
+    if (e instanceof Error) return e.message;
+    if (e && typeof e === 'object' && 'message' in e) {
+      return String((e as { message: unknown }).message);
+    }
+    return fallback;
+  }
+
   async function handleSave(publish: boolean) {
     const err = validate();
     if (err) { toast.error(err); return; }
+    if (!chapterContext) { toast.error('Chapter context is required'); return; }
     setSaving(true);
     try {
       const slidesJson = JSON.parse(JSON.stringify(slides));
+      const derivedModule = deriveModule(tierRequired, chapterContext.display_order);
 
       if (existingLesson?.id) {
         const { error } = await supabase
@@ -165,9 +186,7 @@ export default function AdminLessonFormPage() {
           .update({
             title: title.trim(),
             description: description.trim() || null,
-            module,
-            module_order: moduleOrder,
-            tier_required: tierRequired,
+            module_order: lessonNumber,
             estimated_minutes: estimatedMinutes,
             is_published: publish,
             slides: slidesJson,
@@ -180,8 +199,9 @@ export default function AdminLessonFormPage() {
           .insert({
             title: title.trim(),
             description: description.trim() || null,
-            module,
-            module_order: moduleOrder,
+            chapter_id: effectiveChapterId,
+            module: derivedModule,
+            module_order: lessonNumber,
             tier_required: tierRequired,
             estimated_minutes: estimatedMinutes,
             is_published: publish,
@@ -192,18 +212,19 @@ export default function AdminLessonFormPage() {
           });
         if (error) throw error;
       }
-      qc.invalidateQueries({ queryKey: ['admin-content-lessons'] });
+      const targetCourseId = paramCourseId ?? chapterContext?.courses?.id;
+      qc.invalidateQueries({ queryKey: ['admin-content-courses'] });
+      qc.invalidateQueries({ queryKey: ['admin-content-course', targetCourseId] });
       qc.invalidateQueries({ queryKey: ['admin-lesson', lessonId] });
       toast.success(publish ? 'Lesson published.' : 'Lesson saved as draft.');
-      navigate('/admin/content');
+      if (targetCourseId) {
+        navigate(`/admin/content/course/${targetCourseId}`);
+      } else {
+        navigate('/admin/content');
+      }
     } catch (e: unknown) {
       console.error('Admin lesson save error:', e);
-      const msg = e instanceof Error
-        ? e.message
-        : (e && typeof e === 'object' && 'message' in e)
-          ? String((e as { message: unknown }).message)
-          : 'Failed to save lesson';
-      toast.error(msg);
+      toast.error(extractMessage(e, 'Failed to save lesson'));
     } finally {
       setSaving(false);
     }
@@ -216,17 +237,18 @@ export default function AdminLessonFormPage() {
       const { error } = await supabase.from('lessons')
         .delete().eq('id', existingLesson.id).eq('content_type', 'platform');
       if (error) throw error;
-      qc.invalidateQueries({ queryKey: ['admin-content-lessons'] });
+      const targetCourseId = paramCourseId ?? chapterContext?.courses?.id;
+      qc.invalidateQueries({ queryKey: ['admin-content-courses'] });
+      qc.invalidateQueries({ queryKey: ['admin-content-course', targetCourseId] });
       toast.success('Lesson deleted');
-      navigate('/admin/content');
+      if (targetCourseId) {
+        navigate(`/admin/content/course/${targetCourseId}`);
+      } else {
+        navigate('/admin/content');
+      }
     } catch (e: unknown) {
       console.error('Admin lesson delete error:', e);
-      const msg = e instanceof Error
-        ? e.message
-        : (e && typeof e === 'object' && 'message' in e)
-          ? String((e as { message: unknown }).message)
-          : 'Failed to delete lesson';
-      toast.error(msg);
+      toast.error(extractMessage(e, 'Failed to delete lesson'));
     } finally {
       setSaving(false);
     }
@@ -260,15 +282,37 @@ export default function AdminLessonFormPage() {
     );
   }
 
+  // No chapter context guidance for new lessons
+  if (isNew && !effectiveChapterId) {
+    return (
+      <div className="max-w-3xl p-4 md:p-6 space-y-4">
+        <Link to="/admin/content" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <ArrowLeft className="h-3 w-3" /> Content Manager
+        </Link>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">
+            Lessons must be created within a course chapter.
+          </p>
+          <Button asChild>
+            <Link to="/admin/content">Go to Content Manager</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-3xl p-4 md:p-6">
       <button
         type="button"
-        onClick={() => navigate('/admin/content')}
+        onClick={() => {
+          const target = paramCourseId ?? chapterContext?.courses?.id;
+          navigate(target ? `/admin/content/course/${target}` : '/admin/content');
+        }}
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        Content Manager
+        Back
       </button>
 
       <div className="flex items-center justify-between">
@@ -284,35 +328,32 @@ export default function AdminLessonFormPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Lesson Details</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {chapterContext && chapterContext.courses && (
+            <div className="text-sm text-muted-foreground">
+              <Link to="/admin/content" className="hover:text-foreground">Content</Link>
+              {' → '}
+              <Link to={`/admin/content/course/${chapterContext.courses.id}`} className="hover:text-foreground">
+                {chapterContext.courses.title}
+              </Link>
+              {' → '}
+              <span className="text-foreground font-medium">
+                Chapter {chapterContext.display_order}: {chapterContext.title}
+              </span>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
             <div className="space-y-2">
-              <Label htmlFor="module">Module *</Label>
-              <Select value={module} onValueChange={setModule}>
-                <SelectTrigger id="module"><SelectValue placeholder="Select a module" /></SelectTrigger>
-                <SelectContent>
-                  {MODULE_OPTIONS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {module && (
-                <p className="text-[11px] text-muted-foreground">
-                  Tier required: <span className="font-mono">{tierRequired}</span>
-                </p>
-              )}
+              <Label htmlFor="title">Title *</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Reading the Order Flow" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="order">Order *</Label>
+              <Label htmlFor="order">Lesson #</Label>
               <Input
                 id="order" type="number" min={1}
-                value={moduleOrder}
-                onChange={(e) => setModuleOrder(Number(e.target.value) || 1)}
+                value={lessonNumber}
+                onChange={(e) => setLessonNumber(Number(e.target.value) || 1)}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Reading the Order Flow" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

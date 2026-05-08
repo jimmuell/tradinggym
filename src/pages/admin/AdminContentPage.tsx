@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, BookOpen, Plus, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BookOpen, Plus, ChevronRight, Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -150,16 +150,11 @@ export default function AdminContentPage() {
 
           <TabsContent value="courses" className="space-y-3">
             <div className="flex justify-end">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0}>
-                    <Button disabled>
-                      <Plus className="h-4 w-4" /> New Course
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Coming in CC-2</TooltipContent>
-              </Tooltip>
+              <Button asChild>
+                <Link to="/admin/content/course/new">
+                  <Plus className="h-4 w-4" /> New Course
+                </Link>
+              </Button>
             </div>
             <Card>
               <CardContent className="p-0 overflow-x-auto">
@@ -215,11 +210,18 @@ export default function AdminContentPage() {
                               {relativeTime(c.updated_at)}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button asChild size="sm" variant="outline">
-                                <Link to={`/admin/content/course/${c.id}`}>
-                                  Manage <ChevronRight className="h-3 w-3" />
-                                </Link>
-                              </Button>
+                              <div className="inline-flex items-center gap-1">
+                                <Button asChild size="icon" variant="ghost" className="h-8 w-8" title="Edit course">
+                                  <Link to={`/admin/content/course/${c.id}/edit`}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Link>
+                                </Button>
+                                <Button asChild size="sm" variant="outline">
+                                  <Link to={`/admin/content/course/${c.id}`}>
+                                    Manage <ChevronRight className="h-3 w-3" />
+                                  </Link>
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
