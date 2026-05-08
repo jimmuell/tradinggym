@@ -23,3 +23,15 @@ Removed all explicit TradingView branding, contract-month references, and TV-spe
 ### Notes
 - `#2962ff` retained where it serves as standard buy-side trading UI convention (Trade panel buttons, toggles).
 - No backend, schema, or edge-function changes.
+
+---
+
+## CM-1 — Admin Content Manager (List Page)
+
+**New file:** `src/pages/admin/AdminContentPage.tsx` — admin-gated list view with Lessons/Quizzes tabs, module filter (All / Foundation F1–F5 / Tier 1–3), shadcn Table + Badge + Skeleton, friendly module labels, Edit links to `/admin/content/lesson/{id}` and `/admin/content/quiz/{id}` (CM-2 stubs), and disabled "+ New" buttons with "Coming in CM-2" tooltip.
+
+**Modified:**
+- `src/App.tsx` — registered `/admin/content` route under `LayoutRoute`.
+- `src/components/dashboard/AppSidebar.tsx` — added "Content" item to `adminItems`.
+
+Quizzes table has no `updated_at`, so the Updated column uses `created_at`. Admin gate via `useUserRole`. No DB or RLS changes.
