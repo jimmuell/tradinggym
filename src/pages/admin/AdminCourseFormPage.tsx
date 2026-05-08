@@ -247,9 +247,17 @@ export default function AdminCourseFormPage() {
             </Button>
           )}
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          <Save className="h-4 w-4 mr-1" />{isNew ? 'Create Course' : 'Save Changes'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {!isNew && existing?.id && (
+            <Button variant="outline" onClick={() => navigate(`/admin/content/course/${existing.id}/preview`)}>
+              <Eye className="h-4 w-4 mr-2" />
+              Preview
+            </Button>
+          )}
+          <Button onClick={handleSave} disabled={saving}>
+            <Save className="h-4 w-4 mr-1" />{isNew ? 'Create Course' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
