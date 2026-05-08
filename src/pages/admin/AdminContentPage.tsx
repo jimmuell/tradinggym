@@ -85,7 +85,7 @@ type QuizRow = {
   questions: unknown;
   pass_threshold: number;
   is_published: boolean | null;
-  updated_at: string;
+  created_at: string;
 };
 
 function PublishedBadge({ published }: { published: boolean | null }) {
