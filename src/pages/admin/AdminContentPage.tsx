@@ -96,18 +96,13 @@ function PublishedBadge({ published }: { published: boolean | null }) {
   );
 }
 
-function DisabledNewButton({ label }: { label: string }) {
+function NewContentButton({ label, to }: { label: string; to: string }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span tabIndex={0}>
-          <Button disabled className="pointer-events-none">
-            <Plus className="h-4 w-4" /> {label}
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>Coming in CM-2</TooltipContent>
-    </Tooltip>
+    <Button asChild>
+      <Link to={to}>
+        <Plus className="h-4 w-4" /> {label}
+      </Link>
+    </Button>
   );
 }
 
