@@ -41,6 +41,8 @@ function newQuestion(): QuizQuestion {
 
 export default function AdminQuizFormPage() {
   const { quizId } = useParams<{ quizId: string }>();
+  const [searchParams] = useSearchParams();
+  const paramCourseId = searchParams.get('courseId');
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
@@ -63,8 +65,23 @@ export default function AdminQuizFormPage() {
     },
   });
 
+  const effectiveCourseId = paramCourseId ?? existingQuiz?.course_id ?? null;
+
+  const { data: courseContext } = useQuery({
+    queryKey: ['admin-quiz-course-context', effectiveCourseId],
+    enabled: !!isAdmin && !!effectiveCourseId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title, tier_required')
+        .eq('id', effectiveCourseId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const [title, setTitle] = useState('');
-  const [moduleVal, setModuleVal] = useState<string>('');
   const [passThreshold, setPassThreshold] = useState(80);
   const [questions, setQuestions] = useState<QuizQuestion[]>([newQuestion()]);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -74,7 +91,6 @@ export default function AdminQuizFormPage() {
   useEffect(() => {
     if (existingQuiz) {
       setTitle(existingQuiz.title);
-      setModuleVal(existingQuiz.module);
       setPassThreshold(existingQuiz.pass_threshold);
       setQuestions(existingQuiz.questions.length > 0 ? existingQuiz.questions : [newQuestion()]);
     }
@@ -93,7 +109,6 @@ export default function AdminQuizFormPage() {
 
   function validate(): string | null {
     if (!title.trim()) return 'Title is required';
-    if (!moduleVal) return 'Please select a module';
     if (passThreshold < 0 || passThreshold > 100) return 'Pass threshold must be 0–100';
     for (const q of questions) {
       if (!q.question.trim()) return 'Every question needs text';
@@ -103,19 +118,28 @@ export default function AdminQuizFormPage() {
     return null;
   }
 
+  function extractMessage(e: unknown, fallback: string): string {
+    if (e instanceof Error) return e.message;
+    if (e && typeof e === 'object' && 'message' in e) {
+      return String((e as { message: unknown }).message);
+    }
+    return fallback;
+  }
+
   async function handleSave(publish: boolean) {
     const err = validate();
     if (err) { toast.error(err); return; }
     setSaving(true);
     try {
       const questionsJson = JSON.parse(JSON.stringify(questions));
+      const tier = courseContext?.tier_required ?? 'foundation';
+      const derivedModule = deriveQuizModule(tier);
 
       if (existingQuiz?.id) {
         const { error } = await supabase
           .from('quizzes')
           .update({
             title: title.trim(),
-            module: moduleVal,
             pass_threshold: passThreshold,
             questions: questionsJson,
             is_published: publish,
@@ -127,28 +151,29 @@ export default function AdminQuizFormPage() {
           .from('quizzes')
           .insert({
             title: title.trim(),
-            module: moduleVal,
+            module: derivedModule,
             pass_threshold: passThreshold,
             questions: questionsJson,
             is_published: publish,
             content_type: 'platform' as const,
             author_id: null,
             lesson_id: null,
+            course_id: effectiveCourseId,
           });
         if (error) throw error;
       }
       qc.invalidateQueries({ queryKey: ['admin-content-quizzes'] });
       qc.invalidateQueries({ queryKey: ['admin-quiz', quizId] });
+      qc.invalidateQueries({ queryKey: ['admin-content-course-quiz', effectiveCourseId] });
       toast.success(publish ? 'Quiz published.' : 'Quiz saved as draft.');
-      navigate('/admin/content');
+      if (effectiveCourseId) {
+        navigate(`/admin/content/course/${effectiveCourseId}`);
+      } else {
+        navigate('/admin/content');
+      }
     } catch (e: unknown) {
       console.error('Admin quiz save error:', e);
-      const msg = e instanceof Error
-        ? e.message
-        : (e && typeof e === 'object' && 'message' in e)
-          ? String((e as { message: unknown }).message)
-          : 'Failed to save quiz';
-      toast.error(msg);
+      toast.error(extractMessage(e, 'Failed to save quiz'));
     } finally {
       setSaving(false);
     }
@@ -162,16 +187,16 @@ export default function AdminQuizFormPage() {
         .delete().eq('id', existingQuiz.id).eq('content_type', 'platform');
       if (error) throw error;
       qc.invalidateQueries({ queryKey: ['admin-content-quizzes'] });
+      qc.invalidateQueries({ queryKey: ['admin-content-course-quiz', effectiveCourseId] });
       toast.success('Quiz deleted');
-      navigate('/admin/content');
+      if (effectiveCourseId) {
+        navigate(`/admin/content/course/${effectiveCourseId}`);
+      } else {
+        navigate('/admin/content');
+      }
     } catch (e: unknown) {
       console.error('Admin quiz delete error:', e);
-      const msg = e instanceof Error
-        ? e.message
-        : (e && typeof e === 'object' && 'message' in e)
-          ? String((e as { message: unknown }).message)
-          : 'Failed to delete quiz';
-      toast.error(msg);
+      toast.error(extractMessage(e, 'Failed to delete quiz'));
     } finally {
       setSaving(false);
     }
@@ -194,11 +219,14 @@ export default function AdminQuizFormPage() {
     <div className="space-y-6 max-w-3xl p-4 md:p-6">
       <button
         type="button"
-        onClick={() => navigate('/admin/content')}
+        onClick={() => {
+          if (effectiveCourseId) navigate(`/admin/content/course/${effectiveCourseId}`);
+          else navigate('/admin/content');
+        }}
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        Content Manager
+        Back
       </button>
 
       <div className="flex items-center justify-between">
@@ -213,22 +241,22 @@ export default function AdminQuizFormPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Quiz Details</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {courseContext && (
+            <div className="text-sm text-muted-foreground">
+              <Link to="/admin/content" className="hover:text-foreground">Content</Link>
+              {' → '}
+              <Link to={`/admin/content/course/${courseContext.id}`} className="hover:text-foreground">
+                {courseContext.title}
+              </Link>
+              {' → '}
+              <span className="text-foreground font-medium">Quiz</span>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Foundation Mastery Check" />
           </div>
           <div className="grid gap-4 sm:grid-cols-[1fr_180px]">
-            <div className="space-y-2">
-              <Label htmlFor="module">Module *</Label>
-              <Select value={moduleVal} onValueChange={setModuleVal}>
-                <SelectTrigger id="module"><SelectValue placeholder="Select a module" /></SelectTrigger>
-                <SelectContent>
-                  {MODULE_OPTIONS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <div className="space-y-2">
               <Label htmlFor="pass">Pass threshold (%)</Label>
               <Input id="pass" type="number" min={0} max={100}
