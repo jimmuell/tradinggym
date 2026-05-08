@@ -24,6 +24,8 @@ interface QuizRunnerProps {
   /** Legacy: kept for backward compatibility — not used for navigation anymore. */
   onComplete?: (score: number, total: number, passed: boolean) => void;
   onReviewLesson?: () => void;
+  /** When true, skip persisting the attempt to the database (admin/guru preview). */
+  previewMode?: boolean;
 }
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -37,6 +39,7 @@ export default function QuizRunner({
   onPassed,
   onComplete,
   onReviewLesson,
+  previewMode = false,
 }: QuizRunnerProps) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
@@ -78,6 +81,11 @@ export default function QuizRunner({
   useEffect(() => {
     if (!finished || savedOnce) return;
     setSavedOnce(true);
+    if (previewMode) {
+      onComplete?.(score, total, passed);
+      if (passed) onPassed?.();
+      return;
+    }
     saveAttempt.mutate(
       {
         quiz_id: quiz.id,
@@ -94,7 +102,7 @@ export default function QuizRunner({
         },
       }
     );
-  }, [finished, savedOnce, saveAttempt, quiz.id, score, total, passed, answers, responses, onComplete, onPassed]);
+  }, [finished, savedOnce, saveAttempt, quiz.id, score, total, passed, answers, responses, onComplete, onPassed, previewMode]);
 
   function handleSelect(optIndex: number) {
     if (selected !== null) return;
