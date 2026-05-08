@@ -50,8 +50,6 @@ function getEmptyMessage(subTab: TradingSubTab): string {
 }
 
 const StrategyIcon = () => (
-
-const StrategyIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="inline-block text-muted-foreground">
     <circle cx="12" cy="12" r="10" />
     <path d="M8 12l3 3 5-5" />
