@@ -115,31 +115,47 @@ export default function AdminQuizFormPage() {
     if (err) { toast.error(err); return; }
     setSaving(true);
     try {
-      const row = {
-        title: title.trim(),
-        module: moduleVal,
-        pass_threshold: passThreshold,
-        questions: questions as unknown as never,
-        content_type: 'platform',
-        author_id: null,
-        lesson_id: null,
-        is_published: publish,
-      };
+      const questionsJson = JSON.parse(JSON.stringify(questions));
+
       if (existingQuiz?.id) {
         const { error } = await supabase
-          .from('quizzes').update(row)
-          .eq('id', existingQuiz.id).eq('content_type', 'platform');
+          .from('quizzes')
+          .update({
+            title: title.trim(),
+            module: moduleVal,
+            pass_threshold: passThreshold,
+            questions: questionsJson,
+            is_published: publish,
+          })
+          .eq('id', existingQuiz.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('quizzes').insert(row);
+        const { error } = await supabase
+          .from('quizzes')
+          .insert({
+            title: title.trim(),
+            module: moduleVal,
+            pass_threshold: passThreshold,
+            questions: questionsJson,
+            is_published: publish,
+            content_type: 'platform' as const,
+            author_id: null,
+            lesson_id: null,
+          });
         if (error) throw error;
       }
       qc.invalidateQueries({ queryKey: ['admin-content-quizzes'] });
       qc.invalidateQueries({ queryKey: ['admin-quiz', quizId] });
       toast.success(publish ? 'Quiz published.' : 'Quiz saved as draft.');
       navigate('/admin/content');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to save quiz');
+    } catch (e: unknown) {
+      console.error('Admin quiz save error:', e);
+      const msg = e instanceof Error
+        ? e.message
+        : (e && typeof e === 'object' && 'message' in e)
+          ? String((e as { message: unknown }).message)
+          : 'Failed to save quiz';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -155,8 +171,14 @@ export default function AdminQuizFormPage() {
       qc.invalidateQueries({ queryKey: ['admin-content-quizzes'] });
       toast.success('Quiz deleted');
       navigate('/admin/content');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to delete quiz');
+    } catch (e: unknown) {
+      console.error('Admin quiz delete error:', e);
+      const msg = e instanceof Error
+        ? e.message
+        : (e && typeof e === 'object' && 'message' in e)
+          ? String((e as { message: unknown }).message)
+          : 'Failed to delete quiz';
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
