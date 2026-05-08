@@ -987,7 +987,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
       <CurrencyDropdown />
 
-      <div className="absolute bottom-12 left-4 text-muted-foreground/20 text-2xl font-bold select-none pointer-events-none">TV</div>
+      
 
       {/* Zoom/scroll controls */}
       <div className="absolute bottom-[50px] left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30">

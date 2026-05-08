@@ -238,7 +238,6 @@ export default function BottomBar() {
                 : 'hover:text-foreground hover:bg-accent'
             }`}
           >
-            <TVIcon />
             Paper Trading
           </button>
 
