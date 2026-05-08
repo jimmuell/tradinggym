@@ -93,3 +93,11 @@ Mutations invalidate `['admin-content-lessons']` / `['admin-content-quizzes']` s
 - UI: rebuilt `AdminContentPage` as a course list (chapters/lessons counts, tier badge, Manage button). New Course button stubbed with "Coming in CC-2" tooltip. Quizzes tab preserved.
 - UI: added new `AdminCourseDetailPage` at `/admin/content/course/:courseId` showing chapters with collapsible lessons and the linked course quiz. Add Chapter / Add Lesson buttons stubbed.
 - Routing: registered `/admin/content/course/:courseId`. Existing lesson/quiz edit routes unchanged.
+
+## CC-2 — Course + Chapter + Lesson Editor (Full CRUD)
+- Created `src/pages/admin/AdminCourseFormPage.tsx` (create/edit/delete courses) at `/admin/content/course/new` and `/admin/content/course/:courseId/edit`.
+- `AdminCourseDetailPage.tsx`: inline chapter Add/Edit/Delete/Reorder with `chapters` table writes; "Add Lesson" navigates to lesson form with `chapterId` + `courseId` query params; "Add Quiz" surfaces when no course quiz exists.
+- `AdminContentPage.tsx`: enabled "New Course" link; added per-row pencil "Edit" link to course form.
+- `AdminLessonFormPage.tsx`: reads `chapterId`/`courseId` from URL, fetches chapter+course context, replaced module dropdown with breadcrumb, renamed Order → Lesson #, derives `module` for backward compat (e.g. `f{n}_custom`, `tier1_orb`), navigates back to course detail after save. Guidance shown if no chapter context.
+- `AdminQuizFormPage.tsx`: reads `courseId` from URL, fetches course context, replaced module dropdown with breadcrumb, derives `module` from course tier, sets `course_id` on insert, navigates back to course detail after save.
+- `App.tsx`: registered `/admin/content/course/new` (literal) before `:courseId` and `:courseId/edit`.
