@@ -25,12 +25,12 @@ import type { QuizQuestion } from '@/hooks/useQuizzes';
 const LETTERS = ['A', 'B', 'C', 'D'];
 
 const MODULE_OPTIONS = [
-  { value: 'foundation', label: 'Foundation (gating quiz)' },
-  { value: 'f1', label: 'F1 — Reading Candles' },
-  { value: 'f2', label: 'F2 — Market Structure' },
-  { value: 'f3', label: 'F3 — Sessions & Time' },
-  { value: 'f4', label: 'F4 — Risk Management' },
-  { value: 'f5', label: 'F5 — Your Trading Plan' },
+  { value: 'foundation', label: 'Foundation (Assessment)' },
+  { value: 'f1_candles', label: 'F1 — Reading Candles' },
+  { value: 'f2_structure', label: 'F2 — Market Structure' },
+  { value: 'f3_sessions', label: 'F3 — Sessions & Time' },
+  { value: 'f4_risk', label: 'F4 — Risk Management' },
+  { value: 'f5_plan', label: 'F5 — Your Trading Plan' },
   { value: 'tier1_orb', label: 'Tier 1 — Price Action (ORB)' },
   { value: 'tier2_vwap', label: 'Tier 2 — Confirmation (VWAP)' },
   { value: 'tier3_amd', label: 'Tier 3 — Institutional (AMD)' },

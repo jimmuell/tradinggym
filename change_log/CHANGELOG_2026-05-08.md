@@ -49,3 +49,32 @@ Quizzes table has no `updated_at`, so the Updated column uses `created_at`. Admi
 - `src/pages/admin/AdminContentPage.tsx` — replaced disabled "Coming in CM-2" New buttons with active links to the new form routes; dropped unused Tooltip imports.
 
 Mutations invalidate `['admin-content-lessons']` / `['admin-content-quizzes']` so the list view refreshes immediately. Admin gating via `useUserRole` on every form route.
+
+---
+
+## CM-2-FIX — Module Value Mismatch + Admin RLS Policies
+
+**Problem:** CM-2 shipped with hardcoded module values (`f1`, `f2`, etc.) that didn't match the actual database values (`f1_candles`, `f2_structure`, etc.). Additionally, the `lessons` and `quizzes` tables had no `UPDATE` or `DELETE` RLS policies for admin users, causing save/delete to fail silently.
+
+**Database (RLS migration):**
+- Added `admin_update_platform_lessons` and `admin_delete_platform_lessons` policies on `lessons`.
+- Added `admin_update_platform_quizzes` and `admin_delete_platform_quizzes` policies on `quizzes`.
+- All four use `plan_state = 'admin'` via `EXISTS` subquery. No existing policies were modified.
+
+**Modified:**
+- `src/pages/admin/AdminContentPage.tsx`
+  - `MODULE_LABELS` keys updated: `f1` → `f1_candles`, `f2` → `f2_structure`, etc.
+  - `getShortLabel` now splits on `_` for foundation modules (`f1_candles` → `F1`).
+  - `filteredLessons`: foundation filter uses `startsWith('f') && includes('_')` instead of exact `['f1'...'f5']`.
+  - `filteredQuizzes`: foundation filter includes both `foundation` and `f*_` patterns.
+- `src/pages/admin/AdminLessonFormPage.tsx`
+  - `MODULE_OPTIONS` values updated to `f1_candles`, `f2_structure`, `f3_sessions`, `f4_risk`, `f5_plan`.
+  - Fixes module dropdown blank on edit (existing `f1_candles` now matches an option) and `module_order` auto-suggestion.
+- `src/pages/admin/AdminQuizFormPage.tsx`
+  - `MODULE_OPTIONS` values updated similarly, with `foundation` retained for the Foundation Assessment quiz.
+
+**Constraints preserved:**
+- No existing RLS policies were modified — only new policies added.
+- No student-facing pages or hooks changed.
+- No guru lesson authoring pages touched.
+- No data migration needed — DB values were already correct, code was wrong.

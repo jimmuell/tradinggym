@@ -29,11 +29,11 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Lesson, LessonSlide } from '@/hooks/useLessons';
 
 const MODULE_OPTIONS = [
-  { value: 'f1', label: 'F1 — Reading Candles', tier: 'foundation' },
-  { value: 'f2', label: 'F2 — Market Structure', tier: 'foundation' },
-  { value: 'f3', label: 'F3 — Sessions & Time', tier: 'foundation' },
-  { value: 'f4', label: 'F4 — Risk Management', tier: 'foundation' },
-  { value: 'f5', label: 'F5 — Your Trading Plan', tier: 'foundation' },
+  { value: 'f1_candles', label: 'F1 — Reading Candles', tier: 'foundation' },
+  { value: 'f2_structure', label: 'F2 — Market Structure', tier: 'foundation' },
+  { value: 'f3_sessions', label: 'F3 — Sessions & Time', tier: 'foundation' },
+  { value: 'f4_risk', label: 'F4 — Risk Management', tier: 'foundation' },
+  { value: 'f5_plan', label: 'F5 — Your Trading Plan', tier: 'foundation' },
   { value: 'tier1_orb', label: 'Tier 1 — Price Action (ORB)', tier: 'tier1' },
   { value: 'tier2_vwap', label: 'Tier 2 — Confirmation (VWAP)', tier: 'tier2' },
   { value: 'tier3_amd', label: 'Tier 3 — Institutional (AMD)', tier: 'tier3' },
