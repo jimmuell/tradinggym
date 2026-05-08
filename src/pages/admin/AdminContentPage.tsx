@@ -147,7 +147,7 @@ export default function AdminContentPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quizzes')
-        .select('id, title, module, questions, pass_threshold, is_published, updated_at')
+        .select('id, title, module, questions, pass_threshold, is_published, created_at')
         .eq('content_type', 'platform')
         .order('module', { ascending: true });
       if (error) throw error;
@@ -316,7 +316,7 @@ export default function AdminContentPage() {
                           <TableCell className="text-right tabular-nums">{q.pass_threshold}%</TableCell>
                           <TableCell><PublishedBadge published={q.is_published} /></TableCell>
                           <TableCell className="text-xs text-muted-foreground">
-                            {relativeTime(q.updated_at)}
+                            {relativeTime(q.created_at)}
                           </TableCell>
                           <TableCell className="text-right">
                             {/* TODO: CM-2 will add the form page at this route. */}
