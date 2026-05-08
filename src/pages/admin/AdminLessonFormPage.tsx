@@ -282,15 +282,37 @@ export default function AdminLessonFormPage() {
     );
   }
 
+  // No chapter context guidance for new lessons
+  if (isNew && !effectiveChapterId) {
+    return (
+      <div className="max-w-3xl p-4 md:p-6 space-y-4">
+        <Link to="/admin/content" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+          <ArrowLeft className="h-3 w-3" /> Content Manager
+        </Link>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">
+            Lessons must be created within a course chapter.
+          </p>
+          <Button asChild>
+            <Link to="/admin/content">Go to Content Manager</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-3xl p-4 md:p-6">
       <button
         type="button"
-        onClick={() => navigate('/admin/content')}
+        onClick={() => {
+          const target = paramCourseId ?? chapterContext?.courses?.id;
+          navigate(target ? `/admin/content/course/${target}` : '/admin/content');
+        }}
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4 mr-1" />
-        Content Manager
+        Back
       </button>
 
       <div className="flex items-center justify-between">
@@ -306,35 +328,32 @@ export default function AdminLessonFormPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">Lesson Details</CardTitle></CardHeader>
         <CardContent className="space-y-4">
+          {chapterContext && chapterContext.courses && (
+            <div className="text-sm text-muted-foreground">
+              <Link to="/admin/content" className="hover:text-foreground">Content</Link>
+              {' → '}
+              <Link to={`/admin/content/course/${chapterContext.courses.id}`} className="hover:text-foreground">
+                {chapterContext.courses.title}
+              </Link>
+              {' → '}
+              <span className="text-foreground font-medium">
+                Chapter {chapterContext.display_order}: {chapterContext.title}
+              </span>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-[1fr_140px]">
             <div className="space-y-2">
-              <Label htmlFor="module">Module *</Label>
-              <Select value={module} onValueChange={setModule}>
-                <SelectTrigger id="module"><SelectValue placeholder="Select a module" /></SelectTrigger>
-                <SelectContent>
-                  {MODULE_OPTIONS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {module && (
-                <p className="text-[11px] text-muted-foreground">
-                  Tier required: <span className="font-mono">{tierRequired}</span>
-                </p>
-              )}
+              <Label htmlFor="title">Title *</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Reading the Order Flow" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="order">Order *</Label>
+              <Label htmlFor="order">Lesson #</Label>
               <Input
                 id="order" type="number" min={1}
-                value={moduleOrder}
-                onChange={(e) => setModuleOrder(Number(e.target.value) || 1)}
+                value={lessonNumber}
+                onChange={(e) => setLessonNumber(Number(e.target.value) || 1)}
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="title">Title *</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Reading the Order Flow" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
