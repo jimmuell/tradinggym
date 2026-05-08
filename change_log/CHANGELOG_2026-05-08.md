@@ -35,3 +35,17 @@ Removed all explicit TradingView branding, contract-month references, and TV-spe
 - `src/components/dashboard/AppSidebar.tsx` — added "Content" item to `adminItems`.
 
 Quizzes table has no `updated_at`, so the Updated column uses `created_at`. Admin gate via `useUserRole`. No DB or RLS changes.
+
+---
+
+## CM-2 — Admin Lesson + Quiz Editor
+
+**New files:**
+- `src/pages/admin/AdminLessonFormPage.tsx` — full platform-lesson editor (module + order + tier auto-derived, slides CRUD/reorder, PDF/image import via `SlideImportDialog`, preview via `LessonRenderer`, Save Draft / Publish / Delete). Writes `content_type='platform'`, `author_id=null`, `class_id=null`. Suggests `module_order` as next available slot per module on new lessons.
+- `src/pages/admin/AdminQuizFormPage.tsx` — standalone platform-quiz editor (title, module, pass threshold, A/B/C/D questions with explanation, in-dialog preview highlighting correct answer, Save Draft / Publish / Delete). Writes `content_type='platform'`, `author_id=null`, `lesson_id=null`.
+
+**Modified:**
+- `src/App.tsx` — registered `/admin/content/lesson/new`, `/admin/content/lesson/:lessonId`, `/admin/content/quiz/new`, `/admin/content/quiz/:quizId` (literal `new` routes ordered before `:id` params).
+- `src/pages/admin/AdminContentPage.tsx` — replaced disabled "Coming in CM-2" New buttons with active links to the new form routes; dropped unused Tooltip imports.
+
+Mutations invalidate `['admin-content-lessons']` / `['admin-content-quizzes']` so the list view refreshes immediately. Admin gating via `useUserRole` on every form route.
