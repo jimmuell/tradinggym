@@ -64,6 +64,7 @@ import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import AdminConfigPage from "./pages/admin/AdminConfigPage";
 import AdminContentPage from "./pages/admin/AdminContentPage";
+import AdminCourseDetailPage from "./pages/admin/AdminCourseDetailPage";
 import AdminLessonFormPage from "./pages/admin/AdminLessonFormPage";
 import AdminQuizFormPage from "./pages/admin/AdminQuizFormPage";
 import InvestorLayout from "./layouts/InvestorLayout";
