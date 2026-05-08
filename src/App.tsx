@@ -152,6 +152,10 @@ const App = () => (
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
               <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
               <Route path="/admin/config" element={<LayoutRoute><AdminConfigPage /></LayoutRoute>} />
+              <Route path="/admin/content/lesson/new" element={<LayoutRoute><AdminLessonFormPage /></LayoutRoute>} />
+              <Route path="/admin/content/lesson/:lessonId" element={<LayoutRoute><AdminLessonFormPage /></LayoutRoute>} />
+              <Route path="/admin/content/quiz/new" element={<LayoutRoute><AdminQuizFormPage /></LayoutRoute>} />
+              <Route path="/admin/content/quiz/:quizId" element={<LayoutRoute><AdminQuizFormPage /></LayoutRoute>} />
               <Route path="/admin/content" element={<LayoutRoute><AdminContentPage /></LayoutRoute>} />
               <Route path="/investor" element={<InvestorLayout><Navigate to="/investor/kpis" replace /></InvestorLayout>} />
               <Route path="/investor/kpis" element={<InvestorLayout><InvestorKpisPage /></InvestorLayout>} />
