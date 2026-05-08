@@ -210,11 +210,18 @@ export default function AdminContentPage() {
                               {relativeTime(c.updated_at)}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button asChild size="sm" variant="outline">
-                                <Link to={`/admin/content/course/${c.id}`}>
-                                  Manage <ChevronRight className="h-3 w-3" />
-                                </Link>
-                              </Button>
+                              <div className="inline-flex items-center gap-1">
+                                <Button asChild size="icon" variant="ghost" className="h-8 w-8" title="Edit course">
+                                  <Link to={`/admin/content/course/${c.id}/edit`}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Link>
+                                </Button>
+                                <Button asChild size="sm" variant="outline">
+                                  <Link to={`/admin/content/course/${c.id}`}>
+                                    Manage <ChevronRight className="h-3 w-3" />
+                                  </Link>
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
