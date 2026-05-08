@@ -17,11 +17,11 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 
 const MODULE_LABELS: Record<string, string> = {
-  f1: 'F1 — Reading Candles',
-  f2: 'F2 — Market Structure',
-  f3: 'F3 — Sessions & Time',
-  f4: 'F4 — Risk Management',
-  f5: 'F5 — Your Trading Plan',
+  f1_candles: 'F1 — Reading Candles',
+  f2_structure: 'F2 — Market Structure',
+  f3_sessions: 'F3 — Sessions & Time',
+  f4_risk: 'F4 — Risk Management',
+  f5_plan: 'F5 — Your Trading Plan',
   foundation: 'Foundation (Quiz)',
   tier1_orb: 'Tier 1 — Price Action (ORB)',
   tier2_vwap: 'Tier 2 — Confirmation (VWAP)',
@@ -33,7 +33,7 @@ function getModuleLabel(module: string): string {
 }
 
 function getShortLabel(module: string): string {
-  if (/^f\d$/.test(module)) return module.toUpperCase();
+  if (module.startsWith('f') && module.includes('_')) return module.split('_')[0].toUpperCase();
   if (module === 'foundation') return 'Foundation';
   if (module === 'tier1_orb') return 'Tier 1';
   if (module === 'tier2_vwap') return 'Tier 2';
@@ -151,7 +151,7 @@ export default function AdminContentPage() {
     const rows = lessonsQuery.data ?? [];
     if (moduleFilter === 'all') return rows;
     if (moduleFilter === 'foundation') {
-      return rows.filter((r) => ['f1', 'f2', 'f3', 'f4', 'f5'].includes(r.module));
+      return rows.filter((r) => r.module.startsWith('f') && r.module.includes('_'));
     }
     return rows.filter((r) => r.module === moduleFilter);
   }, [lessonsQuery.data, moduleFilter]);
@@ -160,7 +160,9 @@ export default function AdminContentPage() {
     const rows = quizzesQuery.data ?? [];
     if (moduleFilter === 'all') return rows;
     if (moduleFilter === 'foundation') {
-      return rows.filter((r) => ['f1', 'f2', 'f3', 'f4', 'f5', 'foundation'].includes(r.module));
+      return rows.filter((r) =>
+        r.module === 'foundation' || (r.module.startsWith('f') && r.module.includes('_'))
+      );
     }
     return rows.filter((r) => r.module === moduleFilter);
   }, [quizzesQuery.data, moduleFilter]);
