@@ -477,20 +477,15 @@ export default function AdminCourseDetailPage() {
 
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Chapters</h2>
-            <Button size="sm" onClick={() => setAddingChapter(true)} disabled={addingChapter}>
-              <Plus className="h-4 w-4" /> Add Chapter
+            <Button asChild size="sm">
+              <Link to={`/admin/content/course/${course.id}/chapter/new`}>
+                <Plus className="h-4 w-4" /> Add Chapter
+              </Link>
             </Button>
           </div>
 
           <div className="space-y-3">
-            {addingChapter && (
-              <NewChapterForm
-                courseId={course.id}
-                nextOrder={nextChapterOrder}
-                onClose={() => setAddingChapter(false)}
-              />
-            )}
-            {chapters.length === 0 && !addingChapter ? (
+            {chapters.length === 0 ? (
               <Card><CardContent className="p-6 text-sm text-muted-foreground">No chapters yet.</CardContent></Card>
             ) : (
               chapters.map((ch, idx) => (
