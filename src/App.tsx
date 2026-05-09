@@ -67,6 +67,7 @@ import AdminContentPage from "./pages/admin/AdminContentPage";
 import AdminCourseDetailPage from "./pages/admin/AdminCourseDetailPage";
 import AdminCourseFormPage from "./pages/admin/AdminCourseFormPage";
 import AdminCoursePreviewPage from "./pages/admin/AdminCoursePreviewPage";
+import AdminChapterFormPage from "./pages/admin/AdminChapterFormPage";
 import AdminLessonFormPage from "./pages/admin/AdminLessonFormPage";
 import AdminQuizFormPage from "./pages/admin/AdminQuizFormPage";
 import InvestorLayout from "./layouts/InvestorLayout";
