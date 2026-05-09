@@ -323,7 +323,6 @@ function ChapterBlock({
 export default function AdminCourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const [addingChapter, setAddingChapter] = useState(false);
 
   const courseQuery = useQuery({
     queryKey: ['admin-content-course', courseId],
@@ -368,9 +367,6 @@ export default function AdminCourseDetailPage() {
 
   const course = courseQuery.data;
   const chapters = (course?.chapters ?? []).slice().sort((a, b) => a.display_order - b.display_order);
-  const nextChapterOrder = chapters.length > 0
-    ? Math.max(...chapters.map((c) => c.display_order)) + 1
-    : 1;
 
   return (
     <div className="space-y-4 p-4 md:p-6">
