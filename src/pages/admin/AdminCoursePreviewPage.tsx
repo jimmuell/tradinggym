@@ -221,7 +221,7 @@ export default function AdminCoursePreviewPage() {
                                       )}
                                     </span>
                                     <span className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-foreground shrink-0">
-                                      Open lesson
+                                      Start lesson
                                       <ChevronRight className="h-4 w-4" />
                                     </span>
                                   </button>
