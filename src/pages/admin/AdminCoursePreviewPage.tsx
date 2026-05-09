@@ -205,22 +205,25 @@ export default function AdminCoursePreviewPage() {
                           {chLessons.length === 0 ? (
                             <p className="text-sm text-muted-foreground">No lessons in this chapter.</p>
                           ) : (
-                            <ul className="space-y-1">
+                            <ul className="flex flex-col gap-2">
                               {chLessons.map((l) => (
                                 <li key={l.id}>
                                   <button
                                     type="button"
                                     onClick={() => setView({ kind: 'lesson', lessonId: l.id })}
-                                    className="w-full flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-accent text-left"
+                                    className="group w-full flex items-center justify-between rounded-md border border-border bg-card px-3 py-3 text-sm text-left transition-colors hover:bg-accent hover:border-primary/50 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                   >
-                                    <span className="flex items-center gap-2">
-                                      <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                      {l.title}
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <BookOpen className="h-4 w-4 text-muted-foreground shrink-0" />
+                                      <span className="truncate font-medium">{l.title}</span>
                                       {!l.is_published && (
                                         <Badge variant="outline" className="text-[10px] ml-1">Draft</Badge>
                                       )}
                                     </span>
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-foreground shrink-0">
+                                      Open lesson
+                                      <ChevronRight className="h-4 w-4" />
+                                    </span>
                                   </button>
                                 </li>
                               ))}
