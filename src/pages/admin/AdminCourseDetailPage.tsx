@@ -318,74 +318,11 @@ function ChapterBlock({
   );
 }
 
-function NewChapterForm({
-  courseId, nextOrder, onClose,
-}: {
-  courseId: string;
-  nextOrder: number;
-  onClose: () => void;
-}) {
-  const qc = useQueryClient();
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [order, setOrder] = useState<number>(nextOrder);
-  const [busy, setBusy] = useState(false);
 
-  async function save() {
-    if (!title.trim()) { toast.error('Title is required'); return; }
-    setBusy(true);
-    try {
-      const { error } = await supabase.from('chapters').insert({
-        course_id: courseId,
-        title: title.trim(),
-        description: description.trim() || null,
-        display_order: order,
-      });
-      if (error) throw error;
-      qc.invalidateQueries({ queryKey: ['admin-content-course', courseId] });
-      toast.success('Chapter added.');
-      onClose();
-    } catch (e: unknown) {
-      console.error('Chapter insert error:', e);
-      toast.error(extractMessage(e, 'Failed to add chapter'));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <Card>
-      <CardContent className="p-4 space-y-3">
-        <div className="text-sm font-medium">New Chapter</div>
-        <div className="grid gap-3 sm:grid-cols-[80px_1fr_1fr]">
-          <div className="space-y-1">
-            <Label className="text-[11px]">Order</Label>
-            <Input type="number" min={1} value={order} onChange={(e) => setOrder(Number(e.target.value) || 1)} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[11px]">Title *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g., Reading the Tape" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[11px]">Description</Label>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional" />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button size="sm" variant="ghost" onClick={onClose} disabled={busy}>Cancel</Button>
-          <Button size="sm" onClick={save} disabled={busy}>
-            <Save className="h-4 w-4 mr-1" />Save
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function AdminCourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
   const { isAdmin, isLoading: roleLoading } = useUserRole();
-  const [addingChapter, setAddingChapter] = useState(false);
 
   const courseQuery = useQuery({
     queryKey: ['admin-content-course', courseId],
@@ -430,9 +367,6 @@ export default function AdminCourseDetailPage() {
 
   const course = courseQuery.data;
   const chapters = (course?.chapters ?? []).slice().sort((a, b) => a.display_order - b.display_order);
-  const nextChapterOrder = chapters.length > 0
-    ? Math.max(...chapters.map((c) => c.display_order)) + 1
-    : 1;
 
   return (
     <div className="space-y-4 p-4 md:p-6">
@@ -477,20 +411,15 @@ export default function AdminCourseDetailPage() {
 
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">Chapters</h2>
-            <Button size="sm" onClick={() => setAddingChapter(true)} disabled={addingChapter}>
-              <Plus className="h-4 w-4" /> Add Chapter
+            <Button asChild size="sm">
+              <Link to={`/admin/content/course/${course.id}/chapter/new`}>
+                <Plus className="h-4 w-4" /> Add Chapter
+              </Link>
             </Button>
           </div>
 
           <div className="space-y-3">
-            {addingChapter && (
-              <NewChapterForm
-                courseId={course.id}
-                nextOrder={nextChapterOrder}
-                onClose={() => setAddingChapter(false)}
-              />
-            )}
-            {chapters.length === 0 && !addingChapter ? (
+            {chapters.length === 0 ? (
               <Card><CardContent className="p-6 text-sm text-muted-foreground">No chapters yet.</CardContent></Card>
             ) : (
               chapters.map((ch, idx) => (
