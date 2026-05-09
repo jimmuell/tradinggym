@@ -483,6 +483,13 @@ export default function AdminCourseDetailPage() {
           </div>
 
           <div className="space-y-3">
+            {addingChapter && (
+              <NewChapterForm
+                courseId={course.id}
+                nextOrder={nextChapterOrder}
+                onClose={() => setAddingChapter(false)}
+              />
+            )}
             {chapters.length === 0 && !addingChapter ? (
               <Card><CardContent className="p-6 text-sm text-muted-foreground">No chapters yet.</CardContent></Card>
             ) : (
@@ -496,13 +503,6 @@ export default function AdminCourseDetailPage() {
                   allChapters={chapters}
                 />
               ))
-            )}
-            {addingChapter && (
-              <NewChapterForm
-                courseId={course.id}
-                nextOrder={nextChapterOrder}
-                onClose={() => setAddingChapter(false)}
-              />
             )}
           </div>
 
