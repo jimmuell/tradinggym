@@ -3,7 +3,7 @@ import { Navigate, Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft, BookOpen, Plus, ChevronDown, ChevronRight, ChevronUp, FileQuestion,
-  Pencil, Trash2, Save, X,
+  Pencil, Trash2, Save, X, Eye,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -460,6 +460,11 @@ export default function AdminCourseDetailPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{TIER_LABELS[course.tier_required] ?? course.tier_required}</Badge>
                   <PublishedBadge published={course.is_published} />
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={`/admin/content/course/${course.id}/preview`}>
+                      <Eye className="h-3.5 w-3.5" /> Preview
+                    </Link>
+                  </Button>
                   <Button asChild size="sm" variant="outline">
                     <Link to={`/admin/content/course/${course.id}/edit`}>
                       <Pencil className="h-3.5 w-3.5" /> Edit
