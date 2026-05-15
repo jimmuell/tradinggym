@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useEnrollWithGuru } from '@/hooks/useEnrollWithGuru';
 import { usePublicGuru } from '@/hooks/usePublicGurus';
+import PageSeo from '@/components/seo/PageSeo';
 
 
 export default function GuruPublicProfilePage() {
@@ -94,6 +95,11 @@ export default function GuruPublicProfilePage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
+      <PageSeo
+        title={`${guru.display_name ?? 'Guru'} — TradingGYM Guru Profile`}
+        description={(guru.tagline ?? `Learn from ${guru.display_name ?? 'this Guru'} on TradingGYM. View stats, classes, and enroll to start coaching.`).slice(0, 160)}
+        path={`/gurus/${guruId}`}
+      />
       <Button
         variant="ghost"
         size="sm"

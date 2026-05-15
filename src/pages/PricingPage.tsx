@@ -192,7 +192,7 @@ export default function PricingPage() {
                       <div className="h-7 mb-4" />
                     )}
 
-                    <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
+                    <h2 className="text-lg font-semibold text-foreground">{p.name}</h2>
                     <div className="mt-3 mb-6">
                       <span className="text-4xl font-bold text-foreground">{p.price}</span>
                       <span className="text-muted-foreground text-sm">{p.period}</span>
