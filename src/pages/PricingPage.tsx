@@ -1,4 +1,5 @@
 import { ArrowLeft, Check, ExternalLink, Loader2, Info } from 'lucide-react';
+import PageSeo from '@/components/seo/PageSeo';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
