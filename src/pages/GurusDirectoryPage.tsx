@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import PageSeo from '@/components/seo/PageSeo';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
