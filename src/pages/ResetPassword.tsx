@@ -53,7 +53,7 @@ export default function ResetPassword() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#131722]">
       <div className="w-full max-w-md px-4">
-        <h1 className="text-3xl font-bold text-white text-center mb-8">TradingGYM</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-8">Reset your TradingGYM password</h1>
         <Card className="bg-[#1e222d] border-[#2a2e39]">
           <CardHeader>
             <CardTitle className="text-white">Reset password</CardTitle>

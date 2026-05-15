@@ -124,7 +124,7 @@ export default function Auth() {
         path="/auth"
       />
       <div className="w-full max-w-md px-4">
-        <h1 className="text-3xl font-bold text-white text-center mb-8">TradingGYM</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-8">Sign in to TradingGYM</h1>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-[#1e222d]">
             <TabsTrigger value="login" className="data-[state=active]:bg-[#2a2e39] data-[state=active]:text-white text-gray-400">

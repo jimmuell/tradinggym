@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
 import { useEnrollWithGuru } from '@/hooks/useEnrollWithGuru';
 import { usePublicGuru } from '@/hooks/usePublicGurus';
+import PageSeo from '@/components/seo/PageSeo';
 
 
 export default function GuruPublicProfilePage() {
