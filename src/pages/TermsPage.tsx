@@ -11,10 +11,6 @@ export default function TermsPage() {
         description="The terms governing your use of TradingGYM, an educational trading simulator and learning platform."
         path="/terms"
       />
-
-export default function TermsPage() {
-  return (
-    <div className="text-foreground">
       <div className="max-w-3xl py-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="h-4 w-4" /> Back
