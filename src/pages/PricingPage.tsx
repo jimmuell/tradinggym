@@ -109,6 +109,11 @@ export default function PricingPage() {
 
   return (
     <>
+      <PageSeo
+        title="Pricing — TradingGYM Plans for Every Trader"
+        description="Compare TradingGYM plans: Starter, Pro, Expert, and Guru. Pick the subscription that fits your trading practice and learning goals."
+        path="/pricing"
+      />
       <div>
         <Button
           variant="ghost"
