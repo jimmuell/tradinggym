@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { PRIVACY_SECTIONS } from '@/lib/legalContent';
+import PageSeo from '@/components/seo/PageSeo';
 
 export default function PrivacyPage() {
   return (
     <div className="text-foreground">
+      <PageSeo
+        title="Privacy Policy — TradingGYM"
+        description="How TradingGYM collects, uses, and protects your personal data."
+        path="/privacy"
+      />
       <div className="max-w-3xl py-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="h-4 w-4" /> Back
