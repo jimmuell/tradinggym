@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import PageSeo from "@/components/seo/PageSeo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -188,6 +189,21 @@ const pricing: Array<{
 export default function Landing() {
   return (
     <div className="min-h-screen bg-[#0b0e13] text-gray-100 overflow-x-hidden">
+      <PageSeo
+        title="TradingGYM — Build Your Trading Muscle Memory"
+        description="A futures trading simulator and learning platform. Practice risk-free with realistic chart replay, structured lessons, and independent trading educators."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "TradingGYM",
+          applicationCategory: "FinanceApplication",
+          operatingSystem: "Web",
+          description:
+            "Futures trading simulator and learning platform with realistic chart replay and a structured curriculum.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }}
+      />
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0b0e13]/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">

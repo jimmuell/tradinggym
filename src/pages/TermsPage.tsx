@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { TERMS_SECTIONS } from '@/lib/legalContent';
+import PageSeo from '@/components/seo/PageSeo';
 
 export default function TermsPage() {
   return (
     <div className="text-foreground">
+      <PageSeo
+        title="Terms of Service — TradingGYM"
+        description="The terms governing your use of TradingGYM, an educational trading simulator and learning platform."
+        path="/terms"
+      />
       <div className="max-w-3xl py-6">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="h-4 w-4" /> Back

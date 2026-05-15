@@ -1,0 +1,17 @@
+# TradingGYM
+
+> A trading simulator and learning platform for financial markets. Practice futures trading risk-free, follow structured learning tiers, and learn from independent trading educators (Gurus).
+
+TradingGYM helps traders build muscle memory through realistic chart replay, scenario-based practice, and a curriculum that progresses from foundations to advanced strategies. No real money is at risk — all trading is simulated.
+
+## Pages
+
+- [Home](/): Overview of the TradingGYM simulator and learning platform.
+- [Pricing](/pricing): Subscription plans and feature comparison.
+- [Gurus Directory](/gurus): Browse independent trading educators offering classes and coaching.
+- [Sign in / Sign up](/auth): Create an account or log in.
+
+## Optional
+
+- [Terms of Service](/terms): Legal terms governing use of the platform.
+- [Privacy Policy](/privacy): How user data is collected and handled.

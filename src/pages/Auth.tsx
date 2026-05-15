@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
+import PageSeo from '@/components/seo/PageSeo';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -117,6 +118,11 @@ export default function Auth() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#131722]">
+      <PageSeo
+        title="Sign in or Sign up — TradingGYM"
+        description="Create a free TradingGYM account or log in to access the trading simulator, structured lessons, and Guru-led classes."
+        path="/auth"
+      />
       <div className="w-full max-w-md px-4">
         <h1 className="text-3xl font-bold text-white text-center mb-8">TradingGYM</h1>
         <Tabs defaultValue="login" className="w-full">
