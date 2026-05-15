@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
+import PageSeo from '@/components/seo/PageSeo';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
