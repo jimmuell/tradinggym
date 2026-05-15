@@ -14,6 +14,11 @@ export default function GurusDirectoryPage() {
 
   return (
     <>
+      <PageSeo
+        title="Find a Trading Guru — TradingGYM Directory"
+        description="Browse experienced trading educators on TradingGYM. Enroll in classes and get coached by independent Gurus to advance your trading."
+        path="/gurus"
+      />
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-foreground">Find a Guru</h1>
         <p className="text-muted-foreground mt-1">
