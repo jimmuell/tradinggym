@@ -1,81 +1,69 @@
-## Goal
+## Content Manager Documentation Spec
 
-Replace the inline "New Chapter" form on the Admin Course Detail page with a dedicated **New Chapter page**, matching the existing pattern used for lessons, quizzes, and courses. Includes clean `display_order` shifting so inserts at any position never produce duplicate ordinals.
+Produce a single self-contained markdown file that lets an AI agent rebuild the Content Manager as a standalone app, with no access to this repo.
 
-## Why
+### Deliverable
 
-- Consistent with `AdminLessonFormPage`, `AdminQuizFormPage`, `AdminCourseFormPage` — chapters are the odd one out today.
-- Eliminates the "form appears at the bottom, must scroll" problem permanently.
-- Deep-linkable, refreshable, browser-back returns to the course detail naturally.
-- Live placement preview prevents off-by-one ordering confusion before save.
+`docs/CONTENT_MANAGER_SPEC.md` — one file, ~800–1200 lines, no external links required to implement.
 
-## UX
+### Document structure
 
-**Trigger.** The existing **+ Add Chapter** button on `AdminCourseDetailPage` becomes a navigation link to the new route instead of toggling inline form state.
+1. **Overview** — purpose (admin authoring tool for a 3-level learning hierarchy: Course → Chapter → Lesson, plus Course-level Quizzes), who uses it (admins; gurus get a parallel scope), what it produces (published lessons/quizzes consumed by a student app).
 
-**New page layout** (mirrors `AdminLessonFormPage`):
-- Back link: `← {Course title}` returning to `/admin/content/course/:courseId`
-- Header: "New Chapter" + course name as subtitle
-- Single-card form:
-   - **Title** (required)
-   - **Description** (optional)
-   - **Position** — numeric input, defaulted to `nextChapterOrder` (max + 1), with helper text "This chapter will appear at position N of M+1"
-- **Live placement preview**: compact, read-only list of existing chapters with the new one highlighted in its chosen slot, so the admin sees exactly where it lands before saving
-- Footer actions: **Cancel** (returns to course detail) and **Create Chapter** (primary)
+2. **Domain model** — plain-English entity descriptions and the relationships:
+   ```text
+   Course (1) ──< Chapter (N) ──< Lesson (N)
+   Course (1) ──< Quiz   (N)        Lesson has ordered Slides[]
+                                    Quiz has ordered Questions[]
+   ```
+   Content scoping: `platform` (admin-authored, global) vs `guru` (author-scoped, tied to a class). Tier gating: `foundation | tier1 | tier2 | tier3`.
 
-**On success.** Toast "Chapter added", invalidate `['admin-content-course', courseId]`, then `navigate(\`/admin/content/course/\${courseId}\`)`.
+3. **Database schema** — full DDL for every table the CM touches:
+   - `courses`, `chapters`, `lessons`, `quizzes`, `quiz_attempts`, `profiles` (role + plan_state columns CM depends on).
+   - Column list, types, defaults, nullability, intended use of each field.
+   - JSONB shape definitions for `lessons.slides` and `quizzes.questions` (TypeScript interfaces + example JSON).
+   - `display_order` / `module_order` semantics, the "shift down on insert" rule for chapters.
+   - Indexes worth creating.
 
-## Technical Plan
+4. **Authorization model** — RLS policies in SQL + English summary:
+   - Admin (plan_state='admin') full CRUD on platform content.
+   - Guru (author_id = auth.uid(), content_type='guru') CRUD on their own.
+   - Public read of published platform content; enrolled-student read of published guru content via `student_is_enrolled_in_class()`.
+   - Required helper functions (`is_admin`, `student_is_enrolled_in_class`) with full SQL.
 
-### 1. New route
-File: `src/App.tsx`
-- Import `AdminChapterFormPage`.
-- Add route **before** `/:courseId` to avoid path collision:
-   - `/admin/content/course/:courseId/chapter/new` → `<AdminChapterFormPage />` (wrapped in `LayoutRoute` like sibling admin routes)
-- File/route is named generically so a future `/chapter/:chapterId` edit route can reuse the same component (parallels `AdminLessonFormPage`).
+5. **Module taxonomy** — exact enum-like values (`f1_candles…f5_plan`, `tier1_*`, `foundation`) and how `module` is derived from `(course.tier_required, chapter index)` for backward compat.
 
-### 2. New page
-File: `src/pages/admin/AdminChapterFormPage.tsx` (new)
-- Admin guard via `useUserRole` (redirect non-admins to `/dashboard`), matching `AdminCourseDetailPage`.
-- `useParams` to read `courseId`.
-- `useQuery(['admin-content-course-min', courseId])` for course title + existing chapters (`id`, `title`, `display_order`).
-- Local form state: `title`, `description`, `order`, `busy`.
-- Submit handler does a **two-step write** to keep ordering clean:
-   1. **Shift down** any chapters at or after the chosen position:
-      ```
-      supabase.from('chapters')
-        .update({ display_order: order + ... })  // see note
-        .eq('course_id', courseId)
-        .gte('display_order', order)
-      ```
-      Implementation note: PostgREST cannot do `display_order = display_order + 1` in a single update from the JS client. Two safe options — pick **(a)** for simplicity:
-      - **(a) Client-side fan-out:** read affected rows, then issue parallel `update({ display_order: row.display_order + 1 }).eq('id', row.id)` calls. Acceptable because chapter counts per course are small (typically < 20).
-      - **(b) RPC:** add a `shift_chapter_orders(course_id, from_order)` SECURITY DEFINER function. Cleaner, atomic — defer unless option (a) shows issues in practice.
-   2. **Insert** the new chapter:
-      ```
-      supabase.from('chapters').insert({
-        course_id: courseId,
-        title: title.trim(),
-        description: description.trim() || null,
-        display_order: order,
-      })
-      ```
-   - If the chosen position equals `nextChapterOrder` (append at end), skip step 1 entirely.
-- On success: invalidate course detail query, toast, navigate back.
-- On failure of step 1: surface error and abort step 2 so we never leave partial gaps.
+6. **UI surface** — route map and what each screen does:
+   - `/admin/content` — Courses + Quizzes tabs, filters, table columns
+   - `/admin/content/course/new` and `/:courseId/edit`
+   - `/admin/content/course/:courseId` — detail w/ chapters + lessons + course quiz
+   - `/admin/content/course/:courseId/chapter/new` — dedicated page, live placement preview, shift-down-on-insert
+   - `/admin/content/lesson/new?chapterId=&courseId=` and `/:lessonId`
+   - `/admin/content/quiz/new?courseId=` and `/:quizId`
+   - For each screen: required props/query params, key components (table, breadcrumb, slide editor, question editor, PDF/image import), save/publish/delete actions, navigation on success.
 
-### 3. Wire the trigger
-File: `src/pages/admin/AdminCourseDetailPage.tsx`
-- Remove `addingChapter` state, the `NewChapterForm` component, and its inline render block.
-- Change **+ Add Chapter** button to: `navigate(\`/admin/content/course/\${courseId}/chapter/new\`)`.
-- Existing inline edit/reorder/delete on chapter cards stays untouched.
+7. **Lesson slide editor** — slide types (`text`, `imported`), reorder, image upload to a public `lesson-assets` bucket, PDF→per-page image import flow, preview via renderer.
 
-## Backend / Data
+8. **Quiz editor** — A/B/C/D question shape with `correct_index` + `explanation`, pass threshold (default 80), preview with correct answer highlighted, attempt scoring formula.
 
-**No schema changes.** Same `chapters` table, same RLS policies (admin + guru insert paths already in place), same insert payload. No migration required for option (a).
+9. **Tech assumptions for the standalone app** — React + Vite + TS + Tailwind + shadcn/ui + TanStack Query + React Router + Supabase (Auth + Postgres + Storage). Note that any equivalent stack works; the contract is the schema + RLS + route behaviors.
 
-## Out of Scope
+10. **Bootstrap checklist** — ordered steps an agent should execute: create Supabase project → run migrations (provided inline) → seed 4 platform courses + chapters → wire auth + admin role → scaffold routes → implement screens in the order list→detail→forms.
 
-- Editing an existing chapter via this page (existing inline edit stays as-is; route is named to allow easy `/:chapterId` extension later).
-- Reordering existing chapters from the new page (use the up/down controls on the detail page).
-- Reusing this page for Guru chapter authoring (CC-4 will get its own equivalent following the same pattern).
+11. **Out of scope** — student-facing learning UI, payments, guru onboarding, analytics. Lists what the doc intentionally does not cover.
+
+### Sources used to build the doc
+
+- `change_log/CHANGELOG_2026-05-08.md` (CM-1, CM-2, CC-1, CC-2 entries)
+- Live DB schema + RLS from this project (courses, chapters, lessons, quizzes, quiz_attempts, profiles)
+- `src/pages/admin/AdminContentPage.tsx`, `AdminCourseDetailPage.tsx`, `AdminCourseFormPage.tsx`, `AdminChapterFormPage.tsx`, `AdminLessonFormPage.tsx`, `AdminQuizFormPage.tsx`
+- `src/hooks/useLessons.ts`, `useQuizzes.ts` for type shapes
+- `src/components/learning/LessonRenderer.tsx`, `QuizRunner.tsx`, `guru/SlideImportDialog.tsx`
+
+### Non-goals for this task
+
+- No code changes.
+- No new docs other than this one file.
+- No rewrite of student/guru pages.
+
+Approve and I'll write the file.
