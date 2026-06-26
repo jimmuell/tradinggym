@@ -67,6 +67,15 @@ export default function Backtesting() {
   return (
     <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-6 space-y-4 sm:space-y-6">
       <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-2 -ml-2 h-8 px-2 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate('/strategies')}
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to Strategies
+        </Button>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Backtesting</h1>
         <p className="text-sm text-muted-foreground">
           Validate your strategies against 18 years of historical MES data.
