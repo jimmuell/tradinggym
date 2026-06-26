@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import BacktestKpiCards from './BacktestKpiCards';
 import BacktestVerdictPanel from './BacktestVerdictPanel';
+import BacktestTradeSummary from './BacktestTradeSummary';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 
 interface Props {
