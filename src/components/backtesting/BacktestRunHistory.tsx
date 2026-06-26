@@ -18,6 +18,20 @@ import {
 import { cn } from '@/lib/utils';
 import { useDeleteBacktestRun, type BacktestRun } from '@/hooks/useBacktestRuns';
 
+/** Parse a YYYY-MM-DD string as a local date (no UTC timezone shift). */
+function parseYmdLocal(ymd: string): Date {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+function formatRange(startYmd: string, endYmd: string): string {
+  const start = parseYmdLocal(startYmd);
+  const end = parseYmdLocal(endYmd);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startFmt = sameYear ? format(start, 'MMM d') : format(start, 'MMM d, yyyy');
+  return `${startFmt} – ${format(end, 'MMM d, yyyy')}`;
+}
+
 interface Props {
   runs: BacktestRun[];
 }
