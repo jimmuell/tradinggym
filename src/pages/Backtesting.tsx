@@ -49,6 +49,15 @@ export default function Backtesting() {
     if (lastConfig) handleRun(lastConfig);
   };
 
+  const handleCancel = async () => {
+    try {
+      await cancelRun.mutateAsync(latest?.status === 'pending' || latest?.status === 'running' ? latest.id : undefined);
+      toast.success('Backtest canceled');
+    } catch (err) {
+      toast.error(`Cancel failed: ${(err as Error).message}`);
+    }
+  };
+
   return (
     <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-6 space-y-4 sm:space-y-6">
       <div>
