@@ -122,7 +122,7 @@ export function useCreateBacktestRun() {
         .select()
         .single();
       if (error) throw error;
-      return data as BacktestRun;
+      return data as unknown as BacktestRun;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['backtest_runs', user?.id] });
