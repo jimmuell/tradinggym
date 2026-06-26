@@ -35,6 +35,22 @@ Created `docs/BACKTEST_ENGINE_SPEC.md` to document the backtest engine as a sepa
 - `src/hooks/useBacktestRuns.ts`
   - Updated casts to `as unknown as BacktestRun[]` and `as unknown as BacktestRun` to satisfy the Supabase-generated `Json` type for `equity_curve`.
 
+### Updated
+- `docs/BACKTEST_ENGINE_SPEC.md`
+  - Rewrote as a factual operator reference for the engine.
+  - Added explicit ownership boundary: engine lives in `github.com/jimmuell/mes-orb-strategy` (FastAPI, Railway, Python 3.12); fixes for `engine.py` / `server.py` bugs belong there.
+  - Documented `/run` and `/ping` contracts, auth behavior (503/401), and `x-api-key` header.
+  - Documented validation as synchronous inside `/run`, "Promising" verdict, and `validation_error` surfacing.
+  - Added market/economics: MES, $5/point, FirstRate 5-min bars, NET-of-commission P&L.
+  - Clarified that the engine loads its own bars and is responsible for date/timezone normalization.
+  - Added known soft spots (regime dependency, ORB/SMA filters, frozen $1/point engine copy).
+  - Updated edge-function orchestration section to match the current payload.
+
+### Changed
+- `supabase/functions/run-backtest/index.ts`
+  - Changed engine request header from `X-API-Key` to `x-api-key` to match the engine spec.
+  - Redeployed the `run-backtest` edge function.
+
 ### Result
 - Build passes cleanly.
-- Engine architecture is documented for future AI agents and maintenance handoffs.
+- Engine architecture is documented with operator-provided facts, and the edge function's auth header now matches the documented contract.
