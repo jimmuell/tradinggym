@@ -11,10 +11,12 @@ import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 
 export default function Backtesting() {
+  const navigate = useNavigate();
   const { runs } = useBacktestRuns();
   const runBacktest = useRunBacktest();
   const cancelRun = useCancelBacktestRun();
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
+
 
   const latest = runs[0] ?? null;
   const hasActive = runs.some((r) => r.status === 'pending' || r.status === 'running');
