@@ -51,6 +51,19 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [commissionPct, setCommissionPct] = useState(0.1);
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
 
+  const applyQuickTestWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday
+    const daysSinceMonday = (dayOfWeek + 6) % 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - daysSinceMonday - 7); // previous Monday
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    const fmt = (d: Date) => d.toISOString().split('T')[0];
+    setStartDate(fmt(monday));
+    setEndDate(fmt(friday));
+  };
+
   const selectedStrategy = strategies.find((s) => s.id === strategyId) || null;
   const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits;
 
