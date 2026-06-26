@@ -82,6 +82,8 @@ export interface NewBacktestRun {
   strategy_config?: Record<string, unknown>;
   direction?: string;
   commission_pct?: number;
+  run_validation?: boolean;
+  validation_iterations?: number;
 }
 
 export function useBacktestRuns() {

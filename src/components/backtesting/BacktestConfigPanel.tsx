@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -23,7 +25,13 @@ export interface BacktestConfig {
   commissionPct: number;
   direction: 'long_short' | 'long_only';
   timeframe: string;
+  runValidation: boolean;
+  validationIterations: number;
 }
+
+const VALIDATION_ITERATIONS_MIN = 100;
+const VALIDATION_ITERATIONS_MAX = 20000;
+const VALIDATION_ITERATIONS_DEFAULT = 2000;
 
 interface Props {
   onRun: (config: BacktestConfig) => void;
@@ -50,6 +58,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [initialBalance, setInitialBalance] = useState(10000);
   const [commissionPct, setCommissionPct] = useState(0.1);
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
+  const [runValidation, setRunValidation] = useState(true);
+  const [validationIterations, setValidationIterations] = useState(VALIDATION_ITERATIONS_DEFAULT);
 
   const applyQuickTestWeek = () => {
     const today = new Date();
@@ -77,6 +87,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       commissionPct,
       direction,
       timeframe: '5min',
+      runValidation,
+      validationIterations,
     });
   };
 
@@ -171,6 +183,46 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             <Label>Timeframe</Label>
             <Input value="5-min" disabled className="tabular-nums" />
           </div>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="run-validation">Statistical validation</Label>
+              <p className="text-xs text-muted-foreground">
+                Run the engine's honest validation layer on the results.
+              </p>
+            </div>
+            <Switch
+              id="run-validation"
+              checked={runValidation}
+              onCheckedChange={setRunValidation}
+              disabled={isStarter}
+            />
+          </div>
+
+          {runValidation && (
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between">
+                <Label>Validation iterations</Label>
+                <span className="text-sm tabular-nums text-muted-foreground">
+                  {validationIterations.toLocaleString()}
+                </span>
+              </div>
+              <Slider
+                value={[validationIterations]}
+                onValueChange={([v]) => setValidationIterations(v)}
+                min={VALIDATION_ITERATIONS_MIN}
+                max={VALIDATION_ITERATIONS_MAX}
+                step={100}
+                disabled={isStarter}
+              />
+              <p className="text-xs text-muted-foreground">
+                Higher is more thorough but slower ({VALIDATION_ITERATIONS_MIN.toLocaleString()}–
+                {VALIDATION_ITERATIONS_MAX.toLocaleString()}).
+              </p>
+            </div>
+          )}
         </div>
 
         {isPro && (
