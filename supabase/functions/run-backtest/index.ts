@@ -58,7 +58,7 @@ serve(async (req) => {
 
     const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY")!;
     const engineUrl = Deno.env.get("BACKTEST_ENGINE_URL")!;
-    const engineApiKey = Deno.env.get("BACKTEST_ENGINE_API_KEY") || "tg-backtest-dev-2026";
+    const engineApiKey = Deno.env.get("BACKTEST_ENGINE_API_KEY")!;
 
     // --- Step 1: Read the backtest run ---
     const { data: run, error: runError } = await supabase
