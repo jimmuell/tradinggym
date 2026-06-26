@@ -104,12 +104,13 @@ PANDAS AND NUMPY are available as 'pd' and 'np'.
 RULES:
 1. You MUST create these columns on df: long_entry (bool), long_exit (bool), short_entry (bool), short_exit (bool)
 2. Set them to False by default, then apply your logic
-3. Do NOT use any import statements
+3. Do NOT use any import statements (they are stripped and any referenced module name will raise NameError)
 4. Do NOT use open(), os, sys, subprocess, exec, eval, or __import__
-5. Return ONLY the executable Python code, no markdown fences, no explanations
-6. The code will be executed with exec() where df is already defined
-7. Use .fillna(False) on all boolean columns to avoid NaN issues
-8. For time-based filters (like ORB), use df.index which contains datetime timestamps`;
+5. Do NOT reference pytz, datetime, timezone, pd.Timestamp(tz=...) with pytz objects, or any other module — only 'pd', 'np', and the listed helpers exist
+6. Return ONLY the executable Python code, no markdown fences, no explanations
+7. The code will be executed with exec() where df is already defined
+8. Use .fillna(False) on all boolean columns to avoid NaN issues
+9. For time-based filters (like ORB), use df.index which is a pandas DatetimeIndex. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
 
     const userPrompt = `Generate signal code for this trading strategy configuration:
 
