@@ -115,47 +115,93 @@ export default function BacktestRunHistory({ runs }: Props) {
         <CardContent className="space-y-2">
           {previous.map((run) => {
             const isActive = run.status === 'pending' || run.status === 'running';
+            const canExpand = run.status === 'complete';
+            const isExpanded = expandedId === run.id;
             return (
-              <div
-                key={run.id}
-                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm border border-border rounded-md px-3 py-2"
-              >
-                <div className="flex flex-col min-w-0 flex-1 basis-40">
-                  <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
-                  <span className="text-xs text-muted-foreground truncate">
-                    {run.timeframe} · {formatRange(run.start_date, run.end_date)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
-                  {statusBadge(run)}
-                  <span
-                    className={cn(
-                      'font-semibold tabular-nums text-right whitespace-nowrap',
-                      (run.net_pnl ?? 0) > 0 && 'text-emerald-500',
-                      (run.net_pnl ?? 0) < 0 && 'text-red-500',
-                    )}
-                  >
-                    {formatCurrency(run.net_pnl)}
-                  </span>
-                  {run.execution_time_ms && (
-                    <span className="hidden sm:inline text-xs text-muted-foreground whitespace-nowrap">
-                      {(run.execution_time_ms / 1000).toFixed(1)}s
-                    </span>
-                  )}
-                  {!isActive && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      onClick={() =>
-                        setConfirm({ kind: 'single', runId: run.id, strategyName: run.strategy_name })
-                      }
-                      aria-label="Delete run"
+              <div key={run.id} className="border border-border rounded-md">
+                <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm px-3 py-2">
+                  {canExpand ? (
+                    <button
+                      type="button"
+                      onClick={() => setExpandedId(isExpanded ? null : run.id)}
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? 'Hide details' : 'Show details'}
+                      className="flex items-center gap-2 min-w-0 flex-1 basis-40 text-left hover:text-foreground"
                     >
-                      <Trash2 className="!size-3.5" />
-                    </Button>
+                      {isExpanded ? (
+                        <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                      )}
+                      <span className="flex flex-col min-w-0">
+                        <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
+                        <span className="text-xs text-muted-foreground truncate">
+                          {run.timeframe} · {formatRange(run.start_date, run.end_date)}
+                        </span>
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="flex flex-col min-w-0 flex-1 basis-40 pl-6">
+                      <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {run.timeframe} · {formatRange(run.start_date, run.end_date)}
+                      </span>
+                    </div>
                   )}
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+                    {statusBadge(run)}
+                    <span
+                      className={cn(
+                        'font-semibold tabular-nums text-right whitespace-nowrap',
+                        (run.net_pnl ?? 0) > 0 && 'text-emerald-500',
+                        (run.net_pnl ?? 0) < 0 && 'text-red-500',
+                      )}
+                    >
+                      {formatCurrency(run.net_pnl)}
+                    </span>
+                    {run.execution_time_ms && (
+                      <span className="hidden sm:inline text-xs text-muted-foreground whitespace-nowrap">
+                        {(run.execution_time_ms / 1000).toFixed(1)}s
+                      </span>
+                    )}
+                    {!isActive && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          setConfirm({ kind: 'single', runId: run.id, strategyName: run.strategy_name })
+                        }
+                        aria-label="Delete run"
+                      >
+                        <Trash2 className="!size-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                {canExpand && isExpanded && (
+                  <div className="border-t border-border bg-muted/20 px-3 py-3 space-y-3">
+                    <BacktestKpiCards
+                      netPnl={run.net_pnl}
+                      winRate={run.win_rate}
+                      profitFactor={run.profit_factor}
+                      maxDrawdown={run.max_drawdown}
+                      totalTrades={run.total_trades}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Engine v{run.engine_version || '?'} ·{' '}
+                      {run.execution_time_ms ? (run.execution_time_ms / 1000).toFixed(1) : '?'}s ·{' '}
+                      {run.direction || 'long_short'}
+                    </p>
+                    <BacktestVerdictPanel run={run} />
+                    <BacktestTradeSummary
+                      wins={run.wins}
+                      losses={run.losses}
+                      avgWinner={run.avg_winner}
+                      avgLoser={run.avg_loser}
+                    />
+                  </div>
+                )}
               </div>
             );
           })}
