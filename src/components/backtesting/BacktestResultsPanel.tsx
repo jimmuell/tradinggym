@@ -9,6 +9,8 @@ import type { BacktestRun } from '@/hooks/useBacktestRuns';
 interface Props {
   run: BacktestRun | null;
   onRetry?: () => void;
+  onCancel?: () => void;
+  isCanceling?: boolean;
 }
 
 function formatCurrency(n: number | null) {
