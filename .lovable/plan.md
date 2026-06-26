@@ -1,26 +1,27 @@
-## Problem
+## Goal
+On the **Previous Runs** list, let users expand any completed run to reveal the same rich diagnostic info shown for the latest run — Engine Validation Verdict, Edge vs Luck findings, KPI cards, and trade summary — via a hide/show toggle.
 
-In `src/components/backtesting/BacktestRunHistory.tsx` line 108:
+## What's already in place
+- `backtest_runs` already persists everything needed: KPIs (`net_pnl`, `win_rate`, `profit_factor`, `max_drawdown`, `wins/losses`, `avg_winner/loser`), `validation`, `validation_error`, `engine_version`, `execution_time_ms`, `direction`.
+- The latest run renders this via `BacktestResultsPanel` → `BacktestKpiCards` + `BacktestVerdictPanel` + trade summary.
+- No new database work, no edge function changes, no new queries.
 
-```ts
-{format(new Date(run.start_date), 'MMM d')} – {format(new Date(run.end_date), 'MMM d, yyyy')}
-```
+## Changes (UI only)
 
-`run.start_date` is a `YYYY-MM-DD` string (e.g. `2025-01-01`). `new Date("2025-01-01")` parses as **UTC midnight**, which renders as the previous day (Dec 31, 2024) in any negative-offset timezone. That's why the user sees `Dec 31 – Dec 30, 2025` instead of `Jan 1 – Dec 31, 2025`.
+**`src/components/backtesting/BacktestRunHistory.tsx`**
+1. Track an expanded-row id in local state (single open at a time).
+2. Add a chevron icon button (ChevronDown/ChevronRight from lucide-react) on each non-failed, completed row, placed left of the Delete button. `aria-label="Show details"` / `"Hide details"`, `aria-expanded` set accordingly.
+3. When expanded, render an inset details block below the row containing:
+   - `BacktestKpiCards` with the row's KPIs.
+   - Small meta line: `Engine vX · Ys · direction`.
+   - `BacktestVerdictPanel run={run}` (already handles missing/errored validation gracefully).
+   - The same Trade Summary grid currently in `BacktestResultsPanel` (winners/losers/avg winner/avg loser) — extracted into a tiny local helper or inlined.
+4. Only show the toggle for `status === 'complete'` rows; failed/active rows keep current behavior.
+5. Keep the row layout intact when collapsed — no visual regression.
 
-The end date looks correct only because Dec 31 happens to survive the shift visually, but it's also off by one (Dec 30 instead of Dec 31).
-
-## Fix
-
-1. Add a small local helper that parses `YYYY-MM-DD` as a **local** date (split on `-`, build with `new Date(y, m-1, d)`) so no timezone shift occurs.
-2. Use it for both start and end dates in the run history line.
-3. Also show the year on the start date when start/end years differ, so ranges like `Jan 1, 2024 – Dec 31, 2025` aren't ambiguous. When the years match, keep the compact form: `Jan 1 – Dec 31, 2025`.
-
-## Files
-
-- `src/components/backtesting/BacktestRunHistory.tsx` — add `parseYmdLocal()` helper, replace the date line with TZ-safe parsing and year-aware formatting.
+**Optional small refactor (only if clean):** extract the trade-summary grid out of `BacktestResultsPanel.tsx` into a shared `BacktestTradeSummary.tsx` so both the latest panel and the history expansion reuse it. Skip if it complicates the diff.
 
 ## Out of scope
-
-- The stored `start_date` / `end_date` values themselves are correct (the user's input was Jan 1 → Dec 31). No DB or edge-function change needed.
-- `BacktestConfigPanel`'s date inputs use native `<input type="date">` and are unaffected.
+- No schema changes, no migrations, no edge function edits.
+- No changes to the latest-run panel behavior.
+- No bulk expand/collapse, no deep-link to an expanded row.
