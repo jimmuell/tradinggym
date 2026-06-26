@@ -119,7 +119,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                 <div className="flex flex-col min-w-0 flex-1 basis-40">
                   <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
                   <span className="text-xs text-muted-foreground truncate">
-                    {run.timeframe} · {format(new Date(run.start_date), 'MMM d')} – {format(new Date(run.end_date), 'MMM d, yyyy')}
+                    {run.timeframe} · {formatRange(run.start_date, run.end_date)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
