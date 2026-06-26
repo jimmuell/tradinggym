@@ -2,6 +2,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+export type ValidationStatus = 'pass' | 'caution' | 'fail' | 'inconclusive' | 'info';
+
+export interface ValidationFinding {
+  key: string;
+  title: string;
+  status: ValidationStatus | string;
+  headline: string;
+  detail: string;
+  stat: number | null;
+}
+
+export interface ValidationRegimeStats {
+  n_trades: number;
+  expectancy: number;
+  win_rate: number;
+  net_profit: number;
+}
+
+export interface ValidationRegimeScheme {
+  trade_counts: Record<string, number>;
+  per_regime: Record<string, ValidationRegimeStats>;
+}
+
+export interface BacktestValidation {
+  overall: ValidationStatus | string;
+  summary: string;
+  findings: ValidationFinding[];
+  regimes: Record<string, ValidationRegimeScheme>;
+  skipped: string[];
+}
+
 export interface BacktestRun {
   id: string;
   user_id: string;
@@ -34,6 +65,8 @@ export interface BacktestRun {
   execution_time_ms: number | null;
   direction: string | null;
   commission_pct: number | null;
+  validation?: BacktestValidation | null;
+  validation_error?: string | null;
 }
 
 export interface NewBacktestRun {

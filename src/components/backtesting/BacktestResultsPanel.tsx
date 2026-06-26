@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import BacktestKpiCards from './BacktestKpiCards';
+import BacktestVerdictPanel from './BacktestVerdictPanel';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 
 interface Props {
@@ -88,6 +89,8 @@ export default function BacktestResultsPanel({ run, onRetry }: Props) {
         {run.execution_time_ms ? (run.execution_time_ms / 1000).toFixed(1) : '?'}s ·{' '}
         {run.direction || 'long_short'}
       </p>
+
+      <BacktestVerdictPanel run={run} />
 
       <Card>
         <CardHeader className="pb-2">
