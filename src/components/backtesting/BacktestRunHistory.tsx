@@ -136,7 +136,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                       <span className="flex flex-col min-w-0">
                         <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {run.timeframe} · {formatRange(run.start_date, run.end_date)}
+                          {run.timeframe} · {formatRange(run.start_date, run.end_date)} · Ran {format(new Date(run.created_at), 'MMM d, yyyy h:mm a')}
                         </span>
                       </span>
                     </button>
@@ -144,7 +144,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                     <div className="flex flex-col min-w-0 flex-1 basis-40 pl-6">
                       <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
                       <span className="text-xs text-muted-foreground truncate">
-                        {run.timeframe} · {formatRange(run.start_date, run.end_date)}
+                        {run.timeframe} · {formatRange(run.start_date, run.end_date)} · Ran {format(new Date(run.created_at), 'MMM d, yyyy h:mm a')}
                       </span>
                     </div>
                   )}
