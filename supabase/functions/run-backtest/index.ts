@@ -160,6 +160,12 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
       ?.join("\n")
       ?.replace(/```python\n?/g, "")
       ?.replace(/```\n?/g, "")
+      ?.trim()
+      // Defensive: strip any import/from-import lines Claude may emit despite the system prompt.
+      // The engine sandbox rejects them with "Disallowed syntax: Import".
+      ?.split("\n")
+      ?.filter((line: string) => !/^\s*(import\s+|from\s+\S+\s+import\s+)/.test(line))
+      ?.join("\n")
       ?.trim();
 
     if (!signalCode) {
