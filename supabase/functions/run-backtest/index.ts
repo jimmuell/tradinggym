@@ -110,7 +110,7 @@ RULES:
 6. Return ONLY the executable Python code, no markdown fences, no explanations
 7. The code will be executed with exec() where df is already defined
 8. Use .fillna(False) on all boolean columns to avoid NaN issues
-9. For time-based filters (like ORB), use df.index which is a pandas DatetimeIndex. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
+9. For time-based filters (like ORB), use df.index which is already normalized to a timezone-aware pandas DatetimeIndex before your code runs. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
 
     const userPrompt = `Generate signal code for this trading strategy configuration:
 
@@ -155,7 +155,7 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
     }
 
     const claudeData = await claudeResponse.json();
-    const signalCode = claudeData.content
+    const generatedSignalCode = claudeData.content
       ?.filter((block: { type: string }) => block.type === "text")
       ?.map((block: { text: string }) => block.text)
       ?.join("\n")
@@ -169,7 +169,7 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
       ?.join("\n")
       ?.trim();
 
-    if (!signalCode) {
+    if (!generatedSignalCode) {
       await supabase
         .from("backtest_runs")
         .update({
@@ -183,6 +183,13 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Defensive timezone normalization: the engine can provide tz-naive timestamps.
+    // Generated strategies commonly call df.index.tz_convert('US/Eastern'), which
+    // raises unless the index is first localized. Assume tz-naive engine data is UTC.
+    const timezoneGuard = `if isinstance(df.index, pd.DatetimeIndex) and df.index.tz is None:
+    df.index = df.index.tz_localize('UTC')`;
+    const signalCode = `${timezoneGuard}\n\n${generatedSignalCode}`;
 
     // --- Step 4: Call Engine API ---
     // Validation budget: read from the request, falling back to today's defaults
