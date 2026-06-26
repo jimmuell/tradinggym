@@ -48,6 +48,17 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
               <Skeleton key={i} className="h-20" />
             ))}
           </div>
+          {onCancel && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+              disabled={isCanceling}
+              className="gap-2"
+            >
+              {isCanceling ? 'Canceling…' : 'Cancel job'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
