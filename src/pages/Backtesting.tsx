@@ -9,6 +9,7 @@ import { useRunBacktest } from '@/hooks/useRunBacktest';
 export default function Backtesting() {
   const { runs } = useBacktestRuns();
   const runBacktest = useRunBacktest();
+  const cancelRun = useCancelBacktestRun();
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
 
   const latest = runs[0] ?? null;
