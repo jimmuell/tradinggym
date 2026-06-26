@@ -116,6 +116,20 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           </div>
         </div>
 
+        <div className="flex justify-end -mt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={applyQuickTestWeek}
+            disabled={isStarter}
+            className="gap-1.5"
+          >
+            <CalendarRange className="h-3.5 w-3.5" />
+            Quick test (1 week)
+          </Button>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label>Initial Balance ($)</Label>
