@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -23,7 +25,16 @@ export interface BacktestConfig {
   commissionPct: number;
   direction: 'long_short' | 'long_only';
   timeframe: string;
+  runValidation: boolean;
+  validationIterations: number;
 }
+
+const ITERATION_STOPS = [
+  { value: 500,   label: '500',    hint: '≈2.8s' },
+  { value: 2000,  label: '2,000',  hint: '≈3.2s' },
+  { value: 10000, label: '10,000', hint: '≈6.1s' },
+] as const;
+const VALIDATION_ITERATIONS_DEFAULT = 2000;
 
 interface Props {
   onRun: (config: BacktestConfig) => void;
@@ -50,6 +61,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [initialBalance, setInitialBalance] = useState(10000);
   const [commissionPct, setCommissionPct] = useState(0.1);
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
+  const [runValidation, setRunValidation] = useState(true);
+  const [validationIterations, setValidationIterations] = useState(VALIDATION_ITERATIONS_DEFAULT);
+  const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const applyQuickTestWeek = () => {
     const today = new Date();
@@ -77,6 +91,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       commissionPct,
       direction,
       timeframe: '5min',
+      runValidation,
+      validationIterations,
     });
   };
 
@@ -170,6 +186,44 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           <div className="space-y-2">
             <Label>Timeframe</Label>
             <Input value="5-min" disabled className="tabular-nums" />
+          </div>
+        </div>
+
+        <div className="space-y-3 rounded-lg border border-border p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="run-validation">Statistical validation</Label>
+              <p className="text-xs text-muted-foreground">
+                Run the engine's honest validation layer on the results.
+              </p>
+            </div>
+            <Switch
+              id="run-validation"
+              checked={runValidation}
+              onCheckedChange={setRunValidation}
+              disabled={isStarter}
+            />
+          </div>
+
+          <div className={runValidation ? '' : 'opacity-50 pointer-events-none'}>
+            <div className="space-y-2 pt-1">
+              <Label className="text-xs">Iterations</Label>
+              <Slider
+                min={0}
+                max={ITERATION_STOPS.length - 1}
+                step={1}
+                value={[sliderIndex]}
+                onValueChange={([i]) => setValidationIterations(ITERATION_STOPS[i].value)}
+                disabled={!runValidation || isStarter}
+              />
+              <div className="mt-1.5 flex justify-between text-[11px] text-muted-foreground tabular-nums">
+                {ITERATION_STOPS.map((s) => (
+                  <span key={s.value} className={s.value === validationIterations ? 'text-foreground font-medium' : ''}>
+                    {s.label} <span className="opacity-70">{s.hint}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

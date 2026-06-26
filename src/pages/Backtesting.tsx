@@ -42,6 +42,8 @@ export default function Backtesting() {
         max_trades_per_day: 10,
         direction: config.direction,
         commission_pct: config.commissionPct,
+        run_validation: config.runValidation,
+        validation_iterations: config.validationIterations,
       });
       toast.success('Backtest started — results will appear shortly');
     } catch (err) {
