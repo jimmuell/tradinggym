@@ -74,6 +74,7 @@ type ConfirmState =
 export default function BacktestRunHistory({ runs }: Props) {
   const deleteRun = useDeleteBacktestRun();
   const [confirm, setConfirm] = useState<ConfirmState>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (runs.length <= 1) return null;
   const previous = runs.slice(1, 11);
