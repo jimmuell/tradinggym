@@ -9,6 +9,8 @@ import type { BacktestRun } from '@/hooks/useBacktestRuns';
 interface Props {
   run: BacktestRun | null;
   onRetry?: () => void;
+  onCancel?: () => void;
+  isCanceling?: boolean;
 }
 
 function formatCurrency(n: number | null) {
@@ -17,7 +19,7 @@ function formatCurrency(n: number | null) {
   return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
 
-export default function BacktestResultsPanel({ run, onRetry }: Props) {
+export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceling }: Props) {
   if (!run) {
     return (
       <Card>
@@ -46,6 +48,17 @@ export default function BacktestResultsPanel({ run, onRetry }: Props) {
               <Skeleton key={i} className="h-20" />
             ))}
           </div>
+          {onCancel && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+              disabled={isCanceling}
+              className="gap-2"
+            >
+              {isCanceling ? 'Canceling…' : 'Cancel job'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );

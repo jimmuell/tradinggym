@@ -3,12 +3,13 @@ import { toast } from 'sonner';
 import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
-import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
   const { runs } = useBacktestRuns();
   const runBacktest = useRunBacktest();
+  const cancelRun = useCancelBacktestRun();
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
 
   const latest = runs[0] ?? null;
@@ -48,6 +49,15 @@ export default function Backtesting() {
     if (lastConfig) handleRun(lastConfig);
   };
 
+  const handleCancel = async () => {
+    try {
+      await cancelRun.mutateAsync(latest?.status === 'pending' || latest?.status === 'running' ? latest.id : undefined);
+      toast.success('Backtest canceled');
+    } catch (err) {
+      toast.error(`Cancel failed: ${(err as Error).message}`);
+    }
+  };
+
   return (
     <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-6 space-y-4 sm:space-y-6">
       <div>
@@ -64,7 +74,7 @@ export default function Backtesting() {
           monthlyRunCount={monthlyRunCount}
         />
         <div className="space-y-6">
-          <BacktestResultsPanel run={latest} onRetry={handleRetry} />
+          <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
           <BacktestRunHistory runs={runs} />
         </div>
       </div>
