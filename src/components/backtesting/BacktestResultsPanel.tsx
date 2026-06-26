@@ -1,4 +1,6 @@
-import { Beaker, AlertTriangle, RotateCw } from 'lucide-react';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { Beaker, AlertTriangle, RotateCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,7 @@ interface Props {
 
 
 export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceling }: Props) {
+  const [collapsed, setCollapsed] = useState(false);
   if (!run) {
     return (
       <Card>
@@ -84,29 +87,53 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
   }
 
   return (
-    <div className="space-y-4">
-      <BacktestKpiCards
-        netPnl={run.net_pnl}
-        winRate={run.win_rate}
-        profitFactor={run.profit_factor}
-        maxDrawdown={run.max_drawdown}
-        totalTrades={run.total_trades}
-      />
+    <Card>
+      <CardHeader className="pb-2">
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-expanded={!collapsed}
+          className="flex items-center gap-2 w-full text-left hover:text-foreground"
+        >
+          {collapsed ? (
+            <ChevronRight className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="size-4 text-muted-foreground" />
+          )}
+          <CardTitle className="text-sm flex-1">
+            Latest Run · {run.strategy_name}
+          </CardTitle>
+          <span className="text-xs text-muted-foreground font-normal">
+            {format(new Date(run.created_at), 'MMM d, yyyy · h:mm a')}
+          </span>
+        </button>
+      </CardHeader>
+      {!collapsed && (
+        <CardContent className="space-y-4">
+          <BacktestKpiCards
+            netPnl={run.net_pnl}
+            winRate={run.win_rate}
+            profitFactor={run.profit_factor}
+            maxDrawdown={run.max_drawdown}
+            totalTrades={run.total_trades}
+          />
 
-      <p className="text-xs text-muted-foreground">
-        Engine v{run.engine_version || '?'} ·{' '}
-        {run.execution_time_ms ? (run.execution_time_ms / 1000).toFixed(1) : '?'}s ·{' '}
-        {run.direction || 'long_short'}
-      </p>
+          <p className="text-xs text-muted-foreground">
+            Engine v{run.engine_version || '?'} ·{' '}
+            {run.execution_time_ms ? (run.execution_time_ms / 1000).toFixed(1) : '?'}s ·{' '}
+            {run.direction || 'long_short'}
+          </p>
 
-      <BacktestVerdictPanel run={run} />
+          <BacktestVerdictPanel run={run} />
 
-      <BacktestTradeSummary
-        wins={run.wins}
-        losses={run.losses}
-        avgWinner={run.avg_winner}
-        avgLoser={run.avg_loser}
-      />
-    </div>
+          <BacktestTradeSummary
+            wins={run.wins}
+            losses={run.losses}
+            avgWinner={run.avg_winner}
+            avgLoser={run.avg_loser}
+          />
+        </CardContent>
+      )}
+    </Card>
   );
 }
