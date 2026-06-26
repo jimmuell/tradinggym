@@ -49,7 +49,6 @@ The main endpoint. The edge function calls this with the strategy's signal code 
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `signal_code` | string | Yes | Python source code to execute. Must define the boolean columns `long_entry`, `long_exit`, `short_entry`, `short_exit`. |
-| `bars` / `config` | object | Yes | The engine's request bundle contains the date range, instrument, commission, direction, timeframe, etc. The current edge function sends these fields as a flattened config object (see §6.2). |
 | `direction` | string | Yes | `"long"`, `"short"`, or `"long_short"`. |
 | `initial_capital` | number | Yes | Starting equity in USD. |
 | `commission_pct` | number | Yes | Commission as a percentage (e.g. `0.1`). |
@@ -66,7 +65,7 @@ The main endpoint. The edge function calls this with the strategy's signal code 
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `status` | string | `"ok"` or `"error"`. |
+| `status` | string | `"error"` on failure (the edge function branches only on `status === "error"`). The exact success value is unverified — the caller treats any non-`"error"` response as success and reads `kpis`. |
 | `error` | string | Engine error message (often a Python traceback) when `status` is `"error"`. |
 | `engine_version` | string | Engine build identifier. |
 | `execution_time_ms` | number | Total wall time. |
@@ -144,6 +143,8 @@ Web App  ──▶  run-backtest Edge Function  ──▶  Database (backtest_ru
 5. Send `POST /run` to the engine with `signal_code`, config, and `x-api-key` header.
 6. Pass through `run_validation` / `validation_iterations` if provided; default to `true` / `2000`.
 7. Write the engine's response onto the `backtest_runs` row — including `validation`, `validation_error`, `run_validation`, `validation_iterations`, `ai_signal_code`, `engine_version`, and `execution_time_ms`.
+
+Note: the `backtest_runs` row's `status` column (`pending` → `running` → `complete` / `failed`) is the edge function's own lifecycle field, distinct from the engine response's `status` field in §3.2.
 
 ### 8.2 Current edge function payload
 
