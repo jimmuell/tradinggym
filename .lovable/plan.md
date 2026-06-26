@@ -1,44 +1,26 @@
-## Backtest Engine Documentation Spec
+## Problem
 
-Produce a single factual operator reference document for the backtest engine and align the `run-backtest` edge function with the documented auth contract.
+In `src/components/backtesting/BacktestRunHistory.tsx` line 108:
 
-### Deliverable
+```ts
+{format(new Date(run.start_date), 'MMM d')} – {format(new Date(run.end_date), 'MMM d, yyyy')}
+```
 
-`docs/BACKTEST_ENGINE_SPEC.md` — one file, no real secrets, no engine source code.
+`run.start_date` is a `YYYY-MM-DD` string (e.g. `2025-01-01`). `new Date("2025-01-01")` parses as **UTC midnight**, which renders as the previous day (Dec 31, 2024) in any negative-offset timezone. That's why the user sees `Dec 31 – Dec 30, 2025` instead of `Jan 1 – Dec 31, 2025`.
 
-### Document structure
+The end date looks correct only because Dec 31 happens to survive the shift visually, but it's also off by one (Dec 30 instead of Dec 31).
 
-1. **Ownership boundary (READ FIRST)** — engine is a separate repo (`github.com/jimmuell/mes-orb-strategy`, FastAPI, Python 3.12, Railway); fixes for `engine.py` / `server.py` belong there via Claude Code.
-2. **Identity & deployment** — repo, stack, Python version, Railway auto-deploy, maintenance path.
-3. **Environment secrets** — placeholders for `BACKTEST_ENGINE_URL` and `BACKTEST_ENGINE_API_KEY`.
-4. **API contract** — `GET /ping` health check; `POST /run` request/response, including `run_validation` / `validation_iterations`, auth behavior (503/401), `x-api-key` header.
-5. **Market & economics** — MES, $5/point, FirstRate 5-min bars, NET-of-commission P&L.
-6. **Historical data & timezone contract** — engine loads its own bars; date/timezone normalization is the engine's responsibility.
-7. **Signal code contract** — required `df` columns, allowed helpers, forbidden syntax.
-8. **Known soft spots** — regime dependency, useful filters, frozen $1/point engine copy.
-9. **Edge function responsibilities** — what the orchestrator does and does not do.
-10. **Troubleshooting boundary** — how to route errors based on traceback path.
-11. **Out of scope** — engine internals, frozen copy, UI details.
+## Fix
 
-### Alignment changes
+1. Add a small local helper that parses `YYYY-MM-DD` as a **local** date (split on `-`, build with `new Date(y, m-1, d)`) so no timezone shift occurs.
+2. Use it for both start and end dates in the run history line.
+3. Also show the year on the start date when start/end years differ, so ranges like `Jan 1, 2024 – Dec 31, 2025` aren't ambiguous. When the years match, keep the compact form: `Jan 1 – Dec 31, 2025`.
 
-- `supabase/functions/run-backtest/index.ts` — change `X-API-Key` header to `x-api-key` and redeploy.
+## Files
 
-### Sources used to build the doc
+- `src/components/backtesting/BacktestRunHistory.tsx` — add `parseYmdLocal()` helper, replace the date line with TZ-safe parsing and year-aware formatting.
 
-- Operator-provided factual reference (this chat turn).
-- `supabase/functions/run-backtest/index.ts`.
-- `src/hooks/useBacktestRuns.ts`.
-- `src/hooks/useRunBacktest.ts`.
+## Out of scope
 
-### Non-goals
-
-- No engine source code changes.
-- No engine bug workarounds in the edge function.
-- No real secrets in the document.
-
-### Status
-- Document rewritten with operator-provided facts.
-- Edge function auth header aligned to `x-api-key` and redeployed.
-- Build passes.
-- Changelog updated.
+- The stored `start_date` / `end_date` values themselves are correct (the user's input was Jan 1 → Dec 31). No DB or edge-function change needed.
+- `BacktestConfigPanel`'s date inputs use native `<input type="date">` and are unaffected.

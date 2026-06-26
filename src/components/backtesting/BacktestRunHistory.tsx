@@ -18,6 +18,20 @@ import {
 import { cn } from '@/lib/utils';
 import { useDeleteBacktestRun, type BacktestRun } from '@/hooks/useBacktestRuns';
 
+/** Parse a YYYY-MM-DD string as a local date (no UTC timezone shift). */
+function parseYmdLocal(ymd: string): Date {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+function formatRange(startYmd: string, endYmd: string): string {
+  const start = parseYmdLocal(startYmd);
+  const end = parseYmdLocal(endYmd);
+  const sameYear = start.getFullYear() === end.getFullYear();
+  const startFmt = sameYear ? format(start, 'MMM d') : format(start, 'MMM d, yyyy');
+  return `${startFmt} – ${format(end, 'MMM d, yyyy')}`;
+}
+
 interface Props {
   runs: BacktestRun[];
 }
@@ -105,7 +119,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                 <div className="flex flex-col min-w-0 flex-1 basis-40">
                   <span className="font-medium text-foreground truncate">{run.strategy_name}</span>
                   <span className="text-xs text-muted-foreground truncate">
-                    {run.timeframe} · {format(new Date(run.start_date), 'MMM d')} – {format(new Date(run.end_date), 'MMM d, yyyy')}
+                    {run.timeframe} · {formatRange(run.start_date, run.end_date)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
