@@ -18,6 +18,7 @@ interface Props {
 
 
 export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceling }: Props) {
+  const [collapsed, setCollapsed] = useState(false);
   if (!run) {
     return (
       <Card>
