@@ -14,11 +14,6 @@ interface Props {
   isCanceling?: boolean;
 }
 
-function formatCurrency(n: number | null) {
-  if (n === null || n === undefined) return '—';
-  const sign = n >= 0 ? '+' : '-';
-  return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
-}
 
 export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceling }: Props) {
   if (!run) {
