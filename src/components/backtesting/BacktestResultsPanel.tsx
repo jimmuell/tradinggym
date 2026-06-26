@@ -1,4 +1,6 @@
-import { Beaker, AlertTriangle, RotateCw } from 'lucide-react';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { Beaker, AlertTriangle, RotateCw, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
