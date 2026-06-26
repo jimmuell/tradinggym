@@ -9,7 +9,6 @@ import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
-
 export default function Backtesting() {
   const navigate = useNavigate();
   const { runs } = useBacktestRuns();
