@@ -17,6 +17,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useDeleteBacktestRun, type BacktestRun } from '@/hooks/useBacktestRuns';
+import BacktestKpiCards from './BacktestKpiCards';
+import BacktestVerdictPanel from './BacktestVerdictPanel';
+import BacktestTradeSummary from './BacktestTradeSummary';
 
 /** Parse a YYYY-MM-DD string as a local date (no UTC timezone shift). */
 function parseYmdLocal(ymd: string): Date {
