@@ -19,7 +19,8 @@ serve(async (req) => {
   let supabaseForCleanup: ReturnType<typeof createClient> | null = null;
 
   try {
-    const { run_id } = await req.json();
+    const body = await req.json();
+    const { run_id } = body;
     if (!run_id) {
       return new Response(JSON.stringify({ error: "run_id is required" }), {
         status: 400,
@@ -177,6 +178,15 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
     }
 
     // --- Step 4: Call Engine API ---
+    // Validation budget: read from the request, falling back to today's defaults
+    // (so callers that omit it — e.g. the current UI — behave identically).
+    // run_validation: default true (unchanged behavior if caller omits it)
+    const runValidation = body.run_validation ?? true;
+    // validation_iterations: default 2000, clamped to the engine's accepted range
+    // (defense-in-depth — never forward an out-of-range value to the engine)
+    const rawIters = body.validation_iterations ?? 2000;
+    const validationIterations = Math.min(20000, Math.max(100, Math.trunc(rawIters)));
+
     const engineResponse = await fetch(`${engineUrl}/run`, {
       method: "POST",
       headers: {
@@ -194,10 +204,11 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
         take_profit_pct: 0,
         qty_type: "fixed",
         qty_value: 1.0,
-        // Ask the engine for its honest validation verdict (engine defaults
-        // true; set explicitly). Keep iterations modest so /run stays responsive.
-        run_validation: true,
-        validation_iterations: 2000,
+        // Ask the engine for its honest validation verdict. Budget read from the
+        // request with fallback to defaults (see above); kept modest so /run
+        // stays responsive.
+        run_validation: runValidation,
+        validation_iterations: validationIterations,
       }),
     });
 
@@ -256,6 +267,8 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
         equity_curve: engineData.equity_curve || [],
         validation: engineData.validation ?? null,
         validation_error: engineData.validation_error ?? null,
+        run_validation: runValidation,
+        validation_iterations: validationIterations,
         ai_signal_code: signalCode,
         engine_version: engineData.engine_version,
         execution_time_ms: engineData.execution_time_ms,
