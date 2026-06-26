@@ -149,3 +149,27 @@ export function useDeleteBacktestRun() {
     },
   });
 }
+
+export function useCancelBacktestRun() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (runId?: string) => {
+      if (!user?.id) throw new Error('Not authenticated');
+      const query = supabase
+        .from('backtest_runs')
+        .update({
+          status: 'failed',
+          error_message: 'Canceled by user',
+        } as never)
+        .eq('user_id', user.id)
+        .in('status', ['pending', 'running']);
+      const { error } = runId ? await query.eq('id', runId) : await query;
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['backtest_runs', user?.id] });
+    },
+  });
+}
