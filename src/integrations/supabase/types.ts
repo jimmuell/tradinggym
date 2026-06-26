@@ -65,6 +65,7 @@ export type Database = {
           net_pnl: number | null
           profit_factor: number | null
           results_detail: Json | null
+          run_validation: boolean
           start_date: string
           status: string
           stop_loss_ticks: number
@@ -75,6 +76,9 @@ export type Database = {
           timeframe: string
           total_trades: number | null
           user_id: string
+          validation: Json | null
+          validation_error: string | null
+          validation_iterations: number
           win_rate: number | null
           wins: number | null
         }
@@ -98,6 +102,7 @@ export type Database = {
           net_pnl?: number | null
           profit_factor?: number | null
           results_detail?: Json | null
+          run_validation?: boolean
           start_date: string
           status?: string
           stop_loss_ticks?: number
@@ -108,6 +113,9 @@ export type Database = {
           timeframe: string
           total_trades?: number | null
           user_id: string
+          validation?: Json | null
+          validation_error?: string | null
+          validation_iterations?: number
           win_rate?: number | null
           wins?: number | null
         }
@@ -131,6 +139,7 @@ export type Database = {
           net_pnl?: number | null
           profit_factor?: number | null
           results_detail?: Json | null
+          run_validation?: boolean
           start_date?: string
           status?: string
           stop_loss_ticks?: number
@@ -141,6 +150,9 @@ export type Database = {
           timeframe?: string
           total_trades?: number | null
           user_id?: string
+          validation?: Json | null
+          validation_error?: string | null
+          validation_iterations?: number
           win_rate?: number | null
           wins?: number | null
         }
