@@ -1,6 +1,6 @@
 ## Backtest Engine Documentation Spec
 
-Produce a single self-contained markdown file that explains the backtest engine as a separate project/service, its API contract, and its integration with the web app. This document is for AI agents and future maintainers.
+Produce a single factual operator reference document for the backtest engine and align the `run-backtest` edge function with the documented auth contract.
 
 ### Deliverable
 
@@ -8,31 +8,37 @@ Produce a single self-contained markdown file that explains the backtest engine 
 
 ### Document structure
 
-1. **Ownership boundary** — engine is a separate repo (`github.com/jimmuell/mes-orb-strategy`) deployed on Railway (FastAPI, Python 3.12, auto-deploy from main). Engine bugs are fixed in the engine repo, not in the edge function.
-2. **Environment secrets** — placeholders for `BACKTEST_ENGINE_URL` and `BACKTEST_ENGINE_API_KEY`.
-3. **API shape** — `POST /run` and `GET /ping`.
-4. **Request/response contract** — all fields including `run_validation` and `validation_iterations`.
-5. **Signal code contract** — required `df` columns, allowed helpers, forbidden syntax, timezone rules.
-6. **Market spec** — MES, $5/point, ES/MES bars.
-7. **Data loading** — 18yr FirstRate 5-min bars, UTC-aware index, date bounds must be normalized.
-8. **Orchestration flow** — how the edge function coordinates database → Claude → engine → database.
-9. **Troubleshooting boundary** — which errors belong to the engine vs the edge function.
-10. **Out of scope** — internal engine implementation, UI details.
+1. **Ownership boundary (READ FIRST)** — engine is a separate repo (`github.com/jimmuell/mes-orb-strategy`, FastAPI, Python 3.12, Railway); fixes for `engine.py` / `server.py` belong there via Claude Code.
+2. **Identity & deployment** — repo, stack, Python version, Railway auto-deploy, maintenance path.
+3. **Environment secrets** — placeholders for `BACKTEST_ENGINE_URL` and `BACKTEST_ENGINE_API_KEY`.
+4. **API contract** — `GET /ping` health check; `POST /run` request/response, including `run_validation` / `validation_iterations`, auth behavior (503/401), `x-api-key` header.
+5. **Market & economics** — MES, $5/point, FirstRate 5-min bars, NET-of-commission P&L.
+6. **Historical data & timezone contract** — engine loads its own bars; date/timezone normalization is the engine's responsibility.
+7. **Signal code contract** — required `df` columns, allowed helpers, forbidden syntax.
+8. **Known soft spots** — regime dependency, useful filters, frozen $1/point engine copy.
+9. **Edge function responsibilities** — what the orchestrator does and does not do.
+10. **Troubleshooting boundary** — how to route errors based on traceback path.
+11. **Out of scope** — engine internals, frozen copy, UI details.
+
+### Alignment changes
+
+- `supabase/functions/run-backtest/index.ts` — change `X-API-Key` header to `x-api-key` and redeploy.
 
 ### Sources used to build the doc
 
-- `supabase/functions/run-backtest/index.ts`
-- `src/hooks/useBacktestRuns.ts`
-- `src/hooks/useRunBacktest.ts`
-- Chat history about engine ownership, deployment, and data source.
+- Operator-provided factual reference (this chat turn).
+- `supabase/functions/run-backtest/index.ts`.
+- `src/hooks/useBacktestRuns.ts`.
+- `src/hooks/useRunBacktest.ts`.
 
-### Non-goals for this task
+### Non-goals
 
 - No engine source code changes.
-- No edge function redeploys.
+- No engine bug workarounds in the edge function.
 - No real secrets in the document.
 
 ### Status
-- Document created.
-- Build error from `useBacktestRuns.ts` casts fixed.
+- Document rewritten with operator-provided facts.
+- Edge function auth header aligned to `x-api-key` and redeployed.
+- Build passes.
 - Changelog updated.
