@@ -74,7 +74,7 @@ export default function Backtesting() {
           monthlyRunCount={monthlyRunCount}
         />
         <div className="space-y-6">
-          <BacktestResultsPanel run={latest} onRetry={handleRetry} />
+          <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
           <BacktestRunHistory runs={runs} />
         </div>
       </div>
