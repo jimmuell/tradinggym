@@ -19,7 +19,7 @@ function formatCurrency(n: number | null) {
   return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
 
-export default function BacktestResultsPanel({ run, onRetry }: Props) {
+export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceling }: Props) {
   if (!run) {
     return (
       <Card>
