@@ -29,8 +29,11 @@ export interface BacktestConfig {
   validationIterations: number;
 }
 
-const VALIDATION_ITERATIONS_MIN = 100;
-const VALIDATION_ITERATIONS_MAX = 20000;
+const ITERATION_STOPS = [
+  { value: 500,   label: '500',    hint: '≈2.8s' },
+  { value: 2000,  label: '2,000',  hint: '≈3.2s' },
+  { value: 10000, label: '10,000', hint: '≈6.1s' },
+] as const;
 const VALIDATION_ITERATIONS_DEFAULT = 2000;
 
 interface Props {
@@ -60,6 +63,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
   const [runValidation, setRunValidation] = useState(true);
   const [validationIterations, setValidationIterations] = useState(VALIDATION_ITERATIONS_DEFAULT);
+  const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const applyQuickTestWeek = () => {
     const today = new Date();
@@ -203,24 +207,22 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
           <div className={runValidation ? '' : 'opacity-50 pointer-events-none'}>
             <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between">
-                <Label>Validation iterations</Label>
-                <span className="text-sm tabular-nums text-muted-foreground">
-                  {validationIterations.toLocaleString()}
-                </span>
-              </div>
+              <Label className="text-xs">Iterations</Label>
               <Slider
-                value={[validationIterations]}
-                onValueChange={([v]) => setValidationIterations(v)}
-                min={VALIDATION_ITERATIONS_MIN}
-                max={VALIDATION_ITERATIONS_MAX}
-                step={100}
+                min={0}
+                max={ITERATION_STOPS.length - 1}
+                step={1}
+                value={[sliderIndex]}
+                onValueChange={([i]) => setValidationIterations(ITERATION_STOPS[i].value)}
                 disabled={!runValidation || isStarter}
               />
-              <p className="text-xs text-muted-foreground">
-                Higher is more thorough but slower ({VALIDATION_ITERATIONS_MIN.toLocaleString()}–
-                {VALIDATION_ITERATIONS_MAX.toLocaleString()}).
-              </p>
+              <div className="mt-1.5 flex justify-between text-[11px] text-muted-foreground tabular-nums">
+                {ITERATION_STOPS.map((s) => (
+                  <span key={s.value} className={s.value === validationIterations ? 'text-foreground font-medium' : ''}>
+                    {s.label} <span className="opacity-70">{s.hint}</span>
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
