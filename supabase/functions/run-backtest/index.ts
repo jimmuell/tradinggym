@@ -230,7 +230,7 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": engineApiKey,
+        "x-api-key": engineApiKey,
       },
       body: JSON.stringify({
         signal_code: signalCode,
