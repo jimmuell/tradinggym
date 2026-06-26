@@ -106,31 +106,12 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
 
       <BacktestVerdictPanel run={run} />
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Trade Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">Winning Trades</p>
-              <p className="text-base sm:text-lg font-semibold tabular-nums text-emerald-500 truncate">{run.wins ?? 0}</p>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">Losing Trades</p>
-              <p className="text-base sm:text-lg font-semibold tabular-nums text-red-500 truncate">{run.losses ?? 0}</p>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">Avg Winner</p>
-              <p className="text-base sm:text-lg font-semibold tabular-nums text-emerald-500 truncate" title={formatCurrency(run.avg_winner)}>{formatCurrency(run.avg_winner)}</p>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">Avg Loser</p>
-              <p className="text-base sm:text-lg font-semibold tabular-nums text-red-500 truncate" title={formatCurrency(run.avg_loser)}>{formatCurrency(run.avg_loser)}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <BacktestTradeSummary
+        wins={run.wins}
+        losses={run.losses}
+        avgWinner={run.avg_winner}
+        avgLoser={run.avg_loser}
+      />
     </div>
   );
 }
