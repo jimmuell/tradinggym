@@ -201,7 +201,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             />
           </div>
 
-          {runValidation && (
+          <div className={runValidation ? '' : 'opacity-50 pointer-events-none'}>
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
                 <Label>Validation iterations</Label>
@@ -215,14 +215,14 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
                 min={VALIDATION_ITERATIONS_MIN}
                 max={VALIDATION_ITERATIONS_MAX}
                 step={100}
-                disabled={isStarter}
+                disabled={!runValidation || isStarter}
               />
               <p className="text-xs text-muted-foreground">
                 Higher is more thorough but slower ({VALIDATION_ITERATIONS_MIN.toLocaleString()}–
                 {VALIDATION_ITERATIONS_MAX.toLocaleString()}).
               </p>
             </div>
-          )}
+          </div>
         </div>
 
         {isPro && (
