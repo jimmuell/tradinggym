@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Loader2, Play, Sparkles } from 'lucide-react';
+import { CalendarRange, Lock, Loader2, Play, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
