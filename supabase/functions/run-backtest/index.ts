@@ -10,6 +10,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const toEngineUtcDateBound = (value: unknown, boundary: "start" | "end") => {
+  if (typeof value !== "string" || !value.trim()) return value;
+
+  const trimmed = value.trim();
+
+  // DB date fields arrive as YYYY-MM-DD. Send explicit UTC bounds so the
+  // engine compares tz-aware data_first timestamps against tz-aware config dates.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return boundary === "start"
+      ? `${trimmed}T00:00:00Z`
+      : `${trimmed}T23:59:59Z`;
+  }
+
+  // If a timestamp is already timezone-qualified, keep it as-is.
+  if (/(Z|[+-]\d{2}:?\d{2})$/.test(trimmed)) return trimmed;
+
+  // Otherwise make timestamp-like values explicitly UTC without changing wall time.
+  if (/^\d{4}-\d{2}-\d{2}T/.test(trimmed)) return `${trimmed}Z`;
+
+  return trimmed;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -201,6 +223,9 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
     const rawIters = body.validation_iterations ?? 2000;
     const validationIterations = Math.min(20000, Math.max(100, Math.trunc(rawIters)));
 
+    const engineStartDate = toEngineUtcDateBound(run.start_date, "start");
+    const engineEndDate = toEngineUtcDateBound(run.end_date, "end");
+
     const engineResponse = await fetch(`${engineUrl}/run`, {
       method: "POST",
       headers: {
@@ -212,8 +237,8 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
         direction: run.direction || "long_short",
         initial_capital: run.initial_balance || 10000,
         commission_pct: run.commission_pct || 0.1,
-        start_date: run.start_date,
-        end_date: run.end_date,
+        start_date: engineStartDate,
+        end_date: engineEndDate,
         stop_loss_pct: 0,
         take_profit_pct: 0,
         qty_type: "fixed",
