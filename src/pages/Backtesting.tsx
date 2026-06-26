@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
-import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
