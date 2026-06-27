@@ -27,6 +27,9 @@ export interface BacktestConfig {
   timeframe: string;
   runValidation: boolean;
   validationIterations: number;
+  stopLossPct: number;
+  takeProfitPct: number;
+  qtyValue: number;
 }
 
 const ITERATION_STOPS = [
@@ -63,6 +66,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
   const [runValidation, setRunValidation] = useState(true);
   const [validationIterations, setValidationIterations] = useState(VALIDATION_ITERATIONS_DEFAULT);
+  const [stopLossPct, setStopLossPct] = useState(0);
+  const [takeProfitPct, setTakeProfitPct] = useState(0);
+  const [qtyValue, setQtyValue] = useState(1);
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const applyQuickTestWeek = () => {
@@ -93,6 +99,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       timeframe: '5min',
       runValidation,
       validationIterations,
+      stopLossPct,
+      takeProfitPct,
+      qtyValue,
     });
   };
 
@@ -186,6 +195,38 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           <div className="space-y-2">
             <Label>Timeframe</Label>
             <Input value="5-min" disabled className="tabular-nums" />
+          </div>
+        </div>
+
+        <div className="space-y-3 rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <Label>Risk & execution</Label>
+            <p className="text-xs text-muted-foreground">
+              Engine-level exits and size. Leave stop/target at 0 to let the strategy handle its own exits.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="stop-loss-pct" className="text-xs">Stop loss (% from entry)</Label>
+              <Input id="stop-loss-pct" type="number" min={0} max={100} step={0.1}
+                value={stopLossPct}
+                onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
+                disabled={isStarter} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="take-profit-pct" className="text-xs">Take profit (% from entry)</Label>
+              <Input id="take-profit-pct" type="number" min={0} step={0.1}
+                value={takeProfitPct}
+                onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
+                disabled={isStarter} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="qty-value" className="text-xs">Position size (contracts)</Label>
+            <Input id="qty-value" type="number" min={1} step={1}
+              value={qtyValue}
+              onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
+              disabled={isStarter} />
           </div>
         </div>
 

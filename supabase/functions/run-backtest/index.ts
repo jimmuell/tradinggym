@@ -239,10 +239,10 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
         commission_pct: run.commission_pct || 0.1,
         start_date: engineStartDate,
         end_date: engineEndDate,
-        stop_loss_pct: 0,
-        take_profit_pct: 0,
+        stop_loss_pct: run.stop_loss_pct ?? 0,
+        take_profit_pct: run.take_profit_pct ?? 0,
         qty_type: "fixed",
-        qty_value: 1.0,
+        qty_value: run.qty_value ?? 1,
         // Ask the engine for its honest validation verdict. Budget read from the
         // request with fallback to defaults (see above); kept modest so /run
         // stays responsive.

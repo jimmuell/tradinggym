@@ -84,6 +84,9 @@ export interface NewBacktestRun {
   commission_pct?: number;
   run_validation?: boolean;
   validation_iterations?: number;
+  stop_loss_pct?: number;
+  take_profit_pct?: number;
+  qty_value?: number;
 }
 
 export function useBacktestRuns() {
