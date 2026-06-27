@@ -30,6 +30,7 @@ export interface BacktestConfig {
   stopLossPct: number;
   takeProfitPct: number;
   qtyValue: number;
+  forceRegenerate: boolean;
 }
 
 const ITERATION_STOPS = [
@@ -49,7 +50,7 @@ const PRO_MONTHLY_LIMIT = 5;
 
 export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount }: Props) {
   const navigate = useNavigate();
-  const { planState } = useTier();
+  const { planState, isAdmin } = useTier();
   const { strategies, isLoading } = useStrategies();
 
   const isStarter = planState === 'starter';
@@ -69,6 +70,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [stopLossPct, setStopLossPct] = useState(0);
   const [takeProfitPct, setTakeProfitPct] = useState(0);
   const [qtyValue, setQtyValue] = useState(1);
+  const [forceRegenerate, setForceRegenerate] = useState(false);
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const applyQuickTestWeek = () => {
@@ -102,7 +104,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       stopLossPct,
       takeProfitPct,
       qtyValue,
+      forceRegenerate,
     });
+    // One-shot: forcing is a deliberate per-run action; don't let it persist into the next run.
+    if (forceRegenerate) setForceRegenerate(false);
   };
 
   return (
@@ -267,6 +272,24 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             </div>
           </div>
         </div>
+
+        {isAdmin && (
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border p-3">
+            <div className="space-y-0.5">
+              <Label htmlFor="force-regenerate">Force-regenerate signal</Label>
+              <p className="text-xs text-muted-foreground">
+                Admin only. Ignores the cached signal and regenerates it via Claude for this run,
+                then re-caches. Use after editing the system prompt or when a cached signal looks
+                wrong. Resets after each run.
+              </p>
+            </div>
+            <Switch
+              id="force-regenerate"
+              checked={forceRegenerate}
+              onCheckedChange={setForceRegenerate}
+            />
+          </div>
+        )}
 
         {isPro && (
           <p className="text-xs text-muted-foreground">
