@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.update_own_profile(p_display_name text, p_avatar_url text);
