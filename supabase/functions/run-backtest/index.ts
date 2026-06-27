@@ -78,6 +78,7 @@ const canonicalizeStrategyConfig = (
 };
 
 serve(async (req) => {
+console.log("DEPLOY_PROBE_20260627");
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
