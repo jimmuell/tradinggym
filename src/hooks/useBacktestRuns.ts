@@ -60,6 +60,7 @@ export interface BacktestRun {
   results_detail: Record<string, unknown> | null;
   equity_curve: Array<{ date: string; equity: number }> | null;
   ai_signal_code: string | null;
+  signal_hash?: string | null;
   error_message: string | null;
   engine_version: string | null;
   execution_time_ms: number | null;
