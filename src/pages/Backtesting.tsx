@@ -44,6 +44,9 @@ export default function Backtesting() {
         commission_pct: config.commissionPct,
         run_validation: config.runValidation,
         validation_iterations: config.validationIterations,
+        stop_loss_pct: config.stopLossPct,
+        take_profit_pct: config.takeProfitPct,
+        qty_value: config.qtyValue,
       });
       toast.success('Backtest started — results will appear shortly');
     } catch (err) {

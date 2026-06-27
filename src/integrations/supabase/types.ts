@@ -64,14 +64,17 @@ export type Database = {
           max_trades_per_day: number
           net_pnl: number | null
           profit_factor: number | null
+          qty_value: number
           results_detail: Json | null
           run_validation: boolean
           start_date: string
           status: string
+          stop_loss_pct: number
           stop_loss_ticks: number
           strategy_config: Json | null
           strategy_id: string | null
           strategy_name: string
+          take_profit_pct: number
           take_profit_ticks: number
           timeframe: string
           total_trades: number | null
@@ -101,14 +104,17 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
           start_date: string
           status?: string
+          stop_loss_pct?: number
           stop_loss_ticks?: number
           strategy_config?: Json | null
           strategy_id?: string | null
           strategy_name: string
+          take_profit_pct?: number
           take_profit_ticks?: number
           timeframe: string
           total_trades?: number | null
@@ -138,14 +144,17 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
           start_date?: string
           status?: string
+          stop_loss_pct?: number
           stop_loss_ticks?: number
           strategy_config?: Json | null
           strategy_id?: string | null
           strategy_name?: string
+          take_profit_pct?: number
           take_profit_ticks?: number
           timeframe?: string
           total_trades?: number | null
