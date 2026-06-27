@@ -1,6 +1,10 @@
 // Edge Function: run-backtest
 // Called by the web app after inserting a backtest_runs row with status='pending'
 // Orchestrates: read config → Claude AI generates signal code → Engine API runs backtest → write results
+//
+// DEPLOY NOTE: Edits made via VS Code + GitHub do NOT auto-deploy this function.
+// After pushing, ask the Lovable agent to "Redeploy run-backtest".
+// See docs/DEPLOY_WORKFLOW.md for the full workflow.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
