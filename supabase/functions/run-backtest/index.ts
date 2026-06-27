@@ -32,6 +32,47 @@ const toEngineUtcDateBound = (value: unknown, boundary: "start" | "end") => {
   return trimmed;
 };
 
+// Single source of truth for the generation model — used by BOTH the hash and the
+// Claude API call so they can never drift apart.
+const MODEL = "claude-sonnet-4-6";
+
+// Hash-scheme version. Bump only if the canonicalization algorithm below changes,
+// to force a clean cache break.
+const SIGNAL_CACHE_SCHEME = 1;
+
+const sha256Hex = async (input: string): Promise<string> => {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+// Deterministic JSON: recursively sort object keys so key order can never change the hash.
+const stableStringify = (value: unknown): string => {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  const obj = value as Record<string, unknown>;
+  return `{${Object.keys(obj)
+    .sort()
+    .map((k) => `${JSON.stringify(k)}:${stableStringify(obj[k])}`)
+    .join(",")}}`;
+};
+
+// Volatile / identity columns that must NOT affect the signal. Stripping these keeps
+// the hash stable across unrelated edits and prevents cache thrash.
+const VOLATILE_CONFIG_KEYS = new Set(["id", "user_id", "created_at", "updated_at"]);
+const canonicalizeStrategyConfig = (
+  cfg: Record<string, unknown>,
+): Record<string, unknown> => {
+  const out: Record<string, unknown> = {};
+  for (const k of Object.keys(cfg)) {
+    if (VOLATILE_CONFIG_KEYS.has(k)) continue;
+    out[k] = cfg[k];
+  }
+  return out;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -99,6 +140,10 @@ serve(async (req) => {
       }
     }
 
+    // Canonical generation input: drop volatile/identity fields so the signal — and
+    // its cache key — depend only on the trading logic, not on row identity/timestamps.
+    const canonicalConfig = canonicalizeStrategyConfig(strategyConfig);
+
     // --- Step 3: Call Claude API to generate signal code ---
     const systemPrompt = `You are a Python signal generator for a trading backtesting engine.
 
@@ -134,76 +179,134 @@ RULES:
 8. Use .fillna(False) on all boolean columns to avoid NaN issues
 9. For time-based filters (like ORB), use df.index which is already normalized to a timezone-aware pandas DatetimeIndex before your code runs. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
 
+    // IMPORTANT: feed ONLY the inputs that determine the signal. Date range, risk
+    // params (stop/take-profit/qty), balance, commission, and direction are applied by
+    // the engine downstream and are deliberately excluded — including them here is what
+    // made the signal look run-specific and blocked determinism.
     const userPrompt = `Generate signal code for this trading strategy configuration:
 
-Strategy Name: ${run.strategy_name}
 Timeframe: ${run.timeframe}
-Date Range: ${run.start_date} to ${run.end_date}
-Stop Loss (ticks): ${run.stop_loss_ticks}
-Take Profit (ticks): ${run.take_profit_ticks}
-Max Trades Per Day: ${run.max_trades_per_day}
 
 Full Strategy Config:
-${JSON.stringify(strategyConfig, null, 2)}`;
+${JSON.stringify(canonicalConfig, null, 2)}`;
 
-    const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": anthropicApiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 4096,
-        messages: [{ role: "user", content: userPrompt }],
-        system: systemPrompt,
+    // --- Signal cache: deterministic reuse keyed on generation inputs only ---
+    const promptFp = (await sha256Hex(systemPrompt)).slice(0, 16);
+    const signalHash = await sha256Hex(
+      stableStringify({
+        v: SIGNAL_CACHE_SCHEME,
+        model: MODEL,
+        prompt_fp: promptFp,
+        timeframe: run.timeframe ?? null,
+        cfg: canonicalConfig,
       }),
-    });
+    );
 
-    if (!claudeResponse.ok) {
-      const errorText = await claudeResponse.text();
-      await supabase
-        .from("backtest_runs")
-        .update({
-          status: "failed",
-          error_message: `Claude API error: ${claudeResponse.status} - ${errorText.substring(0, 500)}`,
-        })
-        .eq("id", run_id);
-      return new Response(JSON.stringify({ error: "AI signal generation failed" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const forceRegenerate = body.force_regenerate === true;
+    let generatedSignalCode: string | null = null;
+    let cacheStatus: "hit" | "miss" | "forced" = forceRegenerate ? "forced" : "miss";
+
+    if (!forceRegenerate) {
+      const { data: cached } = await supabase
+        .from("signal_cache")
+        .select("signal_code, hit_count")
+        .eq("hash", signalHash)
+        .maybeSingle();
+
+      if (cached?.signal_code) {
+        generatedSignalCode = cached.signal_code as string;
+        cacheStatus = "hit";
+        // Best-effort usage bump; never block the run on it.
+        try {
+          await supabase
+            .from("signal_cache")
+            .update({
+              last_used_at: new Date().toISOString(),
+              hit_count: ((cached.hit_count as number) ?? 0) + 1,
+            })
+            .eq("hash", signalHash);
+        } catch (_) { /* non-fatal */ }
+      }
     }
 
-    const claudeData = await claudeResponse.json();
-    const generatedSignalCode = claudeData.content
-      ?.filter((block: { type: string }) => block.type === "text")
-      ?.map((block: { text: string }) => block.text)
-      ?.join("\n")
-      ?.replace(/```python\n?/g, "")
-      ?.replace(/```\n?/g, "")
-      ?.trim()
-      // Defensive: strip any import/from-import lines Claude may emit despite the system prompt.
-      // The engine sandbox rejects them with "Disallowed syntax: Import".
-      ?.split("\n")
-      ?.filter((line: string) => !/^\s*(import\s+|from\s+\S+\s+import\s+)/.test(line))
-      ?.join("\n")
-      ?.trim();
-
-    if (!generatedSignalCode) {
-      await supabase
-        .from("backtest_runs")
-        .update({
-          status: "failed",
-          error_message: "Claude returned empty signal code",
-          ai_signal_code: JSON.stringify(claudeData.content),
-        })
-        .eq("id", run_id);
-      return new Response(JSON.stringify({ error: "Empty signal code" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    if (generatedSignalCode === null) {
+      const claudeResponse = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": anthropicApiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: 4096,
+          messages: [{ role: "user", content: userPrompt }],
+          system: systemPrompt,
+        }),
       });
+
+      if (!claudeResponse.ok) {
+        const errorText = await claudeResponse.text();
+        await supabase
+          .from("backtest_runs")
+          .update({
+            status: "failed",
+            error_message: `Claude API error: ${claudeResponse.status} - ${errorText.substring(0, 500)}`,
+          })
+          .eq("id", run_id);
+        return new Response(JSON.stringify({ error: "AI signal generation failed" }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const claudeData = await claudeResponse.json();
+      generatedSignalCode = claudeData.content
+        ?.filter((block: { type: string }) => block.type === "text")
+        ?.map((block: { text: string }) => block.text)
+        ?.join("\n")
+        ?.replace(/```python\n?/g, "")
+        ?.replace(/```\n?/g, "")
+        ?.trim()
+        // Defensive: strip any import/from-import lines Claude may emit despite the system prompt.
+        // The engine sandbox rejects them with "Disallowed syntax: Import".
+        ?.split("\n")
+        ?.filter((line: string) => !/^\s*(import\s+|from\s+\S+\s+import\s+)/.test(line))
+        ?.join("\n")
+        ?.trim();
+
+      if (!generatedSignalCode) {
+        await supabase
+          .from("backtest_runs")
+          .update({
+            status: "failed",
+            error_message: "Claude returned empty signal code",
+            ai_signal_code: JSON.stringify(claudeData.content),
+          })
+          .eq("id", run_id);
+        return new Response(JSON.stringify({ error: "Empty signal code" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Persist to the cache for reuse. onConflict overwrites on force-regenerate.
+      // Store the RAW code only — the timezone guard is re-applied at use time and is
+      // intentionally NOT part of the cached/hashed artifact.
+      try {
+        await supabase.from("signal_cache").upsert(
+          {
+            hash: signalHash,
+            signal_code: generatedSignalCode,
+            model: MODEL,
+            prompt_fp: promptFp,
+            timeframe: run.timeframe ?? null,
+            strategy_id: run.strategy_id ?? null,
+            last_used_at: new Date().toISOString(),
+          },
+          { onConflict: "hash" },
+        );
+      } catch (_) { /* cache write is non-fatal; the run still proceeds */ }
     }
 
     // Defensive timezone normalization: the engine can provide tz-naive timestamps.
@@ -212,6 +315,14 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
     const timezoneGuard = `if isinstance(df.index, pd.DatetimeIndex) and df.index.tz is None:
     df.index = df.index.tz_localize('UTC')`;
     const signalCode = `${timezoneGuard}\n\n${generatedSignalCode}`;
+
+    console.log("SIGNAL_CACHE", JSON.stringify({
+      run_id,
+      hash: signalHash,
+      status: cacheStatus,
+      model: MODEL,
+      prompt_fp: promptFp,
+    }));
 
     // --- Step 4: Call Engine API ---
     // Validation budget: read from the request, falling back to today's defaults
