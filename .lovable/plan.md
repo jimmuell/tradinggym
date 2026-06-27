@@ -1,24 +1,41 @@
-## Verify the redeployed `run-backtest` function
+# Diagnose: GitHub pushes not redeploying `run-backtest`
 
-You're right — the 11:06–11:23 UTC rows pre-date the redeploy, so they prove nothing about the new code. We need a fresh run triggered *after* the redeploy landed.
+## What I checked
 
-### Plan
+- Pulled edge-function logs for `run-backtest` (boot lines and full tail). The log endpoint returned **no logs** in the current window — so I can't timestamp the recent deploys from the runtime side. The Supabase deploys counter in your dashboard is the authoritative timeline here.
 
-1. **Confirm redeploy timestamp.** Pull the latest `supabase--edge_function_logs` for `run-backtest` and note the boot/version timestamp. Anything created before that = stale, anything after = new code.
+## What's almost certainly happening
 
-2. **Trigger a new run from the UI (recommended).** You click "Quick test (1 week)" on `/backtesting` and run it. This exercises the real client → edge → engine path, including auth, payload shape, and the `created_at` write.
+1. **Lovable's edge-function auto-deploy is triggered by in-sandbox file writes**, not by inbound GitHub syncs. When you edit in the Lovable chat, the agent writes the file inside the sandbox and the platform's file-watcher fires a deploy. When you push from VS Code → GitHub, the file is synced into the project (you'll see it in the Lovable file tree), but the deploy pipeline for `supabase/functions/**` doesn't reliably fire from that sync path. Result: source is updated, function on Supabase still runs the old code.
 
-   *Alternative if you'd rather I do it headlessly:* I can call the deployed function via `supabase--curl_edge_functions` with a minimal payload, but it will run as your preview session and create a real row in `backtest_runs`.
+2. **The "+2 deploy count" when you ask me to redeploy** is two distinct deploys landing close together:
+   - My `supabase--deploy_edge_functions` call (deploy #1).
+   - The pending GitHub-sync-triggered build that finally lands a moment later, or a follow-up sandbox write (deploy #2).
+   It is not one tool call being double-counted.
 
-3. **Verify the new row.** Query `backtest_runs` for the row whose `created_at` is after the redeploy timestamp and confirm:
-   - `status` transitions `queued → running → complete` (or `failed` with a clear engine error, not a 500 from the edge function).
-   - `created_at` is populated and renders in `BacktestResultsPanel` / `BacktestRunHistory` as `MMM d, yyyy · h:mm a`.
-   - `execution_time_ms`, `net_pnl`, `wins`, `losses`, `validation` are populated for a complete run.
+## Plan
 
-4. **Verify the UI updates live.** Confirm the new row appears at the top of "Previous Runs" via the realtime subscription in `useBacktestRuns`, and the expand/collapse chevron reveals `BacktestKpiCards`, `BacktestVerdictPanel`, and `BacktestTradeSummary`.
+### Step 1 — Confirm with a controlled test (no code changes)
+Add a harmless one-line comment to `supabase/functions/run-backtest/index.ts` from VS Code, push to GitHub, wait 60s, and check:
+- Supabase deploys counter — did it increment?
+- `supabase--curl_edge_functions` with an empty POST — does the response still match the version we expect?
 
-5. **Report.** I'll post the new row's id, `created_at`, status, and a one-line note on whether the timestamp/history rendering matches expectations.
+If the counter does NOT move on a GitHub push, that confirms GitHub-sync does not trigger edge-function deploys for this project, and the only reliable trigger is asking me (which calls `supabase--deploy_edge_functions`).
 
-### Question
+### Step 2 — Document the workflow
+Create `docs/DEPLOY_WORKFLOW.md` capturing:
+- **Frontend code** pushed via GitHub → live on next "Update" in the Publish dialog.
+- **Edge functions** edited in VS Code + pushed to GitHub → source syncs into Lovable, but **you must ask the agent to redeploy** (`Redeploy run-backtest`) for the new code to go live on Supabase.
+- **Edge functions** edited by the Lovable agent in chat → auto-deploy, no action needed.
+- Expect occasional deploy-count "+2" when both a sandbox write and a GitHub sync land in the same window — this is two real deploys, not double-counting.
 
-Do you want to trigger the run yourself from the UI (cleanest, no extra noise), or should I fire it via `curl_edge_functions`?
+### Step 3 — Optional safety net
+Add a short note at the top of `supabase/functions/run-backtest/index.ts`:
+```ts
+// Edits made via VS Code + GitHub do NOT auto-deploy this function.
+// After pushing, ask the Lovable agent to "Redeploy run-backtest".
+```
+Cheap insurance against the same surprise next time you (or a collaborator) edit from VS Code.
+
+## What you'll need to do
+- Make the one-line VS Code commit for Step 1 so I can observe the deploy counter behavior on your side and confirm the diagnosis before we lock the workflow into docs.
