@@ -1,39 +1,57 @@
 # Deploy Workflow
 
-How code changes reach production for this project, by surface.
+How code changes reach production for this project, by surface. This doc records
+**confirmed** behavior only — earlier speculation has been removed.
+
+## Confirmed deploy / apply triggers
+
+Only these are known to deploy code or apply migrations:
+
+1. **The Lovable agent edits a file in the sandbox.** Edge-function changes auto-deploy; migration files written through the agent are applied after approval.
+2. **The agent explicitly calls `supabase--deploy_edge_functions` (for functions) or `supabase--migration` (for schema changes).**
+
+Everything else — including a VS Code → GitHub push — must be treated as **source sync only**, not a deploy.
+
+## Edge functions (`supabase/functions/**`) — manual redeploy MANDATORY
+
+**Verdict:** A VS Code → GitHub push does **NOT** auto-deploy the function.
+
+**Evidence (2026-06-27):** A `console.log("DEPLOY_PROBE_20260627")` line was placed
+as the first statement in `run-backtest`'s `serve` handler and pushed to `main`.
+The string never appeared in the edge function logs across multiple invocations
+until the agent ran `supabase--deploy_edge_functions`. The function kept running
+the previously deployed code.
+
+**Rule:** After any push that touches `supabase/functions/**`, ask the agent:
+**"Redeploy `<function-name>`."** Then verify by tailing the function logs for a
+known marker from the new code.
+
+## Database migrations (`supabase/migrations/**`) — manual apply MANDATORY
+
+**Verdict:** A VS Code → GitHub push does **NOT** auto-apply the migration.
+
+**Evidence (2026-06-27):** `20260627160000_backtest_runs_signal_hash.sql` was
+merged to `main`, but `backtest_runs.signal_hash` did not exist in the live
+database until the migration was applied manually through the agent.
+
+**Rule:** After any push that touches `supabase/migrations/**`, ask the agent
+to apply it. Verify by querying the live schema (e.g., `information_schema.columns`
+or `supabase_migrations.schema_migrations`).
 
 ## Frontend (`src/**`, `index.html`, styles, etc.)
 
-- **Lovable chat edits** — written into the sandbox and shown in the live preview immediately. They go live on the public URL only when you click **Update** in the Publish dialog.
-- **VS Code → GitHub push** — syncs into the Lovable project automatically. Still requires **Update** in the Publish dialog to go live.
+- **Lovable agent edits** — visible in the preview immediately. Click **Update** in the Publish dialog to push to the public URL.
+- **VS Code → GitHub push** — syncs into the project. Still requires **Update** in the Publish dialog to go live.
 
-## Edge functions (`supabase/functions/**`)
+## Two deploys close together?
 
-The Supabase deploy pipeline runs in response to **in-sandbox file writes**, not inbound GitHub syncs.
-
-| How the function was edited | Auto-deploys to Supabase? | Action required |
-| --- | --- | --- |
-| Lovable agent edits in chat | ✅ Yes | None |
-| You edit in VS Code, push to GitHub | ⚠️ Source syncs into the project, but the function on Supabase keeps running the old code | Ask the Lovable agent: **"Redeploy `<function-name>`"** |
-| You ask the agent to redeploy | ✅ Yes (via `supabase--deploy_edge_functions`) | None |
-
-### Why the deploy counter sometimes jumps by 2
-
-When you push from VS Code and then immediately ask the agent to redeploy, you can see **two** deploys land close together:
-
-1. The agent's explicit `supabase--deploy_edge_functions` call.
-2. A second deploy triggered by the sandbox finishing the GitHub sync.
-
-These are two real deploys of the same source, not a double-counted single deploy. It is harmless — the second one is a no-op from the function's perspective.
-
-## Database migrations (`supabase/migrations/**`)
-
-- **Lovable chat edits** — migration runs against the project's database immediately.
-- **VS Code → GitHub push** — the migration file is synced into the project but is **not** auto-applied. Ask the agent to apply it.
+If you see two edge-function deploys land back-to-back, one of them is the
+agent's explicit `supabase--deploy_edge_functions` call. The second's cause is
+**unconfirmed** — but both deploy the same source, so it is harmless.
 
 ## Quick reference
 
-- Pushed an edge-function change from VS Code? → Ask: **"Redeploy `<function-name>`."**
+- Pushed an edge-function change from VS Code? → Ask: **"Redeploy `<function-name>`."** Verify via logs.
+- Pushed a migration from VS Code? → Ask the agent to apply it. Verify via a SQL check.
 - Pushed a frontend change from VS Code? → Click **Update** in the Publish dialog.
-- Pushed a migration from VS Code? → Ask the agent to apply it.
-- Edited anything through Lovable chat? → Nothing extra to do for backend; click **Update** for frontend.
+- Edited anything through the Lovable agent? → Backend is live; click **Update** for frontend.
