@@ -428,6 +428,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         run_validation: runValidation,
         validation_iterations: validationIterations,
         ai_signal_code: signalCode,
+        signal_hash: signalHash,
         engine_version: engineData.engine_version,
         execution_time_ms: engineData.execution_time_ms,
         error_message: null,
