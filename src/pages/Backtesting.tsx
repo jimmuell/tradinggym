@@ -7,6 +7,7 @@ import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesti
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
 import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel';
+import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
@@ -96,6 +97,7 @@ export default function Backtesting() {
         <div className="space-y-6">
           <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
           <BacktestComparePanel runs={runs} />
+          <BacktestOptimizePanel runs={runs} />
           <BacktestRunHistory runs={runs} />
         </div>
       </div>
