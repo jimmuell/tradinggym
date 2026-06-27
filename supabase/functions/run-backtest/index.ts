@@ -226,6 +226,14 @@ ${JSON.stringify(strategyConfig, null, 2)}`;
     const engineStartDate = toEngineUtcDateBound(run.start_date, "start");
     const engineEndDate = toEngineUtcDateBound(run.end_date, "end");
 
+    console.log("ENGINE_REQUEST_RISK", JSON.stringify({
+      run_id,
+      row_stop_loss_pct: run.stop_loss_pct,
+      sent_stop_loss_pct: run.stop_loss_pct ?? 0,
+      sent_take_profit_pct: run.take_profit_pct ?? 0,
+      sent_qty_value: run.qty_value ?? 1,
+    }));
+
     const engineResponse = await fetch(`${engineUrl}/run`, {
       method: "POST",
       headers: {
