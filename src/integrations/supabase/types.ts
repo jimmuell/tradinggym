@@ -1949,19 +1949,14 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_own_profile:
-        | {
-            Args: { p_avatar_url?: string; p_display_name?: string }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_avatar_url?: string
-              p_display_name?: string
-              p_risk_acknowledged_at?: string
-            }
-            Returns: undefined
-          }
+      update_own_profile: {
+        Args: {
+          p_avatar_url?: string
+          p_display_name?: string
+          p_risk_acknowledged_at?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
