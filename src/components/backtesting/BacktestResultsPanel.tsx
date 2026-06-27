@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import BacktestKpiCards from './BacktestKpiCards';
 import BacktestVerdictPanel from './BacktestVerdictPanel';
 import BacktestTradeSummary from './BacktestTradeSummary';
+import BacktestExplainPanel from './BacktestExplainPanel';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 
 interface Props {
@@ -132,6 +133,8 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
             avgWinner={run.avg_winner}
             avgLoser={run.avg_loser}
           />
+
+          <BacktestExplainPanel run={run} />
         </CardContent>
       )}
     </Card>
