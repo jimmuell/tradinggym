@@ -67,6 +67,7 @@ export type Database = {
           qty_value: number
           results_detail: Json | null
           run_validation: boolean
+          signal_hash: string | null
           start_date: string
           status: string
           stop_loss_pct: number
@@ -107,6 +108,7 @@ export type Database = {
           qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
+          signal_hash?: string | null
           start_date: string
           status?: string
           stop_loss_pct?: number
@@ -147,6 +149,7 @@ export type Database = {
           qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
+          signal_hash?: string | null
           start_date?: string
           status?: string
           stop_loss_pct?: number
