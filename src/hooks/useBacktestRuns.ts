@@ -66,6 +66,9 @@ export interface BacktestRun {
   execution_time_ms: number | null;
   direction: string | null;
   commission_pct: number | null;
+  stop_loss_pct?: number | null;
+  take_profit_pct?: number | null;
+  qty_value?: number | null;
   validation?: BacktestValidation | null;
   validation_error?: string | null;
 }

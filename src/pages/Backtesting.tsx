@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
+import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
@@ -94,6 +95,7 @@ export default function Backtesting() {
         />
         <div className="space-y-6">
           <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
+          <BacktestComparePanel runs={runs} />
           <BacktestRunHistory runs={runs} />
         </div>
       </div>
