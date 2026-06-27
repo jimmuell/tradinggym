@@ -1273,6 +1273,50 @@ export type Database = {
           },
         ]
       }
+      signal_cache: {
+        Row: {
+          created_at: string
+          hash: string
+          hit_count: number
+          last_used_at: string
+          model: string
+          prompt_fp: string
+          signal_code: string
+          strategy_id: string | null
+          timeframe: string | null
+        }
+        Insert: {
+          created_at?: string
+          hash: string
+          hit_count?: number
+          last_used_at?: string
+          model: string
+          prompt_fp: string
+          signal_code: string
+          strategy_id?: string | null
+          timeframe?: string | null
+        }
+        Update: {
+          created_at?: string
+          hash?: string
+          hit_count?: number
+          last_used_at?: string
+          model?: string
+          prompt_fp?: string
+          signal_code?: string
+          strategy_id?: string | null
+          timeframe?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signal_cache_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strategies: {
         Row: {
           atr_length: number | null
