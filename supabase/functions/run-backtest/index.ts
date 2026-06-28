@@ -341,13 +341,10 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
     const engineStartDate = toEngineUtcDateBound(run.start_date, "start");
     const engineEndDate = toEngineUtcDateBound(run.end_date, "end");
 
-    // Resolve stop unit: points stored on the row are converted to ticks for the engine.
-    // 4 ticks per point (MES). One stop unit per run is enforced upstream (Backtesting.tsx).
-    const TICKS_PER_POINT = 4;
-    const stopLossPoints = Number(run.stop_loss_points ?? 0);
-    const takeProfitPoints = Number(run.take_profit_points ?? 0);
-    const sentStopLossTicks = Math.round(stopLossPoints * TICKS_PER_POINT);
-    const sentTakeProfitTicks = Math.round(takeProfitPoints * TICKS_PER_POINT);
+    // Engine risk contract (v24+): points are sent as-is; no points↔ticks conversion.
+    // Engine fields: stop_loss_pct, take_profit_pct, stop_loss_points, take_profit_points, slippage_ticks.
+    const sentStopLossPoints = Number(run.stop_loss_points ?? 0);
+    const sentTakeProfitPoints = Number(run.take_profit_points ?? 0);
     const sentStopLossPct = Number(run.stop_loss_pct ?? 0);
     const sentTakeProfitPct = Number(run.take_profit_pct ?? 0);
     const sentSlippageTicks = Number(run.slippage_ticks ?? 0);
@@ -360,8 +357,8 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       row_slippage_ticks: run.slippage_ticks,
       sent_stop_loss_pct: sentStopLossPct,
       sent_take_profit_pct: sentTakeProfitPct,
-      sent_stop_loss_ticks: sentStopLossTicks,
-      sent_take_profit_ticks: sentTakeProfitTicks,
+      sent_stop_loss_points: sentStopLossPoints,
+      sent_take_profit_points: sentTakeProfitPoints,
       sent_slippage_ticks: sentSlippageTicks,
       sent_qty_value: run.qty_value ?? 1,
     }));
@@ -381,8 +378,8 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         end_date: engineEndDate,
         stop_loss_pct: sentStopLossPct,
         take_profit_pct: sentTakeProfitPct,
-        stop_loss_ticks: sentStopLossTicks,
-        take_profit_ticks: sentTakeProfitTicks,
+        stop_loss_points: sentStopLossPoints,
+        take_profit_points: sentTakeProfitPoints,
         slippage_ticks: sentSlippageTicks,
         qty_type: "fixed",
         qty_value: run.qty_value ?? 1,
@@ -393,6 +390,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         validation_iterations: validationIterations,
       }),
     });
+
 
     if (!engineResponse.ok) {
       const errorText = await engineResponse.text();
