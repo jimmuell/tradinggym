@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { pointsToTicks, pointsToDollars, ticksToDollars } from '@/lib/mesContract';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -30,6 +31,10 @@ export interface BacktestConfig {
   stopLossPct: number;
   takeProfitPct: number;
   qtyValue: number;
+  stopLossPoints: number;
+  takeProfitPoints: number;
+  slippageTicks: number;
+  stopUnit: 'pct' | 'points';
   forceRegenerate: boolean;
 }
 
@@ -70,6 +75,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [stopLossPct, setStopLossPct] = useState(0);
   const [takeProfitPct, setTakeProfitPct] = useState(0);
   const [qtyValue, setQtyValue] = useState(1);
+  const [stopLossPoints, setStopLossPoints] = useState(0);
+  const [takeProfitPoints, setTakeProfitPoints] = useState(0);
+  const [slippageTicks, setSlippageTicks] = useState(0);
+  const [stopUnit, setStopUnit] = useState<'pct' | 'points'>('pct');
   const [forceRegenerate, setForceRegenerate] = useState(false);
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
@@ -104,6 +113,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       stopLossPct,
       takeProfitPct,
       qtyValue,
+      stopLossPoints,
+      takeProfitPoints,
+      slippageTicks,
+      stopUnit,
       forceRegenerate,
     });
     // One-shot: forcing is a deliberate per-run action; don't let it persist into the next run.
@@ -210,28 +223,87 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
               Engine-level exits and size. Leave stop/target at 0 to let the strategy handle its own exits.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="stop-loss-pct" className="text-xs">Stop loss (% from entry)</Label>
-              <Input id="stop-loss-pct" type="number" min={0} max={100} step={0.1}
-                value={stopLossPct}
-                onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
-                disabled={isStarter} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="take-profit-pct" className="text-xs">Take profit (% from entry)</Label>
-              <Input id="take-profit-pct" type="number" min={0} step={0.1}
-                value={takeProfitPct}
-                onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
-                disabled={isStarter} />
-            </div>
+          {/* Stop/target unit toggle: % from entry OR points (mutually exclusive) */}
+          <div className="flex gap-1">
+            <Button type="button" size="sm"
+              variant={stopUnit === 'pct' ? 'default' : 'outline'}
+              onClick={() => setStopUnit('pct')}
+              disabled={isStarter} className="h-7 flex-1 text-xs">
+              % from entry
+            </Button>
+            <Button type="button" size="sm"
+              variant={stopUnit === 'points' ? 'default' : 'outline'}
+              onClick={() => setStopUnit('points')}
+              disabled={isStarter} className="h-7 flex-1 text-xs">
+              Points
+            </Button>
           </div>
+
+          {stopUnit === 'pct' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="stop-loss-pct" className="text-xs">Stop loss (% from entry)</Label>
+                <Input id="stop-loss-pct" type="number" min={0} max={100} step={0.1}
+                  value={stopLossPct}
+                  onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="take-profit-pct" className="text-xs">Take profit (% from entry)</Label>
+                <Input id="take-profit-pct" type="number" min={0} step={0.1}
+                  value={takeProfitPct}
+                  onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="stop-loss-points" className="text-xs">Stop loss (points)</Label>
+                <Input id="stop-loss-points" type="number" min={0} step={0.25}
+                  value={stopLossPoints}
+                  onChange={(e) => setStopLossPoints(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+                {stopLossPoints > 0 && (
+                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                    {stopLossPoints} pts = {pointsToTicks(stopLossPoints)} ticks · ${pointsToDollars(stopLossPoints)}/contract
+                    {qtyValue > 1 && <> · ${pointsToDollars(stopLossPoints, qtyValue)} total</>}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="take-profit-points" className="text-xs">Take profit (points)</Label>
+                <Input id="take-profit-points" type="number" min={0} step={0.25}
+                  value={takeProfitPoints}
+                  onChange={(e) => setTakeProfitPoints(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+                {takeProfitPoints > 0 && (
+                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                    {takeProfitPoints} pts = {pointsToTicks(takeProfitPoints)} ticks · ${pointsToDollars(takeProfitPoints)}/contract
+                    {qtyValue > 1 && <> · ${pointsToDollars(takeProfitPoints, qtyValue)} total</>}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="qty-value" className="text-xs">Position size (contracts)</Label>
             <Input id="qty-value" type="number" min={1} step={1}
               value={qtyValue}
               onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
               disabled={isStarter} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="slippage-ticks" className="text-xs">Slippage (ticks/fill)</Label>
+            <Input id="slippage-ticks" type="number" min={0} step={1}
+              value={slippageTicks}
+              onChange={(e) => setSlippageTicks(Math.max(0, Math.trunc(Number(e.target.value) || 0)))}
+              disabled={isStarter} />
+            {slippageTicks > 0 && (
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                {slippageTicks} ticks = ${ticksToDollars(slippageTicks)}/contract per fill
+              </p>
+            )}
           </div>
         </div>
 

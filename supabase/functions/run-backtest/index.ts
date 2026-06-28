@@ -346,6 +346,9 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       row_stop_loss_pct: run.stop_loss_pct,
       sent_stop_loss_pct: run.stop_loss_pct ?? 0,
       sent_take_profit_pct: run.take_profit_pct ?? 0,
+      sent_stop_loss_points: run.stop_loss_points ?? 0,
+      sent_take_profit_points: run.take_profit_points ?? 0,
+      sent_slippage_ticks: run.slippage_ticks ?? 0,
       sent_qty_value: run.qty_value ?? 1,
     }));
 
@@ -364,6 +367,9 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         end_date: engineEndDate,
         stop_loss_pct: run.stop_loss_pct ?? 0,
         take_profit_pct: run.take_profit_pct ?? 0,
+        stop_loss_points: run.stop_loss_points ?? 0,
+        take_profit_points: run.take_profit_points ?? 0,
+        slippage_ticks: run.slippage_ticks ?? 0,
         qty_type: "fixed",
         qty_value: run.qty_value ?? 1,
         // Ask the engine for its honest validation verdict. Budget read from the

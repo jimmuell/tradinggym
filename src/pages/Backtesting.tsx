@@ -46,8 +46,12 @@ export default function Backtesting() {
         commission_pct: config.commissionPct,
         run_validation: config.runValidation,
         validation_iterations: config.validationIterations,
-        stop_loss_pct: config.stopLossPct,
-        take_profit_pct: config.takeProfitPct,
+        // % and points are mutually exclusive; engine precedence is points > pct (ADR-023).
+        stop_loss_pct:      config.stopUnit === 'pct'    ? config.stopLossPct      : 0,
+        take_profit_pct:    config.stopUnit === 'pct'    ? config.takeProfitPct    : 0,
+        stop_loss_points:   config.stopUnit === 'points' ? config.stopLossPoints   : 0,
+        take_profit_points: config.stopUnit === 'points' ? config.takeProfitPoints : 0,
+        slippage_ticks:     config.slippageTicks,
         qty_value: config.qtyValue,
         force_regenerate: config.forceRegenerate,
       });
