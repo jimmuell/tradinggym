@@ -373,7 +373,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         signal_code: signalCode,
         direction: run.direction || "long_short",
         initial_capital: run.initial_balance || 10000,
-        commission_pct: run.commission_pct || 0.1,
+        commission_pct: run.commission_pct ?? 0.1,
         start_date: engineStartDate,
         end_date: engineEndDate,
         stop_loss_pct: sentStopLossPct,
