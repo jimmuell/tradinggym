@@ -110,8 +110,9 @@ export default function BacktestExplainPanel({ run }: Props) {
           <p className="text-[11px] text-muted-foreground">
             {engineExitsOff
               ? 'Engine stop/target were off for this run — exits are strategy-managed.'
-              : `Engine risk applied: stop ${recvStop ?? 0}% · target ${recvTp ?? 0}%.`}
+              : `Engine risk applied: stop ${recvStopPoints ? `${recvStopPoints} pts` : `${recvStopPct ?? 0}%`} · target ${recvTpPoints ? `${recvTpPoints} pts` : `${recvTpPct ?? 0}%`}.`}
           </p>
+
         </div>
 
         {/* Composition */}
