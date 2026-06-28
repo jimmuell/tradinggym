@@ -361,6 +361,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       sent_take_profit_points: sentTakeProfitPoints,
       sent_slippage_ticks: sentSlippageTicks,
       sent_qty_value: run.qty_value ?? 1,
+      sent_commission_pct: run.commission_pct ?? 0.1,
     }));
 
     const engineResponse = await fetch(`${engineUrl}/run`, {
