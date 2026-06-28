@@ -16,6 +16,9 @@ import {
 } from '@/components/ui/select';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier } from '@/contexts/TierContext';
+import { pointsToDollars, ticksToDollars, formatUSD } from '@/lib/mesContract';
+
+export type StopUnit = 'percent' | 'points';
 
 export interface BacktestConfig {
   strategy: Strategy | null;
@@ -27,8 +30,12 @@ export interface BacktestConfig {
   timeframe: string;
   runValidation: boolean;
   validationIterations: number;
+  stopUnit: StopUnit;
   stopLossPct: number;
   takeProfitPct: number;
+  stopLossPoints: number;
+  takeProfitPoints: number;
+  slippageTicks: number;
   qtyValue: number;
   forceRegenerate: boolean;
 }
