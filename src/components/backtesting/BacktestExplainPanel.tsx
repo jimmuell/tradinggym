@@ -33,9 +33,22 @@ export default function BacktestExplainPanel({ run }: Props) {
   const tpCount = tp ?? 0;
   const signalCount = Math.max(0, total - slCount - tpCount);
 
-  const recvStop = num('received_stop_loss_pct');
-  const recvTp = num('received_take_profit_pct');
-  const engineExitsOff = (recvStop ?? 0) === 0 && (recvTp ?? 0) === 0;
+  const recvStopPct = num('received_stop_loss_pct');
+  const recvTpPct = num('received_take_profit_pct');
+  const recvStopPoints = num('received_stop_loss_points');
+  const recvTpPoints = num('received_take_profit_points');
+
+  const noStopTargetConfigured =
+    (recvStopPct ?? 0) === 0 &&
+    (recvTpPct ?? 0) === 0 &&
+    (recvStopPoints ?? 0) === 0 &&
+    (recvTpPoints ?? 0) === 0;
+
+  const noEngineExitTrades = slCount + tpCount === 0;
+
+  // Engine exits are genuinely off only when nothing was configured AND no SL/TP exits occurred.
+  const engineExitsOff = noStopTargetConfigured && noEngineExitTrades;
+
 
   const grossProfit = num('gross_profit');
   const grossLoss = num('gross_loss');
