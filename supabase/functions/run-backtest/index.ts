@@ -341,11 +341,28 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
     const engineStartDate = toEngineUtcDateBound(run.start_date, "start");
     const engineEndDate = toEngineUtcDateBound(run.end_date, "end");
 
+    // Resolve stop unit: points stored on the row are converted to ticks for the engine.
+    // 4 ticks per point (MES). One stop unit per run is enforced upstream (Backtesting.tsx).
+    const TICKS_PER_POINT = 4;
+    const stopLossPoints = Number(run.stop_loss_points ?? 0);
+    const takeProfitPoints = Number(run.take_profit_points ?? 0);
+    const sentStopLossTicks = Math.round(stopLossPoints * TICKS_PER_POINT);
+    const sentTakeProfitTicks = Math.round(takeProfitPoints * TICKS_PER_POINT);
+    const sentStopLossPct = Number(run.stop_loss_pct ?? 0);
+    const sentTakeProfitPct = Number(run.take_profit_pct ?? 0);
+    const sentSlippageTicks = Number(run.slippage_ticks ?? 0);
+
     console.log("ENGINE_REQUEST_RISK", JSON.stringify({
       run_id,
       row_stop_loss_pct: run.stop_loss_pct,
-      sent_stop_loss_pct: run.stop_loss_pct ?? 0,
-      sent_take_profit_pct: run.take_profit_pct ?? 0,
+      row_stop_loss_points: run.stop_loss_points,
+      row_take_profit_points: run.take_profit_points,
+      row_slippage_ticks: run.slippage_ticks,
+      sent_stop_loss_pct: sentStopLossPct,
+      sent_take_profit_pct: sentTakeProfitPct,
+      sent_stop_loss_ticks: sentStopLossTicks,
+      sent_take_profit_ticks: sentTakeProfitTicks,
+      sent_slippage_ticks: sentSlippageTicks,
       sent_qty_value: run.qty_value ?? 1,
     }));
 
@@ -362,8 +379,11 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         commission_pct: run.commission_pct || 0.1,
         start_date: engineStartDate,
         end_date: engineEndDate,
-        stop_loss_pct: run.stop_loss_pct ?? 0,
-        take_profit_pct: run.take_profit_pct ?? 0,
+        stop_loss_pct: sentStopLossPct,
+        take_profit_pct: sentTakeProfitPct,
+        stop_loss_ticks: sentStopLossTicks,
+        take_profit_ticks: sentTakeProfitTicks,
+        slippage_ticks: sentSlippageTicks,
         qty_type: "fixed",
         qty_value: run.qty_value ?? 1,
         // Ask the engine for its honest validation verdict. Budget read from the
