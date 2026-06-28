@@ -31,6 +31,7 @@ export default function Backtesting() {
   const handleRun = async (config: BacktestConfig) => {
     if (!config.strategy) return;
     setLastConfig(config);
+    const isPoints = config.stopUnit === 'points';
     try {
       await runBacktest.mutateAsync({
         strategy_id: config.strategy.id,
@@ -46,8 +47,12 @@ export default function Backtesting() {
         commission_pct: config.commissionPct,
         run_validation: config.runValidation,
         validation_iterations: config.validationIterations,
-        stop_loss_pct: config.stopLossPct,
-        take_profit_pct: config.takeProfitPct,
+        // Mutual exclusivity: only one stop unit is ever stored per run.
+        stop_loss_pct: isPoints ? 0 : config.stopLossPct,
+        take_profit_pct: isPoints ? 0 : config.takeProfitPct,
+        stop_loss_points: isPoints ? config.stopLossPoints : 0,
+        take_profit_points: isPoints ? config.takeProfitPoints : 0,
+        slippage_ticks: config.slippageTicks,
         qty_value: config.qtyValue,
         force_regenerate: config.forceRegenerate,
       });

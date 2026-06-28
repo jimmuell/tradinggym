@@ -68,6 +68,9 @@ export interface BacktestRun {
   commission_pct: number | null;
   stop_loss_pct?: number | null;
   take_profit_pct?: number | null;
+  stop_loss_points?: number | null;
+  take_profit_points?: number | null;
+  slippage_ticks?: number | null;
   qty_value?: number | null;
   validation?: BacktestValidation | null;
   validation_error?: string | null;
@@ -90,6 +93,9 @@ export interface NewBacktestRun {
   validation_iterations?: number;
   stop_loss_pct?: number;
   take_profit_pct?: number;
+  stop_loss_points?: number;
+  take_profit_points?: number;
+  slippage_ticks?: number;
   qty_value?: number;
 }
 
