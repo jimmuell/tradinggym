@@ -219,36 +219,101 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </div>
 
         <div className="space-y-3 rounded-lg border p-3">
-          <div className="space-y-0.5">
-            <Label>Risk & execution</Label>
-            <p className="text-xs text-muted-foreground">
-              Engine-level exits and size. Leave stop/target at 0 to let the strategy handle its own exits.
-            </p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-0.5">
+              <Label>Risk & execution</Label>
+              <p className="text-xs text-muted-foreground">
+                Engine-level exits and size. Leave stop/target at 0 to let the strategy handle its own exits.
+              </p>
+            </div>
+            <div className="inline-flex rounded-md border border-border p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setStopUnit('percent')}
+                disabled={isStarter}
+                className={`px-2 py-1 rounded-sm transition-colors ${stopUnit === 'percent' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Percent
+              </button>
+              <button
+                type="button"
+                onClick={() => setStopUnit('points')}
+                disabled={isStarter}
+                className={`px-2 py-1 rounded-sm transition-colors ${stopUnit === 'points' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Points
+              </button>
+            </div>
           </div>
+
+          {stopUnit === 'percent' ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="stop-loss-pct" className="text-xs">Stop loss (% from entry)</Label>
+                <Input id="stop-loss-pct" type="number" min={0} max={100} step={0.1}
+                  value={stopLossPct}
+                  onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="take-profit-pct" className="text-xs">Take profit (% from entry)</Label>
+                <Input id="take-profit-pct" type="number" min={0} step={0.1}
+                  value={takeProfitPct}
+                  onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="stop-loss-points" className="text-xs">Stop loss (points)</Label>
+                <Input id="stop-loss-points" type="number" min={0} step={0.25}
+                  value={stopLossPoints}
+                  onChange={(e) => setStopLossPoints(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+                <p className="text-[11px] text-muted-foreground tabular-nums">
+                  {stopLossPoints} pts = {formatUSD(pointsToDollars(stopLossPoints))} / contract
+                  {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(stopLossPoints, qtyValue))}`}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="take-profit-points" className="text-xs">Take profit (points)</Label>
+                <Input id="take-profit-points" type="number" min={0} step={0.25}
+                  value={takeProfitPoints}
+                  onChange={(e) => setTakeProfitPoints(Math.max(0, Number(e.target.value) || 0))}
+                  disabled={isStarter} />
+                <p className="text-[11px] text-muted-foreground tabular-nums">
+                  {takeProfitPoints} pts = {formatUSD(pointsToDollars(takeProfitPoints))} / contract
+                  {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(takeProfitPoints, qtyValue))}`}
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="stop-loss-pct" className="text-xs">Stop loss (% from entry)</Label>
-              <Input id="stop-loss-pct" type="number" min={0} max={100} step={0.1}
-                value={stopLossPct}
-                onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
+              <Label htmlFor="qty-value" className="text-xs">Position size (contracts)</Label>
+              <Input id="qty-value" type="number" min={1} step={1}
+                value={qtyValue}
+                onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
                 disabled={isStarter} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="take-profit-pct" className="text-xs">Take profit (% from entry)</Label>
-              <Input id="take-profit-pct" type="number" min={0} step={0.1}
-                value={takeProfitPct}
-                onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
+              <Label htmlFor="slippage-ticks" className="text-xs" title="Adverse slippage applied to every fill, like TradingView's slippage setting. 0 = none.">
+                Slippage (ticks)
+              </Label>
+              <Input id="slippage-ticks" type="number" min={0} step={1}
+                value={slippageTicks}
+                onChange={(e) => setSlippageTicks(Math.max(0, Number(e.target.value) || 0))}
+                onBlur={(e) => setSlippageTicks(Math.max(0, Math.round(Number(e.target.value) || 0)))}
                 disabled={isStarter} />
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                {slippageTicks} ticks = {formatUSD(ticksToDollars(slippageTicks))} / contract per fill
+              </p>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="qty-value" className="text-xs">Position size (contracts)</Label>
-            <Input id="qty-value" type="number" min={1} step={1}
-              value={qtyValue}
-              onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
-              disabled={isStarter} />
-          </div>
         </div>
+
 
         <div className="space-y-3 rounded-lg border border-border p-3">
           <div className="flex items-center justify-between gap-3">
