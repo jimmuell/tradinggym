@@ -327,7 +327,7 @@ function Comparison({ runs, colorFor }: { runs: BacktestRun[]; colorFor: (id: st
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={equityData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <XAxis
-                  dataKey="date"
+                  dataKey="timestamp"
                   tick={{ fontSize: 11 }}
                   tickFormatter={(d: string) => (d ? new Date(d).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) : '')}
                   minTickGap={32}
