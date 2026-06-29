@@ -26,7 +26,9 @@ interface Props {
   teaching: TeachingEntry;
   sameSignal: boolean;
   cardMessage: string;
+  mockMode?: boolean;
 }
+
 
 interface ChatMsg {
   role: 'user' | 'assistant';
@@ -35,7 +37,7 @@ interface ChatMsg {
 
 const ALLOWED_PLANS = new Set(['pro', 'expert', 'guru', 'admin']);
 
-export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Props) {
+export default function CoachChat({ run, teaching, sameSignal, cardMessage, mockMode }: Props) {
   const { planState, isAdmin } = useTier();
   const canCoach = isAdmin || ALLOWED_PLANS.has(planState);
 
@@ -88,8 +90,10 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
             card_message: cardMessage,
           },
           messages: next,
+          mock: mockMode === true,
         },
       });
+
       if (error) throw error;
       const reply = (data as { reply?: string })?.reply;
       if (!reply) throw new Error('Empty reply');

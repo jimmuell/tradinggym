@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useTier } from '@/contexts/TierContext';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import CoachChat from './CoachChat';
+
 
 
 interface TeachingEntry {
@@ -35,14 +40,17 @@ const CAPTION = 'Based on this one historical period — not a prediction.';
 
 // Module-scope to keep component identity stable across parent re-renders
 // (otherwise CoachChat unmounts and loses its message state on every render).
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, adminToggle }: { children: React.ReactNode; adminToggle?: React.ReactNode }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <GraduationCap className="size-4 text-primary" />
-          What your stop did
-        </CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <GraduationCap className="size-4 text-primary" />
+            What your stop did
+          </CardTitle>
+          {adminToggle}
+        </div>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">{children}</CardContent>
     </Card>
@@ -50,7 +58,26 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export default function BacktestTeachPanel({ run }: Props) {
+  const { isAdmin } = useTier();
+  // Session state; defaults to Live on every mount/reload so Mock is never sticky.
+  const [mockMode, setMockMode] = useState(false);
+
+  const adminToggle = isAdmin ? (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Label htmlFor="coach-mock-toggle" className="text-xs cursor-pointer">
+        Coach: {mockMode ? 'Mock (no API cost)' : 'Live'}
+      </Label>
+      <Switch
+        id="coach-mock-toggle"
+        checked={mockMode}
+        onCheckedChange={setMockMode}
+        aria-label="Toggle coach mock mode"
+      />
+    </div>
+  ) : null;
+
   if (!run) return null;
+
 
   // Only render when a stop was actually configured for this run.
   const hasStopConfig =
@@ -72,7 +99,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // GUARD 1 — broken comparison.
   if (sameSignal !== true || !t || !t.dimension) {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>We couldn't produce a reliable comparison for this run.</p>
       </Shell>
     );
@@ -81,7 +108,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // GUARD 2 — not enough data.
   if (t.sufficient_data === false) {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>Not enough trades to tell what your stop did here.</p>
         <p className="text-xs text-muted-foreground">{CAPTION}</p>
       </Shell>
@@ -103,13 +130,14 @@ export default function BacktestTeachPanel({ run }: Props) {
   };
 
   const coach = (
-    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} />
+    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} mockMode={isAdmin && mockMode} />
   );
+
 
   // GUARD 3 — within noise.
   if (t.significance === 'inconclusive') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop made no meaningful difference here — the change is within normal noise.
         </p>
@@ -126,7 +154,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // CONFIDENT CASE.
   if (t.significance === 'saved') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop <strong>SAVED</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
           trades.
@@ -143,7 +171,7 @@ export default function BacktestTeachPanel({ run }: Props) {
 
   if (t.significance === 'cost') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop <strong>COST</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
           trades.
@@ -159,7 +187,7 @@ export default function BacktestTeachPanel({ run }: Props) {
 
   // Unknown significance value — treat as broken to stay honest.
   return (
-    <Shell>
+    <Shell adminToggle={adminToggle}>
       <p>We couldn't produce a reliable comparison for this run.</p>
     </Shell>
   );
