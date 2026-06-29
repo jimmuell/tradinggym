@@ -26,7 +26,9 @@ interface Props {
   teaching: TeachingEntry;
   sameSignal: boolean;
   cardMessage: string;
+  mockMode?: boolean;
 }
+
 
 interface ChatMsg {
   role: 'user' | 'assistant';
