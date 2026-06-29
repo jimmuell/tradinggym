@@ -33,6 +33,22 @@ function signedDollars(n: number): string {
 
 const CAPTION = 'Based on this one historical period — not a prediction.';
 
+// Module-scope to keep component identity stable across parent re-renders
+// (otherwise CoachChat unmounts and loses its message state on every render).
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <GraduationCap className="size-4 text-primary" />
+          What your stop did
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">{children}</CardContent>
+    </Card>
+  );
+}
+
 export default function BacktestTeachPanel({ run }: Props) {
   if (!run) return null;
 
