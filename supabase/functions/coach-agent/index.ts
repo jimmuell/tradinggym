@@ -27,6 +27,8 @@ const BodySchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
   })),
+  mock: z.boolean().optional().default(false),
+
 });
 
 type CoachContext = z.infer<typeof BodySchema>['context'];
