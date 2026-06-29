@@ -44,6 +44,7 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -95,8 +96,10 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
       });
 
       if (error) throw error;
-      const reply = (data as { reply?: string })?.reply;
+      const reply = (data as { reply?: string; remaining?: number })?.reply;
+      const rem = (data as { remaining?: number })?.remaining;
       if (!reply) throw new Error('Empty reply');
+      if (typeof rem === 'number') setRemaining(rem);
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       toast.error('Coach is unavailable', { description: String(err) });
@@ -113,9 +116,14 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
 
   return (
     <div className="mt-4 border-t pt-3 space-y-3">
-      <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        <GraduationCap className="size-3.5" />
-        Ask the coach
+      <div className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="size-3.5" />
+          Ask the coach
+        </div>
+        {remaining !== null && !isAdmin && (
+          <span className="text-[11px] font-normal">{remaining} left today</span>
+        )}
       </div>
 
       {messages.length > 0 && (

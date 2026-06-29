@@ -2,6 +2,14 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
 
+// ---------------------------------------------------------------------------
+// COST PROTECTION CAPS — edit these constants to tune limits.
+// Both caps are enforced server-side. Admins are exempt. Mock-mode calls do
+// not count and are not capped. Failed Claude calls do not consume quota.
+// ---------------------------------------------------------------------------
+const DAILY_QUESTION_LIMIT = 25;       // per non-admin user, per UTC day
+const PER_RUN_QUESTION_LIMIT = 15;     // user-role messages allowed per run thread
+
 const TeachingSchema = z.object({
   dimension: z.string(),
   delta_net: z.number(),
@@ -28,7 +36,6 @@ const BodySchema = z.object({
     content: z.string(),
   })),
   mock: z.boolean().optional().default(false),
-
 });
 
 type CoachContext = z.infer<typeof BodySchema>['context'];
@@ -50,13 +57,12 @@ Follow all of these every time:
 
 You are not a financial advisor, and nothing you say is financial advice.`;
 
-// Stage 2: real Claude call via Anthropic API. This is the ONLY model boundary.
 async function generateCoachReply(
   context: CoachContext,
   messages: CoachMessage[],
-): Promise<string> {
+): Promise<{ ok: true; text: string } | { ok: false }> {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
-  if (!apiKey) return 'The coach is temporarily unavailable.';
+  if (!apiKey) return { ok: false };
 
   const runData = {
     teaching: context.teaching,
@@ -84,17 +90,15 @@ async function generateCoachReply(
     });
     if (!res.ok) {
       console.error('Anthropic API error', res.status, await res.text());
-      return 'The coach is temporarily unavailable.';
+      return { ok: false };
     }
     const data = await res.json();
     const text = data?.content?.[0]?.text;
-    if (typeof text !== 'string' || !text.trim()) {
-      return 'The coach is temporarily unavailable.';
-    }
-    return text;
+    if (typeof text !== 'string' || !text.trim()) return { ok: false };
+    return { ok: true, text };
   } catch (err) {
     console.error('Anthropic call failed', err);
-    return 'The coach is temporarily unavailable.';
+    return { ok: false };
   }
 }
 
@@ -131,8 +135,11 @@ function buildMockReply(context: CoachContext): string {
   ].join('\n');
 }
 
-Deno.serve(async (req) => {
+function utcDateString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -160,7 +167,6 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    // Server-side gate: Pro+ plan OR admin role.
     const { data: profile, error: profileErr } = await supabase
       .from('profiles')
       .select('plan_state, role')
@@ -174,8 +180,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    const isAdmin = profile.role === 'admin';
     const allowedPlans = new Set(['pro', 'expert', 'guru', 'admin']);
-    const isAllowed = profile.role === 'admin' || allowedPlans.has(profile.plan_state ?? '');
+    const isAllowed = isAdmin || allowedPlans.has(profile.plan_state ?? '');
     if (!isAllowed) {
       return new Response(JSON.stringify({ error: 'Pro plan required' }), {
         status: 403,
@@ -191,20 +198,86 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Admin-only mock mode: skip Anthropic entirely, return a hardcoded reply
-    // built from the real teaching context. Client flag is NOT trusted alone —
-    // requester must also be a verified admin.
-    if (parsed.data.mock === true && profile.role === 'admin') {
-      const reply = buildMockReply(parsed.data.context);
+    const { context, messages, mock } = parsed.data;
+
+    // Admin-only mock mode — never counts against quota, never capped.
+    if (mock === true && isAdmin) {
+      const reply = buildMockReply(context);
       return new Response(JSON.stringify({ reply }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const reply = await generateCoachReply(parsed.data.context, parsed.data.messages);
+    // Service-role client for usage table (bypasses RLS for writes).
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
 
-    return new Response(JSON.stringify({ reply }), {
+    // --- CAP 1: per-run conversation cap (count user-role messages in thread).
+    if (!isAdmin) {
+      const userMsgCount = messages.filter((m) => m.role === 'user').length;
+      if (userMsgCount > PER_RUN_QUESTION_LIMIT) {
+        return new Response(
+          JSON.stringify({
+            reply: `You've reached the question limit for this run (${PER_RUN_QUESTION_LIMIT}). Try a new run to keep exploring.`,
+            capped: 'per_run',
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
+    // --- CAP 2: per-user daily cap.
+    const today = utcDateString();
+    let dailyCount = 0;
+    if (!isAdmin) {
+      const { data: usageRow } = await admin
+        .from('coach_usage')
+        .select('count')
+        .eq('user_id', userId)
+        .eq('usage_date', today)
+        .maybeSingle();
+      dailyCount = usageRow?.count ?? 0;
+
+      if (dailyCount >= DAILY_QUESTION_LIMIT) {
+        return new Response(
+          JSON.stringify({
+            reply: `You've reached today's coach question limit (${DAILY_QUESTION_LIMIT}). It resets tomorrow.`,
+            capped: 'daily',
+            remaining: 0,
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
+    // --- Real Claude call.
+    const result = await generateCoachReply(context, messages);
+    if (!result.ok) {
+      // Outage / API failure — do NOT consume quota.
+      return new Response(JSON.stringify({ reply: 'The coach is temporarily unavailable.' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Successful real call — increment daily count for non-admins.
+    let remaining: number | undefined;
+    if (!isAdmin) {
+      const newCount = dailyCount + 1;
+      const { error: upsertErr } = await admin
+        .from('coach_usage')
+        .upsert(
+          { user_id: userId, usage_date: today, count: newCount },
+          { onConflict: 'user_id,usage_date' },
+        );
+      if (upsertErr) console.error('coach_usage upsert failed', upsertErr);
+      remaining = Math.max(0, DAILY_QUESTION_LIMIT - newCount);
+    }
+
+    return new Response(JSON.stringify({ reply: result.text, remaining }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
