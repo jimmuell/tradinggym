@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,8 +40,12 @@ interface Props {
   runs: BacktestRun[];
 }
 
+function isActiveRun(r: BacktestRun) {
+  return r.status === 'pending' || r.status === 'running';
+}
+
 function statusBadge(run: BacktestRun) {
-  if (run.status === 'pending' || run.status === 'running') {
+  if (isActiveRun(run)) {
     return <Badge variant="outline" className="bg-yellow-500/15 text-yellow-500 border-yellow-500/30">Processing</Badge>;
   }
   if (run.status === 'failed') {
@@ -69,16 +74,50 @@ function formatCurrency(n: number | null) {
 type ConfirmState =
   | { kind: 'single'; runId: string; strategyName: string }
   | { kind: 'failed'; count: number }
+  | { kind: 'bulk'; ids: string[] }
   | null;
 
 export default function BacktestRunHistory({ runs }: Props) {
   const deleteRun = useDeleteBacktestRun();
   const [confirm, setConfirm] = useState<ConfirmState>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  if (runs.length <= 1) return null;
-  const previous = runs.slice(1, 11);
-  const failedRuns = previous.filter((r) => r.status === 'failed');
+  const previous = useMemo(() => runs.slice(0, 11), [runs]);
+  const failedRuns = useMemo(() => previous.filter((r) => r.status === 'failed'), [previous]);
+  const eligibleIds = useMemo(() => previous.filter((r) => !isActiveRun(r)).map((r) => r.id), [previous]);
+
+  // Prune stale selections after deletions / refetches
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const valid = new Set(eligibleIds);
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach((id) => {
+        if (valid.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [eligibleIds]);
+
+  if (previous.length === 0) return null;
+
+  const selectedCount = selectedIds.size;
+  const allSelected = eligibleIds.length > 0 && selectedCount === eligibleIds.length;
+  const someSelected = selectedCount > 0 && !allSelected;
+
+  const toggleAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(eligibleIds));
+  };
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleConfirm = async () => {
     if (!confirm) return;
@@ -86,9 +125,13 @@ export default function BacktestRunHistory({ runs }: Props) {
       if (confirm.kind === 'single') {
         await deleteRun.mutateAsync(confirm.runId);
         toast.success('Backtest run deleted');
-      } else {
+      } else if (confirm.kind === 'failed') {
         await Promise.all(failedRuns.map((r) => deleteRun.mutateAsync(r.id)));
         toast.success('Failed runs cleared');
+      } else {
+        await Promise.all(confirm.ids.map((id) => deleteRun.mutateAsync(id)));
+        toast.success(`${confirm.ids.length} run${confirm.ids.length === 1 ? '' : 's'} deleted`);
+        setSelectedIds(new Set());
       }
     } catch (err) {
       toast.error(`Delete failed: ${(err as Error).message}`);
@@ -100,26 +143,57 @@ export default function BacktestRunHistory({ runs }: Props) {
   return (
     <>
       <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+        <CardHeader className="pb-2 flex flex-row items-center justify-between gap-2 space-y-0">
           <CardTitle className="text-sm">Previous Runs</CardTitle>
-          {failedRuns.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setConfirm({ kind: 'failed', count: failedRuns.length })}
-              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-            >
-              Clear failed runs
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {selectedCount > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => setConfirm({ kind: 'bulk', ids: Array.from(selectedIds) })}
+              >
+                <Trash2 className="mr-1 !size-3.5" />
+                Delete selected ({selectedCount})
+              </Button>
+            )}
+            {failedRuns.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setConfirm({ kind: 'failed', count: failedRuns.length })}
+                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+              >
+                Clear failed runs
+              </button>
+            )}
+            {eligibleIds.length > 0 && (
+              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                  onCheckedChange={toggleAll}
+                  aria-label="Select all runs"
+                />
+                Select all
+              </label>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {previous.map((run) => {
-            const isActive = run.status === 'pending' || run.status === 'running';
+            const active = isActiveRun(run);
             const canExpand = run.status === 'complete';
             const isExpanded = expandedId === run.id;
+            const checked = selectedIds.has(run.id);
             return (
               <div key={run.id} className="border border-border rounded-md">
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-sm px-3 py-2">
+                  <Checkbox
+                    checked={checked}
+                    disabled={active}
+                    onCheckedChange={() => toggleOne(run.id)}
+                    aria-label={`Select run ${run.strategy_name}`}
+                    className="shrink-0"
+                  />
                   {canExpand ? (
                     <button
                       type="button"
@@ -164,7 +238,7 @@ export default function BacktestRunHistory({ runs }: Props) {
                         {(run.execution_time_ms / 1000).toFixed(1)}s
                       </span>
                     )}
-                    {!isActive && (
+                    {!active && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -212,14 +286,20 @@ export default function BacktestRunHistory({ runs }: Props) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirm?.kind === 'failed' ? 'Clear failed backtest runs?' : 'Delete backtest run?'}
+              {confirm?.kind === 'failed'
+                ? 'Clear failed backtest runs?'
+                : confirm?.kind === 'bulk'
+                  ? `Delete ${confirm.ids.length} backtest run${confirm.ids.length === 1 ? '' : 's'}?`
+                  : 'Delete backtest run?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm?.kind === 'failed'
                 ? `This will permanently delete ${confirm.count} failed run${confirm.count === 1 ? '' : 's'} from your history. This action cannot be undone.`
-                : confirm?.kind === 'single'
-                  ? `This will permanently delete the run for "${confirm.strategyName}". This action cannot be undone.`
-                  : ''}
+                : confirm?.kind === 'bulk'
+                  ? `This will permanently delete ${confirm.ids.length} selected run${confirm.ids.length === 1 ? '' : 's'}. This action cannot be undone.`
+                  : confirm?.kind === 'single'
+                    ? `This will permanently delete the run for "${confirm.strategyName}". This action cannot be undone.`
+                    : ''}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
