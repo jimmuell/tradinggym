@@ -90,8 +90,10 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
             card_message: cardMessage,
           },
           messages: next,
+          mock: mockMode === true,
         },
       });
+
       if (error) throw error;
       const reply = (data as { reply?: string })?.reply;
       if (!reply) throw new Error('Empty reply');
