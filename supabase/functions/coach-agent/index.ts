@@ -158,7 +158,19 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Admin-only mock mode: skip Anthropic entirely, return a hardcoded reply
+    // built from the real teaching context. Client flag is NOT trusted alone —
+    // requester must also be a verified admin.
+    if (parsed.data.mock === true && profile.role === 'admin') {
+      const reply = buildMockReply(parsed.data.context);
+      return new Response(JSON.stringify({ reply }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const reply = await generateCoachReply(parsed.data.context, parsed.data.messages);
+
     return new Response(JSON.stringify({ reply }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
