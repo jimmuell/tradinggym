@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap } from 'lucide-react';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
+import CoachChat from './CoachChat';
+
 
 interface TeachingEntry {
   dimension: string;
@@ -79,6 +81,24 @@ export default function BacktestTeachPanel({ run }: Props) {
     );
   }
 
+  // Build a plain-text snapshot of the headline message for the coach context.
+  const buildCardMessage = (): string => {
+    if (t.significance === 'inconclusive') {
+      return `Your stop made no meaningful difference here — within normal noise. Worst loss with the stop: ${signedDollars(t.primary_worst_loss)}. Without it: ${signedDollars(t.variant_worst_loss)}.`;
+    }
+    if (t.significance === 'saved') {
+      return `Your stop SAVED you ${dollars(t.delta_net)} over ${t.trade_count} trades. Worst loss with the stop: ${signedDollars(t.primary_worst_loss)}. Without it: ${signedDollars(t.variant_worst_loss)}.`;
+    }
+    if (t.significance === 'cost') {
+      return `Your stop COST you ${dollars(t.delta_net)} over ${t.trade_count} trades.`;
+    }
+    return '';
+  };
+
+  const coach = (
+    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} />
+  );
+
   // GUARD 3 — within noise.
   if (t.significance === 'inconclusive') {
     return (
@@ -91,6 +111,7 @@ export default function BacktestTeachPanel({ run }: Props) {
           {signedDollars(t.variant_worst_loss)}.
         </p>
         <p className="text-xs text-muted-foreground">{CAPTION}</p>
+        {coach}
       </Shell>
     );
   }
@@ -108,6 +129,7 @@ export default function BacktestTeachPanel({ run }: Props) {
           {signedDollars(t.variant_worst_loss)}.
         </p>
         <p className="text-xs text-muted-foreground">{CAPTION}</p>
+        {coach}
       </Shell>
     );
   }
@@ -123,6 +145,7 @@ export default function BacktestTeachPanel({ run }: Props) {
           It closed some trades that later recovered.
         </p>
         <p className="text-xs text-muted-foreground">{CAPTION}</p>
+        {coach}
       </Shell>
     );
   }
