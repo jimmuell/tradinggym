@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { useTier } from '@/contexts/TierContext';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import CoachChat from './CoachChat';
+
 
 
 interface TeachingEntry {
