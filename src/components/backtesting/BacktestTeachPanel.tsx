@@ -99,7 +99,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // GUARD 1 — broken comparison.
   if (sameSignal !== true || !t || !t.dimension) {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>We couldn't produce a reliable comparison for this run.</p>
       </Shell>
     );
@@ -108,7 +108,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // GUARD 2 — not enough data.
   if (t.sufficient_data === false) {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>Not enough trades to tell what your stop did here.</p>
         <p className="text-xs text-muted-foreground">{CAPTION}</p>
       </Shell>
@@ -136,7 +136,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // GUARD 3 — within noise.
   if (t.significance === 'inconclusive') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop made no meaningful difference here — the change is within normal noise.
         </p>
@@ -153,7 +153,7 @@ export default function BacktestTeachPanel({ run }: Props) {
   // CONFIDENT CASE.
   if (t.significance === 'saved') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop <strong>SAVED</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
           trades.
@@ -170,7 +170,7 @@ export default function BacktestTeachPanel({ run }: Props) {
 
   if (t.significance === 'cost') {
     return (
-      <Shell>
+      <Shell adminToggle={adminToggle}>
         <p>
           Your stop <strong>COST</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
           trades.
@@ -186,7 +186,7 @@ export default function BacktestTeachPanel({ run }: Props) {
 
   // Unknown significance value — treat as broken to stay honest.
   return (
-    <Shell>
+    <Shell adminToggle={adminToggle}>
       <p>We couldn't produce a reliable comparison for this run.</p>
     </Shell>
   );
