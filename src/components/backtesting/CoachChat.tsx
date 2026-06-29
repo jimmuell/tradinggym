@@ -124,11 +124,6 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
               </div>
             ),
           )}
-          {sending && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3 animate-spin" /> Thinking…
-            </div>
-          )}
         </div>
       )}
 
@@ -145,7 +140,7 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
           }}
           placeholder="Ask about this result…"
           rows={2}
-          className="min-h-[44px] resize-none text-sm"
+          className="min-h-[44px] h-[44px] resize-none text-sm transition-none"
           disabled={sending}
         />
         <Button
@@ -153,6 +148,7 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
           size="icon"
           disabled={sending || !input.trim()}
           aria-label="Send"
+          className="transition-none shrink-0"
         >
           {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
         </Button>
