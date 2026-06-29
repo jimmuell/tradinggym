@@ -40,14 +40,17 @@ const CAPTION = 'Based on this one historical period — not a prediction.';
 
 // Module-scope to keep component identity stable across parent re-renders
 // (otherwise CoachChat unmounts and loses its message state on every render).
-function Shell({ children }: { children: React.ReactNode }) {
+function Shell({ children, adminToggle }: { children: React.ReactNode; adminToggle?: React.ReactNode }) {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center gap-2">
-          <GraduationCap className="size-4 text-primary" />
-          What your stop did
-        </CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <GraduationCap className="size-4 text-primary" />
+            What your stop did
+          </CardTitle>
+          {adminToggle}
+        </div>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">{children}</CardContent>
     </Card>
@@ -55,7 +58,26 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 export default function BacktestTeachPanel({ run }: Props) {
+  const { isAdmin } = useTier();
+  // Session state; defaults to Live on every mount/reload so Mock is never sticky.
+  const [mockMode, setMockMode] = useState(false);
+
+  const adminToggle = isAdmin ? (
+    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <Label htmlFor="coach-mock-toggle" className="text-xs cursor-pointer">
+        Coach: {mockMode ? 'Mock (no API cost)' : 'Live'}
+      </Label>
+      <Switch
+        id="coach-mock-toggle"
+        checked={mockMode}
+        onCheckedChange={setMockMode}
+        aria-label="Toggle coach mock mode"
+      />
+    </div>
+  ) : null;
+
   if (!run) return null;
+
 
   // Only render when a stop was actually configured for this run.
   const hasStopConfig =
