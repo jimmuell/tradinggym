@@ -1,53 +1,31 @@
-## Commission audit findings
+## Problem
 
-I traced `commission_pct` from the UI → DB row → edge function → engine `/run` payload.
+`BacktestComparePanel.tsx` reads each equity-curve point as `{ date, equity }`, but the engine writes `{ timestamp, equity }`. Every point fails the `if (!pt?.date) return` check, so `byDate` stays empty and the panel renders "No equity-curve data available." The `BacktestRun.equity_curve` TS type in `useBacktestRuns.ts` likely also declares `date`, masking the mismatch.
 
-### Flow (correct parts)
+## Fix (read-only render change, scoped to compare panel)
 
-1. `BacktestConfigPanel.tsx` — user-controlled input, default `0.1`, passed up as `config.commissionPct`.
-2. `Backtesting.tsx` (line 47) — forwards `commission_pct: config.commissionPct` into the `backtest_runs` insert.
-3. `useRunBacktest` / `useBacktestRuns` — types the field as `number | null`, persists to DB.
-4. `run-backtest/index.ts` (line 376) — forwards to engine as `commission_pct`.
-5. Engine applies commission server-side (per `docs/BACKTEST_ENGINE_SPEC.md` §4 — "Trade P&L is NET of commission").
+1. **`src/hooks/useBacktestRuns.ts`** — update the `equity_curve` element type to `{ timestamp: string; equity: number }` (the actual DB shape). No write-path or query change.
 
-### Bug found
+2. **`src/components/backtesting/BacktestComparePanel.tsx`** — in the `equityData` memo:
+   - Key each point by `pt.timestamp` instead of `pt.date`.
+   - Compute the per-run base from `curve[0].equity` (fallback to `r.initial_balance`).
+   - Push `(equity / base - 1) * 100` per run into a map keyed by timestamp.
+   - Sort rows by timestamp ascending.
+   - Update the `XAxis dataKey` and tooltip `labelFormatter` to use `timestamp` and format via `new Date(ts).toLocaleDateString(...)`.
+   - Keep `connectNulls` on each `<Line>` so runs with different timestamp grids still draw.
 
-`supabase/functions/run-backtest/index.ts` line 376:
+3. **Mixed availability** — `hasEquity` currently goes false only when every run lacks data (it already does, since the map merges all runs). Confirm the "no data" empty state shows only when **all** selected runs have empty `equity_curve`; runs with data still draw via `connectNulls`. No other change needed — Recharts will simply skip undefined keys per row.
 
-```ts
-commission_pct: run.commission_pct || 0.1,
-```
+## Out of scope
 
-This uses the `||` falsy fallback, so a user who deliberately sets commission to **`0`** (e.g. to measure gross vs net, or to A/B fee drag) gets silently overridden to **`0.1`**. The DB row says `0`, the engine receives `0.1`, and KPIs reflect commission the user didn't ask for.
+- No edge function, migration, schema, or write-path changes.
+- No changes to other panels (`BacktestResultsPanel`, `BacktestRunHistory`, etc.) even if they read `equity_curve` — this ticket is scoped to the compare panel render bug.
 
-`BacktestOptimizePanel.tsx` line 131 has the same pattern with `??` instead, which is correct (`0` is preserved). The edge function is the inconsistent one.
+## Verify
 
-### Secondary observations (not bugs, FYI)
+- Typecheck passes after the type tweak.
+- Manual: open Compare runs, pick two recent completed runs (including `aef6e4b0-…`), confirm two % return lines render. Pick one new + one legacy empty-curve run, confirm the new one still draws.
 
-- The UI label is just `Commission %` with no unit hint. Per the engine contract this is a percent like `0.1` (= 0.1%), not a per-side dollar fee. Users who type `2.50` thinking "dollars per contract" would be sending 2.5% commission to the engine. Worth a tooltip later, not part of this fix.
-- There is no client-side validation that `commissionPct >= 0`. Engine likely tolerates it but a negative value would inflate P&L.
+## Deploy
 
-### Proposed fix (one line)
-
-Change line 376 of `supabase/functions/run-backtest/index.ts` from:
-
-```ts
-commission_pct: run.commission_pct || 0.1,
-```
-
-to:
-
-```ts
-commission_pct: run.commission_pct ?? 0.1,
-```
-
-Then redeploy `run-backtest` (per `docs/DEPLOY_WORKFLOW.md`, edge functions don't auto-deploy from VS Code; this edit goes through Lovable so it will deploy automatically on apply).
-
-### Verification
-
-1. Create a run with Commission % = `0`, confirm `ENGINE_REQUEST_RISK`-style log (or add `commission_pct` to the existing log line) shows `0`.
-2. Compare KPIs vs a run with `0.1` — `total_commission` in KPIs should be `0` vs non-zero, otherwise identical signal/trades.
-
-### Scope
-
-One-line code change in `supabase/functions/run-backtest/index.ts`. No DB migration, no UI change, no engine change.
+Frontend-only change — no edge function redeploy needed. Lovable auto-builds on agent edits.

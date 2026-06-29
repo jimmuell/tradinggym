@@ -58,7 +58,7 @@ export interface BacktestRun {
   created_at: string;
   strategy_config: Record<string, unknown> | null;
   results_detail: Record<string, unknown> | null;
-  equity_curve: Array<{ date: string; equity: number }> | null;
+  equity_curve: Array<{ timestamp: string; equity: number }> | null;
   ai_signal_code: string | null;
   signal_hash?: string | null;
   error_message: string | null;
