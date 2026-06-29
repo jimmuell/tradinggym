@@ -184,21 +184,21 @@ function Comparison({ runs, colorFor }: { runs: BacktestRun[]; colorFor: (id: st
 
   // --- Equity overlay (normalized % return, indexed to each run's start) ---
   const equityData = useMemo(() => {
-    const byDate = new Map<string, Record<string, number | string>>();
+    const byTs = new Map<string, Record<string, number | string>>();
     runs.forEach((r) => {
       const curve = r.equity_curve ?? [];
       const base = curve[0]?.equity ?? r.initial_balance ?? null;
       curve.forEach((pt) => {
-        if (!pt?.date) return;
+        if (!pt?.timestamp) return;
         const ret = base && base !== 0 ? (pt.equity / base - 1) * 100 : null;
-        const row = byDate.get(pt.date) ?? { date: pt.date };
+        const row = byTs.get(pt.timestamp) ?? { timestamp: pt.timestamp };
         if (ret !== null) row[r.id] = ret;
-        byDate.set(pt.date, row);
+        byTs.set(pt.timestamp, row);
       });
     });
-    return Array.from(byDate.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    return Array.from(byTs.values()).sort((a, b) => String(a.timestamp).localeCompare(String(b.timestamp)));
   }, [runs]);
-  const hasEquity = equityData.length > 0;
+  const hasEquity = equityData.some((row) => runs.some((r) => typeof row[r.id] === 'number'));
 
   // --- Net P&L bars ---
   const pnlData = runs.map((r, i) => ({ name: letter(i), id: r.id, pnl: r.net_pnl ?? 0 }));
