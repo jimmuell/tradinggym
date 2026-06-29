@@ -417,25 +417,39 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
 
     const engineData = await engineResponse.json();
 
-    if (engineData.status === "error") {
+    // Compare-mode envelope: primary is the authoritative result, teaching is the
+    // judged stop comparison. Single-run mode: engineData IS the result.
+    const result = hasStop && engineData?.primary ? engineData.primary : engineData;
+    const teaching = hasStop ? (engineData?.teaching ?? null) : null;
+    const sameSignal = hasStop ? (engineData?.same_signal ?? null) : null;
+
+    if (result?.status === "error") {
       await supabase
         .from("backtest_runs")
         .update({
           status: "failed",
-          error_message: engineData.error?.substring(0, 2000),
+          error_message: (result.error ?? "").substring(0, 2000),
           ai_signal_code: signalCode,
-          engine_version: engineData.engine_version,
-          execution_time_ms: engineData.execution_time_ms,
+          engine_version: result.engine_version,
+          execution_time_ms: result.execution_time_ms,
         })
         .eq("id", run_id);
-      return new Response(JSON.stringify({ error: engineData.error }), {
+      return new Response(JSON.stringify({ error: result.error }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // --- Step 5: Write results back ---
-    const kpis = engineData.kpis || {};
+    const kpis = result.kpis || {};
+
+    // Persist teaching/same_signal inside results_detail (existing jsonb) so a page
+    // refresh can still render the teach card — no schema change required.
+    const resultsDetail: Record<string, unknown> = {
+      ...kpis,
+      ...(teaching ? { _teaching: teaching } : {}),
+      ...(sameSignal !== null ? { _same_signal: sameSignal } : {}),
+    };
 
     await supabase
       .from("backtest_runs")
@@ -450,16 +464,16 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         max_drawdown: kpis.max_drawdown_pct || 0,
         avg_winner: kpis.avg_winning || 0,
         avg_loser: kpis.avg_losing || 0,
-        results_detail: kpis,
-        equity_curve: engineData.equity_curve || [],
-        validation: engineData.validation ?? null,
-        validation_error: engineData.validation_error ?? null,
+        results_detail: resultsDetail,
+        equity_curve: result.equity_curve || [],
+        validation: result.validation ?? null,
+        validation_error: result.validation_error ?? null,
         run_validation: runValidation,
         validation_iterations: validationIterations,
         ai_signal_code: signalCode,
         signal_hash: signalHash,
-        engine_version: engineData.engine_version,
-        execution_time_ms: engineData.execution_time_ms,
+        engine_version: result.engine_version,
+        execution_time_ms: result.execution_time_ms,
         error_message: null,
       })
       .eq("id", run_id);
