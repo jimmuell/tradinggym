@@ -364,7 +364,13 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       sent_commission_pct: run.commission_pct ?? 0.1,
     }));
 
-    const engineResponse = await fetch(`${engineUrl}/run`, {
+    // TEACH-COMPARE routing: when a stop is configured, call /run/compare so the
+    // engine returns a stop-neutralized variant + teaching/significance data alongside
+    // the user's primary result. Without a stop, the normal single-run path is unchanged.
+    const hasStop = sentStopLossPoints > 0 || sentStopLossPct > 0;
+    const enginePath = hasStop ? "/run/compare" : "/run";
+
+    const engineResponse = await fetch(`${engineUrl}${enginePath}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
