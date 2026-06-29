@@ -485,7 +485,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         total_trades: kpis.total_trades,
         net_profit: kpis.net_profit,
         win_rate: kpis.win_rate,
-        execution_time_ms: engineData.execution_time_ms,
+        execution_time_ms: result.execution_time_ms,
       }),
       {
         status: 200,
