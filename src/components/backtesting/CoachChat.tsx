@@ -124,8 +124,13 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
                 </div>
               </div>
             ) : (
-              <div key={i} className="text-sm whitespace-pre-wrap text-foreground">
-                {m.content}
+              <div key={i} className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+                <ReactMarkdown
+                  allowedElements={['p', 'strong', 'em', 'ul', 'ol', 'li', 'code']}
+                  unwrapDisallowed
+                >
+                  {m.content}
+                </ReactMarkdown>
               </div>
             ),
           )}
