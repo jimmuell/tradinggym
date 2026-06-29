@@ -130,8 +130,9 @@ export default function BacktestTeachPanel({ run }: Props) {
   };
 
   const coach = (
-    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} />
+    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} mockMode={isAdmin && mockMode} />
   );
+
 
   // GUARD 3 — within noise.
   if (t.significance === 'inconclusive') {
