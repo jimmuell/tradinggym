@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { GraduationCap, Loader2, Send, Lock } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
@@ -95,8 +96,12 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       toast.error('Coach is unavailable', { description: String(err) });
-      setMessages((prev) => prev.slice(0, -1));
-      setInput(text);
+      // Fail-safe: preserve the user message, append a clearly-marked error
+      // bubble, and leave the input empty AND enabled.
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '_Coach is unavailable — try again._' },
+      ]);
     } finally {
       setSending(false);
     }
@@ -119,8 +124,13 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
                 </div>
               </div>
             ) : (
-              <div key={i} className="text-sm whitespace-pre-wrap text-foreground">
-                {m.content}
+              <div key={i} className="text-sm text-foreground prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+                <ReactMarkdown
+                  allowedElements={['p', 'strong', 'em', 'ul', 'ol', 'li', 'code']}
+                  unwrapDisallowed
+                >
+                  {m.content}
+                </ReactMarkdown>
               </div>
             ),
           )}
