@@ -96,8 +96,12 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Pr
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       toast.error('Coach is unavailable', { description: String(err) });
-      setMessages((prev) => prev.slice(0, -1));
-      setInput(text);
+      // Fail-safe: preserve the user message, append a clearly-marked error
+      // bubble, and leave the input empty AND enabled.
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: '_Coach is unavailable — try again._' },
+      ]);
     } finally {
       setSending(false);
     }
