@@ -96,8 +96,10 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
       });
 
       if (error) throw error;
-      const reply = (data as { reply?: string })?.reply;
+      const reply = (data as { reply?: string; remaining?: number })?.reply;
+      const rem = (data as { remaining?: number })?.remaining;
       if (!reply) throw new Error('Empty reply');
+      if (typeof rem === 'number') setRemaining(rem);
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     } catch (err) {
       toast.error('Coach is unavailable', { description: String(err) });
