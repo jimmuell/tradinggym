@@ -37,7 +37,7 @@ interface ChatMsg {
 
 const ALLOWED_PLANS = new Set(['pro', 'expert', 'guru', 'admin']);
 
-export default function CoachChat({ run, teaching, sameSignal, cardMessage }: Props) {
+export default function CoachChat({ run, teaching, sameSignal, cardMessage, mockMode }: Props) {
   const { planState, isAdmin } = useTier();
   const canCoach = isAdmin || ALLOWED_PLANS.has(planState);
 
