@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
+import BacktestTeachPanel from '@/components/backtesting/BacktestTeachPanel';
 import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel';
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
