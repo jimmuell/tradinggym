@@ -105,6 +105,7 @@ export function useBacktestRuns() {
   const { data, isLoading } = useQuery({
     queryKey: ['backtest_runs', user?.id],
     enabled: !!user?.id,
+    refetchOnWindowFocus: false,
     refetchInterval: (query) => {
       const runs = query.state.data as BacktestRun[] | undefined;
       const hasActive = runs?.some((r) => r.status === 'pending' || r.status === 'running');
