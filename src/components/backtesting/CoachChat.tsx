@@ -44,6 +44,7 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
