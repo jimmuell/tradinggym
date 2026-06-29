@@ -1,14 +1,14 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { z } from 'npm:zod@3.23.8';
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.23.8";
 
 // ---------------------------------------------------------------------------
 // COST PROTECTION CAPS — edit these constants to tune limits.
 // Both caps are enforced server-side. Admins are exempt. Mock-mode calls do
 // not count and are not capped. Failed Claude calls do not consume quota.
 // ---------------------------------------------------------------------------
-const DAILY_QUESTION_LIMIT = 25;       // per non-admin user, per UTC day
-const PER_RUN_QUESTION_LIMIT = 15;     // user-role messages allowed per run thread
+const DAILY_QUESTION_LIMIT = 4; // per non-admin user, per UTC day
+const PER_RUN_QUESTION_LIMIT = 2; // user-role messages allowed per run thread
 
 const TeachingSchema = z.object({
   dimension: z.string(),
@@ -29,17 +29,19 @@ const BodySchema = z.object({
     teaching: TeachingSchema,
     same_signal: z.boolean(),
     kpis: z.record(z.unknown()).optional().default({}),
-    card_message: z.string().default(''),
+    card_message: z.string().default(""),
   }),
-  messages: z.array(z.object({
-    role: z.enum(['user', 'assistant']),
-    content: z.string(),
-  })),
+  messages: z.array(
+    z.object({
+      role: z.enum(["user", "assistant"]),
+      content: z.string(),
+    }),
+  ),
   mock: z.boolean().optional().default(false),
 });
 
-type CoachContext = z.infer<typeof BodySchema>['context'];
-type CoachMessage = z.infer<typeof BodySchema>['messages'][number];
+type CoachContext = z.infer<typeof BodySchema>["context"];
+type CoachMessage = z.infer<typeof BodySchema>["messages"][number];
 
 const SYSTEM_PROMPT = `You are a trading coach inside TradingGYM, talking with a user about ONE specific backtest they just ran. A backtest is a test of a strategy over one slice of past data — it is history, not a prediction. Your job is to help this person understand what happened in THIS run and learn from it. You are a teacher, not an advisor.
 
@@ -61,7 +63,7 @@ async function generateCoachReply(
   context: CoachContext,
   messages: CoachMessage[],
 ): Promise<{ ok: true; text: string } | { ok: false }> {
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) return { ok: false };
 
   const runData = {
@@ -74,65 +76,65 @@ async function generateCoachReply(
   const system = `${SYSTEM_PROMPT}\nRUN DATA (the only facts you may use about this run):\n${JSON.stringify(runData, null, 2)}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: "claude-sonnet-4-5",
         max_tokens: 600,
         system,
         messages: messages.map((m) => ({ role: m.role, content: m.content })),
       }),
     });
     if (!res.ok) {
-      console.error('Anthropic API error', res.status, await res.text());
+      console.error("Anthropic API error", res.status, await res.text());
       return { ok: false };
     }
     const data = await res.json();
     const text = data?.content?.[0]?.text;
-    if (typeof text !== 'string' || !text.trim()) return { ok: false };
+    if (typeof text !== "string" || !text.trim()) return { ok: false };
     return { ok: true, text };
   } catch (err) {
-    console.error('Anthropic call failed', err);
+    console.error("Anthropic call failed", err);
     return { ok: false };
   }
 }
 
 function fmt(n: number): string {
-  const sign = n < 0 ? '-' : '';
+  const sign = n < 0 ? "-" : "";
   return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
 
 function buildMockReply(context: CoachContext): string {
   const t = context.teaching;
-  if (!t || typeof t.delta_ci_low !== 'number' || typeof t.delta_ci_high !== 'number') {
+  if (!t || typeof t.delta_ci_low !== "number" || typeof t.delta_ci_high !== "number") {
     return [
-      '[MOCK] **Coach mock reply** — no live API call was made.',
-      '',
-      '- This is a stand-in response used to test the UI.',
-      '- Toggle **Live** to get a real coach answer.',
-    ].join('\n');
+      "[MOCK] **Coach mock reply** — no live API call was made.",
+      "",
+      "- This is a stand-in response used to test the UI.",
+      "- Toggle **Live** to get a real coach answer.",
+    ].join("\n");
   }
   const lo = Math.min(t.delta_ci_low, t.delta_ci_high);
   const hi = Math.max(t.delta_ci_low, t.delta_ci_high);
   const mid = (lo + hi) / 2;
   return [
     `[MOCK] Based on this run, the likely range for what your stop did is **${fmt(lo)} to ${fmt(hi)}**.`,
-    '',
+    "",
     `Because that range crosses zero, we can't confidently say the stop helped or hurt. The point estimate of **${fmt(mid)}** is just the midpoint of a wide, noisy range — not a result you can lean on.`,
-    '',
-    'Quick context from this run:',
-    '',
+    "",
+    "Quick context from this run:",
+    "",
     `- **Worst loss with the stop:** ${fmt(t.primary_worst_loss)}`,
     `- **Worst loss without it:** ${fmt(t.variant_worst_loss)}`,
     `- **Trades compared:** ${t.trade_count}`,
-    '',
-    '_This is a mock reply for UI testing — no Claude call was made._',
-  ].join('\n');
+    "",
+    "_This is a mock reply for UI testing — no Claude call was made._",
+  ].join("\n");
 }
 
 function utcDateString(): string {
@@ -140,53 +142,51 @@ function utcDateString(): string {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
     if (claimsErr || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const userId = claimsData.claims.sub;
 
     const { data: profile, error: profileErr } = await supabase
-      .from('profiles')
-      .select('plan_state, role')
-      .eq('user_id', userId)
+      .from("profiles")
+      .select("plan_state, role")
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (profileErr || !profile) {
-      return new Response(JSON.stringify({ error: 'Profile not found' }), {
+      return new Response(JSON.stringify({ error: "Profile not found" }), {
         status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const isAdmin = profile.role === 'admin';
-    const allowedPlans = new Set(['pro', 'expert', 'guru', 'admin']);
-    const isAllowed = isAdmin || allowedPlans.has(profile.plan_state ?? '');
+    const isAdmin = profile.role === "admin";
+    const allowedPlans = new Set(["pro", "expert", "guru", "admin"]);
+    const isAllowed = isAdmin || allowedPlans.has(profile.plan_state ?? "");
     if (!isAllowed) {
-      return new Response(JSON.stringify({ error: 'Pro plan required' }), {
+      return new Response(JSON.stringify({ error: "Pro plan required" }), {
         status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
     if (!parsed.success) {
       return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -205,26 +205,23 @@ Deno.serve(async (req) => {
       const reply = buildMockReply(context);
       return new Response(JSON.stringify({ reply }), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Service-role client for usage table (bypasses RLS for writes).
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     // --- CAP 1: per-run conversation cap (count user-role messages in thread).
     if (!isAdmin) {
-      const userMsgCount = messages.filter((m) => m.role === 'user').length;
+      const userMsgCount = messages.filter((m) => m.role === "user").length;
       if (userMsgCount > PER_RUN_QUESTION_LIMIT) {
         return new Response(
           JSON.stringify({
             reply: `You've reached the question limit for this run (${PER_RUN_QUESTION_LIMIT}). Try a new run to keep exploring.`,
-            capped: 'per_run',
+            capped: "per_run",
           }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
@@ -234,10 +231,10 @@ Deno.serve(async (req) => {
     let dailyCount = 0;
     if (!isAdmin) {
       const { data: usageRow } = await admin
-        .from('coach_usage')
-        .select('count')
-        .eq('user_id', userId)
-        .eq('usage_date', today)
+        .from("coach_usage")
+        .select("count")
+        .eq("user_id", userId)
+        .eq("usage_date", today)
         .maybeSingle();
       dailyCount = usageRow?.count ?? 0;
 
@@ -245,10 +242,10 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({
             reply: `You've reached today's coach question limit (${DAILY_QUESTION_LIMIT}). It resets tomorrow.`,
-            capped: 'daily',
+            capped: "daily",
             remaining: 0,
           }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
@@ -257,9 +254,9 @@ Deno.serve(async (req) => {
     const result = await generateCoachReply(context, messages);
     if (!result.ok) {
       // Outage / API failure — do NOT consume quota.
-      return new Response(JSON.stringify({ reply: 'The coach is temporarily unavailable.' }), {
+      return new Response(JSON.stringify({ reply: "The coach is temporarily unavailable." }), {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -268,23 +265,20 @@ Deno.serve(async (req) => {
     if (!isAdmin) {
       const newCount = dailyCount + 1;
       const { error: upsertErr } = await admin
-        .from('coach_usage')
-        .upsert(
-          { user_id: userId, usage_date: today, count: newCount },
-          { onConflict: 'user_id,usage_date' },
-        );
-      if (upsertErr) console.error('coach_usage upsert failed', upsertErr);
+        .from("coach_usage")
+        .upsert({ user_id: userId, usage_date: today, count: newCount }, { onConflict: "user_id,usage_date" });
+      if (upsertErr) console.error("coach_usage upsert failed", upsertErr);
       remaining = Math.max(0, DAILY_QUESTION_LIMIT - newCount);
     }
 
     return new Response(JSON.stringify({ reply: result.text, remaining }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
