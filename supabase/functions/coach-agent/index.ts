@@ -98,8 +98,41 @@ async function generateCoachReply(
   }
 }
 
+function fmt(n: number): string {
+  const sign = n < 0 ? '-' : '';
+  return `${sign}$${Math.abs(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+}
+
+function buildMockReply(context: CoachContext): string {
+  const t = context.teaching;
+  if (!t || typeof t.delta_ci_low !== 'number' || typeof t.delta_ci_high !== 'number') {
+    return [
+      '[MOCK] **Coach mock reply** — no live API call was made.',
+      '',
+      '- This is a stand-in response used to test the UI.',
+      '- Toggle **Live** to get a real coach answer.',
+    ].join('\n');
+  }
+  const lo = Math.min(t.delta_ci_low, t.delta_ci_high);
+  const hi = Math.max(t.delta_ci_low, t.delta_ci_high);
+  const mid = (lo + hi) / 2;
+  return [
+    `[MOCK] Based on this run, the likely range for what your stop did is **${fmt(lo)} to ${fmt(hi)}**.`,
+    '',
+    `Because that range crosses zero, we can't confidently say the stop helped or hurt. The point estimate of **${fmt(mid)}** is just the midpoint of a wide, noisy range — not a result you can lean on.`,
+    '',
+    'Quick context from this run:',
+    '',
+    `- **Worst loss with the stop:** ${fmt(t.primary_worst_loss)}`,
+    `- **Worst loss without it:** ${fmt(t.variant_worst_loss)}`,
+    `- **Trades compared:** ${t.trade_count}`,
+    '',
+    '_This is a mock reply for UI testing — no Claude call was made._',
+  ].join('\n');
+}
 
 Deno.serve(async (req) => {
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
