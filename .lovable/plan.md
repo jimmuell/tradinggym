@@ -1,50 +1,32 @@
-## Goal
-Hide the interactive "Ask the coach" chat from regular users for launch while keeping the static teaching card visible. Admins keep access for demos. All coach code (prompt, rate-limit, fail-safe, mock toggle, edge function) stays in place — gated, not deleted.
+## ADR-030 — Flat $/round-trip commission
 
-## Feature flag
+**Pre-flight done:**
+- Migration applied: `commission_mode text`, `commission_per_rt numeric` added to `backtest_runs`.
+- Confirmed `commission_pct` is nullable with default `0.1` — safe to drop from new inserts.
+- Engine v25.5.0 live on Railway — skipping ping.
 
-Add a single flag `COACH_CHAT_ENABLED` (default `false`).
+**Deploy order:** edge function → frontend (migration already done).
 
-- **Client:** `src/lib/featureFlags.ts` exporting `export const COACH_CHAT_ENABLED = false;` — a constant, since we have no remote-config table today. Flipping requires a one-line code change (no rebuild of unrelated logic). Noted as the trade-off; if we want flip-without-deploy later, we can move it to a `feature_flags` table.
-- **Server:** `Deno.env.get("COACH_CHAT_ENABLED") === "true"` in the edge function, defaulting to `false`. Can be flipped via the function's environment variable without redeploying code (still requires the deploy action to set the var the first time).
+### 1. Edge function (`supabase/functions/run-backtest/index.ts`)
+- Accept new payload fields: `commission_mode` ("flat_per_rt"), `commission_per_rt` (number, default 1.24).
+- Derive `commission_rate: 0` internally when mode is `flat_per_rt` (do not require client to send it).
+- Forward `commission_mode`, `commission_per_rt`, `commission_rate` to engine on both `/run` and `/run/compare`.
+- Persist `commission_mode` + `commission_per_rt` on the `backtest_runs` insert; stop writing `commission_pct` on new rows.
+- Add `ENGINE_REQUEST_RISK` console log line with the three commission fields + stop/target.
+- Redeploy via `supabase--deploy_edge_functions`.
 
-## Client changes
+### 2. Frontend
+- `src/components/backtesting/BacktestConfigPanel.tsx`: replace percent commission field with **"Commission ($ per round-trip, all-in)"** numeric input, default `1.24`. Remove any legacy percent-distortion warnings. Update cockpit live cost summary so "Commission drag" = `commission_per_rt * qty`.
+- `src/pages/Backtesting.tsx` (or wherever the payload is built): send `{ commission_mode: "flat_per_rt", commission_per_rt }`; stop sending `commission_pct`/`commission_rate`.
+- Historical reads (run history / compare / explain panels): keep reading `commission_pct` as fallback for older rows; prefer `commission_per_rt` when present for display.
 
-**`src/components/backtesting/BacktestTeachPanel.tsx`**
-- Import `COACH_CHAT_ENABLED`.
-- Compute `showCoach = COACH_CHAT_ENABLED || isAdmin`.
-- When `showCoach` is false:
-  - Do not render `<CoachChat />` in any of the three branches (inconclusive / saved / cost).
-  - Do not render the admin Live/Mock toggle (`adminToggle` only meaningful when chat renders; admins still see it because `isAdmin` keeps `showCoach` true).
-- Static card content (verdict line, worst-loss line, caption) is untouched in every branch.
+### 3. Out of scope
+Slippage, validation panel, tier gating — untouched.
 
-No changes to `CoachChat.tsx` itself — it simply isn't mounted for regular users.
+### 4. Verification
+- Run a backtest, confirm `backtest_runs` row has `commission_mode='flat_per_rt'`, `commission_per_rt=1.24`, `commission_pct` null.
+- Confirm edge function logs show `ENGINE_REQUEST_RISK` with the three fields.
+- Old history rows still render (fallback to `commission_pct`).
 
-## Server changes
-
-**`supabase/functions/coach-agent/index.ts`**
-- Read `const COACH_CHAT_ENABLED = Deno.env.get("COACH_CHAT_ENABLED") === "true";` at module scope.
-- After auth + admin lookup, before rate-limit / Anthropic call:
-  ```
-  if (!COACH_CHAT_ENABLED && !isAdmin) {
-    return new Response(
-      JSON.stringify({ reply: "The coach is not available yet — coming soon.", disabled: true }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-  ```
-  Returning 200 with a clean assistant-style message avoids the fail-safe "Coach is unavailable" error bubble. Admins and mock-mode admin calls bypass the gate.
-- Rate-limit, guardrail prompt, mock toggle, fail-safe — all preserved untouched below the gate.
-
-## Deploy
-- Edge function requires manual redeploy after the edit (per `docs/DEPLOY_WORKFLOW.md`). I'll request that explicitly after applying.
-- No DB migration. No secret required (env var is optional; absent = disabled, which is the desired launch default).
-
-## Verification
-1. Regular Pro user on `/backtesting` with a stop > 0: static "What your stop did" card renders; no chat input, no Send button, no "N left today", no admin toggle.
-2. Admin user: chat renders and works (Live + Mock).
-3. `curl` (or invoke) `coach-agent` as a non-admin: returns the clean "coming soon" reply, no Anthropic call (verify via function logs — no outbound request, no usage increment).
-4. Static card text and KPIs unchanged across all three significance branches.
-
-## Re-enabling later
-- Set `COACH_CHAT_ENABLED = true` in `src/lib/featureFlags.ts` AND set the `COACH_CHAT_ENABLED=true` env var on the edge function. Behavior reverts to today's Pro+/admin gated chat with rate limits.
+### 5. Changelog
+Append entry to `change_log/CHANGELOG_2026-06-30.md`.
