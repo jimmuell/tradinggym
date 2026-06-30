@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumericField } from '@/components/ui/numeric-field';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -432,17 +433,15 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         )}
       </div>
       {stopUnit === 'points' ? (
-        <Input id="stop-input" type="number" min={0} step={0.25}
+        <NumericField id="stop-input" min={0} step={0.25} decimal
           value={stopLossPoints}
-          onChange={(e) => setStopLossPoints(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setStopLossPoints}
+          disabled={disabled} />
       ) : (
-        <Input id="stop-input" type="number" min={0} max={100} step={0.1}
+        <NumericField id="stop-input" min={0} max={100} step={0.1} decimal
           value={stopLossPct}
-          onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setStopLossPct}
+          disabled={disabled} />
       )}
       {dense ? (
         (stopUnit === 'points' ? stopLossPoints > 0 : stopLossPct > 0) && (
@@ -477,17 +476,15 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         )}
       </div>
       {stopUnit === 'points' ? (
-        <Input id="target-input" type="number" min={0} step={0.25}
+        <NumericField id="target-input" min={0} step={0.25} decimal
           value={takeProfitPoints}
-          onChange={(e) => setTakeProfitPoints(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setTakeProfitPoints}
+          disabled={disabled} />
       ) : (
-        <Input id="target-input" type="number" min={0} step={0.1}
+        <NumericField id="target-input" min={0} step={0.1} decimal
           value={takeProfitPct}
-          onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setTakeProfitPct}
+          disabled={disabled} />
       )}
       {dense ? (
         (stopUnit === 'points' ? takeProfitPoints > 0 : takeProfitPct > 0) && (
@@ -517,10 +514,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </Label>
         {dense && <span className="text-[10px] text-muted-foreground">contracts</span>}
       </div>
-      <Input id="qty-value" type="number" min={1} step={1}
+      <NumericField id="qty-value" min={1} step={1}
         value={qtyValue}
-        onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
-        className="tabular-nums" />
+        onCommit={setQtyValue} />
     </div>
   );
 
@@ -532,12 +528,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </Label>
         {dense && <span className="text-[10px] text-muted-foreground">ticks</span>}
       </div>
-      <Input id="slippage-ticks" type="number" min={0} step={1}
+      <NumericField id="slippage-ticks" min={0} step={1}
         value={slippageTicks}
-        onChange={(e) => setSlippageTicks(Math.max(0, Number(e.target.value) || 0))}
-        onBlur={(e) => setSlippageTicks(Math.max(0, Math.round(Number(e.target.value) || 0)))}
-        disabled={disabled}
-        className="tabular-nums" />
+        onCommit={setSlippageTicks}
+        disabled={disabled} />
       <p className={cn('text-muted-foreground tabular-nums', dense ? 'text-[10px]' : 'text-[11px]')}>
         {slippageTicks} ticks = {formatUSD(ticksToDollars(slippageTicks))} / contract per fill
       </p>
@@ -547,18 +541,18 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const InitialBalanceField = (
     <div className="space-y-2">
       <Label>Initial balance ($)</Label>
-      <Input type="number" value={initialBalance}
-        onChange={(e) => setInitialBalance(Number(e.target.value))}
-        className="tabular-nums" />
+      <NumericField min={0} step={100}
+        value={initialBalance}
+        onCommit={setInitialBalance} />
     </div>
   );
 
   const CommissionField = (
     <div className="space-y-2">
       <Label>Commission ($ per round-trip, all-in)</Label>
-      <Input type="number" step="0.01" min="0" value={commissionPerRt}
-        onChange={(e) => setCommissionPerRt(Number(e.target.value))}
-        className="tabular-nums" />
+      <NumericField min={0} step={0.01} decimal
+        value={commissionPerRt}
+        onCommit={setCommissionPerRt} />
       <p className="text-[11px] text-muted-foreground">
         Flat dollars per round-trip (entry + exit + fees). Default 1.24 = Amp Futures MES all-in.
       </p>
