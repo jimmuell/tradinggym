@@ -44,7 +44,7 @@ export interface BacktestConfig {
   startDate: string;
   endDate: string;
   initialBalance: number;
-  commissionPct: number;
+  commissionPerRt: number;
   direction: 'long_short' | 'long_only';
   timeframe: string;
   runValidation: boolean;
