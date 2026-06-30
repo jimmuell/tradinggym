@@ -339,17 +339,15 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     const targetDollars = stopUnit === 'points'
       ? pointsToDollars(takeProfitPoints, qtyValue)
       : (takeProfitPct / 100) * initialBalance;
-    // Rough MES notional ~ $5,000/contract (ES ~5000 × $5/pt × 0.05 stub). Use a simple
-    // honest model: commissionPct% of $5,000 notional × 2 sides × qty per round-trip.
-    const MES_NOTIONAL = 5000;
-    const commissionPerRT = (commissionPct / 100) * MES_NOTIONAL * 2 * qtyValue;
+    // ADR-030: flat $/round-trip commission, all-in. Drag = $/RT × qty × trades.
+    const commissionPerRT = commissionPerRt * qtyValue;
     const commissionDrag100 = commissionPerRT * 100;
     return {
       stopDollars: Math.round(stopDollars),
       targetDollars: Math.round(targetDollars),
       commissionDrag100: Math.round(commissionDrag100),
     };
-  }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPct]);
+  }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPerRt]);
 
   // ---------- Sub-renderers (one source per field — works in both skins) ----------
 
