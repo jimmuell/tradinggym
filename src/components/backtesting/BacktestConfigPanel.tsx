@@ -611,10 +611,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  // Cockpit (Guru / Admin): responsive auto-fit grid
+  // Cockpit (Guru / Admin): responsive auto-fit grid that folds to one column when narrow
   const CockpitLayout = (
     <div className="space-y-4">
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
         <Section icon={Target} title="Strategy & period" ribbon>
           {StrategyField}
           {DateRangeFields}
@@ -622,17 +622,17 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </Section>
         <Section icon={ShieldCheck} title="Risk & execution" ribbon>
           {StopUnitToggle}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
             {StopField({ dense: true })}
             {TargetField({ dense: true })}
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
             {QtyField({ dense: true })}
             {SlippageField({ dense: true })}
           </div>
         </Section>
         <Section icon={Wallet} title="Account" ribbon>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
             {InitialBalanceField}
             {CommissionField}
           </div>
@@ -660,6 +660,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       </div>
     </div>
   );
+
 
 
   // ---------- Render ----------
