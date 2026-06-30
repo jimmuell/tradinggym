@@ -555,12 +555,12 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
   const CommissionField = (
     <div className="space-y-2">
-      <Label>Commission %</Label>
-      <Input type="number" step="0.01" value={commissionPct}
-        onChange={(e) => setCommissionPct(Number(e.target.value))}
+      <Label>Commission ($ per round-trip, all-in)</Label>
+      <Input type="number" step="0.01" min="0" value={commissionPerRt}
+        onChange={(e) => setCommissionPerRt(Number(e.target.value))}
         className="tabular-nums" />
-      <p className="text-[11px] text-amber-600 dark:text-amber-400">
-        Percent commission heavily distorts futures results — a realistic $/round-trip model is coming. Default is 0.
+      <p className="text-[11px] text-muted-foreground">
+        Flat dollars per round-trip (entry + exit + fees). Default 1.24 = Amp Futures MES all-in.
       </p>
     </div>
   );
