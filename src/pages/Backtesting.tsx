@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useTier } from '@/contexts/TierContext';
 import BacktestConfigPanel, { type BacktestConfig } from '@/components/backtesting/BacktestConfigPanel';
 import BacktestResultsPanel from '@/components/backtesting/BacktestResultsPanel';
 import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
@@ -14,6 +16,9 @@ import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
   const navigate = useNavigate();
+  const { planState, isAdmin } = useTier();
+  const effectiveTier = isAdmin ? 'admin' : planState;
+  const isCockpit = effectiveTier === 'guru' || effectiveTier === 'admin';
   const { runs } = useBacktestRuns();
   const runBacktest = useRunBacktest();
   const cancelRun = useCancelBacktestRun();
@@ -94,7 +99,7 @@ export default function Backtesting() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-4 sm:gap-6">
+      <div className={cn('grid grid-cols-1 gap-4 sm:gap-6', isCockpit ? 'lg:grid-cols-[minmax(380px,480px)_1fr] xl:grid-cols-[minmax(380px,560px)_1fr]' : 'lg:grid-cols-[380px_1fr]')}>
         <BacktestConfigPanel
           onRun={handleRun}
           isRunning={runBacktest.isPending || hasActive}
