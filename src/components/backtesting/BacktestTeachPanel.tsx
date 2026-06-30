@@ -8,20 +8,22 @@ import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import CoachChat from './CoachChat';
 import { COACH_CHAT_ENABLED } from '@/lib/featureFlags';
 
-
-
 interface TeachingEntry {
   dimension: string;
   delta_net: number;
-  direction: 'saved' | 'cost' | 'neutral' | string;
-  primary_worst_loss: number;
-  variant_worst_loss: number;
-  trade_count: number;
+  direction: string;
+  significance: string;
   delta_ci_low: number;
   delta_ci_high: number;
-  significance: 'saved' | 'cost' | 'inconclusive' | string;
-  n_resamples: number;
+  trade_count: number;
   sufficient_data: boolean;
+  // stop-specific
+  primary_worst_loss?: number;
+  variant_worst_loss?: number;
+  // take-profit-specific
+  primary_best_win?: number;
+  variant_best_win?: number;
+  n_resamples?: number;
 }
 
 interface Props {
@@ -39,16 +41,22 @@ function signedDollars(n: number): string {
 
 const CAPTION = 'Based on this one historical period — not a prediction.';
 
-// Module-scope to keep component identity stable across parent re-renders
-// (otherwise CoachChat unmounts and loses its message state on every render).
-function Shell({ children, adminToggle }: { children: React.ReactNode; adminToggle?: React.ReactNode }) {
+function Shell({
+  title,
+  children,
+  adminToggle,
+}: {
+  title: string;
+  children: React.ReactNode;
+  adminToggle?: React.ReactNode;
+}) {
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <GraduationCap className="size-4 text-primary" />
-            What your stop did
+            {title}
           </CardTitle>
           {adminToggle}
         </div>
@@ -58,10 +66,129 @@ function Shell({ children, adminToggle }: { children: React.ReactNode; adminTogg
   );
 }
 
+function StopCardBody({ t }: { t: TeachingEntry }) {
+  if (t.sufficient_data === false) {
+    return (
+      <>
+        <p>Not enough trades to tell what your stop did here.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  if (t.significance === 'inconclusive') {
+    return (
+      <>
+        <p>Your stop made no meaningful difference here — the change is within normal noise.</p>
+        <p className="text-xs text-muted-foreground">
+          Worst loss with the stop: {signedDollars(t.primary_worst_loss ?? 0)}. Without it:{' '}
+          {signedDollars(t.variant_worst_loss ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  if (t.significance === 'saved') {
+    return (
+      <>
+        <p>
+          Your stop <strong>SAVED</strong> you {dollars(t.delta_net)} over {t.trade_count} trades.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Worst loss with the stop: {signedDollars(t.primary_worst_loss ?? 0)}. Without it:{' '}
+          {signedDollars(t.variant_worst_loss ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  if (t.significance === 'cost') {
+    return (
+      <>
+        <p>
+          Your stop <strong>COST</strong> you {dollars(t.delta_net)} over {t.trade_count} trades.
+        </p>
+        <p className="text-xs text-muted-foreground">It closed some trades that later recovered.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  return <p>We couldn't produce a reliable comparison for this run.</p>;
+}
+
+function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
+  if (t.sufficient_data === false) {
+    return (
+      <>
+        <p>Not enough trades to tell what your take-profit did here.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  const winnerLine = (
+    <p className="text-xs text-muted-foreground">
+      Biggest winner you locked in: {signedDollars(t.primary_best_win ?? 0)}. Without the cap, that
+      trade would have reached {signedDollars(t.variant_best_win ?? 0)}.
+    </p>
+  );
+
+  if (t.significance === 'inconclusive') {
+    return (
+      <>
+        <p>Your take-profit made no meaningful difference here — within normal noise.</p>
+        {winnerLine}
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  if (t.significance === 'cost') {
+    return (
+      <>
+        <p>
+          Your take-profit left money on the table — winners that would have run further got
+          capped. Letting them run would have made about {dollars(t.delta_net)} more across these
+          trades.
+        </p>
+        {winnerLine}
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  if (t.significance === 'saved') {
+    return (
+      <>
+        <p>
+          Your take-profit locked in gains before trades reversed — without it you'd have given
+          back about {dollars(t.delta_net)}.
+        </p>
+        {winnerLine}
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+  return <p>We couldn't produce a reliable comparison for this run.</p>;
+}
+
+function titleFor(dimension: string): string {
+  if (dimension === 'stop') return 'What your stop did';
+  if (dimension === 'take_profit') return 'What your take-profit did';
+  return `What your ${dimension.replace(/_/g, ' ')} did`;
+}
+
 export default function BacktestTeachPanel({ run }: Props) {
   const { isAdmin } = useTier();
-  // Session state; defaults to Live on every mount/reload so Mock is never sticky.
   const [mockMode, setMockMode] = useState(false);
+
+  if (!run) return null;
+
+  const hasStopConfig =
+    Number(run.stop_loss_points ?? 0) > 0 || Number(run.stop_loss_pct ?? 0) > 0;
+  if (!hasStopConfig) return null;
+
+  const detail = (run.results_detail ?? {}) as Record<string, unknown>;
+  const teachingArr = detail._teaching as TeachingEntry[] | undefined;
+  const sameSignal = detail._same_signal as boolean | undefined;
+
+  if (!teachingArr || teachingArr.length === 0) return null;
 
   const adminToggle = isAdmin ? (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -77,52 +204,24 @@ export default function BacktestTeachPanel({ run }: Props) {
     </div>
   ) : null;
 
-  if (!run) return null;
-
-
-  // Only render when a stop was actually configured for this run.
-  const hasStopConfig =
-    Number(run.stop_loss_points ?? 0) > 0 || Number(run.stop_loss_pct ?? 0) > 0;
-  if (!hasStopConfig) return null;
-
-  const detail = (run.results_detail ?? {}) as Record<string, unknown>;
-  const teachingArr = detail._teaching as TeachingEntry[] | undefined;
-  const sameSignal = detail._same_signal as boolean | undefined;
-
-  // No teaching payload at all → nothing to show. (E.g., legacy rows before TEACH-COMPARE.)
-  if (!teachingArr || teachingArr.length === 0) return null;
-
-  const t = teachingArr.find((x) => x.dimension === 'stop') ?? teachingArr[0];
-
-  // Shell is defined at module scope below to keep component identity stable
-  // across re-renders (prevents CoachChat unmount/state reset).
-
-  // GUARD 1 — broken comparison.
-  if (sameSignal !== true || !t || !t.dimension) {
+  // Broken comparison — show a single honest card.
+  if (sameSignal !== true) {
     return (
-      <Shell adminToggle={adminToggle}>
+      <Shell title="What your stop did" adminToggle={adminToggle}>
         <p>We couldn't produce a reliable comparison for this run.</p>
       </Shell>
     );
   }
 
-  // GUARD 2 — not enough data.
-  if (t.sufficient_data === false) {
-    return (
-      <Shell adminToggle={adminToggle}>
-        <p>Not enough trades to tell what your stop did here.</p>
-        <p className="text-xs text-muted-foreground">{CAPTION}</p>
-      </Shell>
-    );
-  }
+  const stopBlock = teachingArr.find((x) => x.dimension === 'stop');
 
-  // Build a plain-text snapshot of the headline message for the coach context.
-  const buildCardMessage = (): string => {
+  // Build coach card message from the stop block (coach is gated; payload unchanged).
+  const buildCardMessage = (t: TeachingEntry): string => {
     if (t.significance === 'inconclusive') {
-      return `Your stop made no meaningful difference here — within normal noise. Worst loss with the stop: ${signedDollars(t.primary_worst_loss)}. Without it: ${signedDollars(t.variant_worst_loss)}.`;
+      return `Your stop made no meaningful difference here — within normal noise. Worst loss with the stop: ${signedDollars(t.primary_worst_loss ?? 0)}. Without it: ${signedDollars(t.variant_worst_loss ?? 0)}.`;
     }
     if (t.significance === 'saved') {
-      return `Your stop SAVED you ${dollars(t.delta_net)} over ${t.trade_count} trades. Worst loss with the stop: ${signedDollars(t.primary_worst_loss)}. Without it: ${signedDollars(t.variant_worst_loss)}.`;
+      return `Your stop SAVED you ${dollars(t.delta_net)} over ${t.trade_count} trades. Worst loss with the stop: ${signedDollars(t.primary_worst_loss ?? 0)}. Without it: ${signedDollars(t.variant_worst_loss ?? 0)}.`;
     }
     if (t.significance === 'cost') {
       return `Your stop COST you ${dollars(t.delta_net)} over ${t.trade_count} trades.`;
@@ -131,66 +230,40 @@ export default function BacktestTeachPanel({ run }: Props) {
   };
 
   const showCoach = COACH_CHAT_ENABLED || isAdmin;
-  const coach = showCoach ? (
-    <CoachChat run={run} teaching={t} sameSignal={sameSignal === true} cardMessage={buildCardMessage()} mockMode={isAdmin && mockMode} />
-  ) : null;
 
-
-  // GUARD 3 — within noise.
-  if (t.significance === 'inconclusive') {
-    return (
-      <Shell adminToggle={adminToggle}>
-        <p>
-          Your stop made no meaningful difference here — the change is within normal noise.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Worst loss with the stop: {signedDollars(t.primary_worst_loss)}. Without it:{' '}
-          {signedDollars(t.variant_worst_loss)}.
-        </p>
-        <p className="text-xs text-muted-foreground">{CAPTION}</p>
-        {coach}
-      </Shell>
-    );
-  }
-
-  // CONFIDENT CASE.
-  if (t.significance === 'saved') {
-    return (
-      <Shell adminToggle={adminToggle}>
-        <p>
-          Your stop <strong>SAVED</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
-          trades.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Worst loss with the stop: {signedDollars(t.primary_worst_loss)}. Without it:{' '}
-          {signedDollars(t.variant_worst_loss)}.
-        </p>
-        <p className="text-xs text-muted-foreground">{CAPTION}</p>
-        {coach}
-      </Shell>
-    );
-  }
-
-  if (t.significance === 'cost') {
-    return (
-      <Shell adminToggle={adminToggle}>
-        <p>
-          Your stop <strong>COST</strong> you {dollars(t.delta_net)} over {t.trade_count}{' '}
-          trades.
-        </p>
-        <p className="text-xs text-muted-foreground">
-          It closed some trades that later recovered.
-        </p>
-        <p className="text-xs text-muted-foreground">{CAPTION}</p>
-        {coach}
-      </Shell>
-    );
-  }
-
-  // Unknown significance value — treat as broken to stay honest.
   return (
-    <Shell adminToggle={adminToggle}>
-      <p>We couldn't produce a reliable comparison for this run.</p>
-    </Shell>
+    <div className="space-y-4">
+      {teachingArr.map((t, idx) => {
+        const isFirst = idx === 0;
+        const title = titleFor(t.dimension);
+        const body =
+          t.dimension === 'take_profit' ? (
+            <TakeProfitCardBody t={t} />
+          ) : (
+            <StopCardBody t={t} />
+          );
+
+        // Attach coach + admin toggle only to the stop card (first card), preserving prior behavior.
+        const isStop = t.dimension === 'stop';
+        const toggle = isStop ? adminToggle : undefined;
+        const coach =
+          isStop && showCoach && stopBlock ? (
+            <CoachChat
+              run={run}
+              teaching={stopBlock as never}
+              sameSignal={sameSignal === true}
+              cardMessage={buildCardMessage(stopBlock)}
+              mockMode={isAdmin && mockMode}
+            />
+          ) : null;
+
+        return (
+          <Shell key={`${t.dimension}-${idx}`} title={title} adminToggle={toggle}>
+            {body}
+            {coach}
+          </Shell>
+        );
+      })}
+    </div>
   );
 }
