@@ -541,9 +541,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const InitialBalanceField = (
     <div className="space-y-2">
       <Label>Initial balance ($)</Label>
-      <Input type="number" value={initialBalance}
-        onChange={(e) => setInitialBalance(Number(e.target.value))}
-        className="tabular-nums" />
+      <NumericField min={0} step={100}
+        value={initialBalance}
+        onCommit={setInitialBalance} />
     </div>
   );
 
