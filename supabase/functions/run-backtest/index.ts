@@ -466,8 +466,11 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         avg_loser: kpis.avg_losing || 0,
         results_detail: resultsDetail,
         equity_curve: result.equity_curve || [],
-        validation: result.validation ?? null,
-        validation_error: result.validation_error ?? null,
+        // Compare-mode (v25.3.0+) returns validation at the TOP level of the envelope
+        // for the PRIMARY result, not inside primary. Fall back to the envelope so
+        // stop-run verdicts still populate; single-run continues to read result.validation.
+        validation: result.validation ?? engineData.validation ?? null,
+        validation_error: result.validation_error ?? engineData.validation_error ?? null,
         run_validation: runValidation,
         validation_iterations: validationIterations,
         ai_signal_code: signalCode,
