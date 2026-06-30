@@ -143,6 +143,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const navigate = useNavigate();
   const { planState, isAdmin } = useTier();
   const { strategies, isLoading } = useStrategies();
+  const { runs } = useBacktestRuns();
+  const lastRun = runs[0] ?? null;
 
   // Admin role overrides plan for visibility purposes.
   const effectiveTier: PlanState = isAdmin ? 'admin' : planState;
