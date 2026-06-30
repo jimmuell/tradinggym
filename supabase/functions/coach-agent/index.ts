@@ -7,8 +7,8 @@ import { z } from "npm:zod@3.23.8";
 // Both caps are enforced server-side. Admins are exempt. Mock-mode calls do
 // not count and are not capped. Failed Claude calls do not consume quota.
 // ---------------------------------------------------------------------------
-const DAILY_QUESTION_LIMIT = 4; // per non-admin user, per UTC day
-const PER_RUN_QUESTION_LIMIT = 2; // user-role messages allowed per run thread
+const DAILY_QUESTION_LIMIT = 25; // per non-admin user, per UTC day
+const PER_RUN_QUESTION_LIMIT = 15; // user-role messages allowed per run thread
 
 const TeachingSchema = z.object({
   dimension: z.string(),
