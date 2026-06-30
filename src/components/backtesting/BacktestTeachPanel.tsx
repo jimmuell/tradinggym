@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useTier } from '@/contexts/TierContext';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import CoachChat from './CoachChat';
+import { COACH_CHAT_ENABLED } from '@/lib/featureFlags';
 
 
 
