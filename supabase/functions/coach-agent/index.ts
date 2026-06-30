@@ -206,6 +206,19 @@ Deno.serve(async (req) => {
 
     const { context, messages, mock } = parsed.data;
 
+    // Feature-flag gate: when the coach is disabled, only admins may proceed.
+    // Returns a clean assistant-style reply (200) so the UI doesn't show the
+    // fail-safe error bubble. No Anthropic call, no quota consumed.
+    if (!COACH_CHAT_ENABLED && !isAdmin) {
+      return new Response(
+        JSON.stringify({
+          reply: "The coach isn't available yet — coming soon.",
+          disabled: true,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     // Admin-only mock mode — never counts against quota, never capped.
     if (mock === true && isAdmin) {
       const reply = buildMockReply(context);
