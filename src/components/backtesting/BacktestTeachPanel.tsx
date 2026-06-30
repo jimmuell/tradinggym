@@ -190,7 +190,12 @@ export default function BacktestTeachPanel({ run }: Props) {
   if (!hasStopConfig) return null;
 
   const detail = (run.results_detail ?? {}) as Record<string, unknown>;
-  const teachingArr = detail._teaching as TeachingEntry[] | undefined;
+  const rawTeaching = detail._teaching ?? (detail as { teaching?: unknown }).teaching;
+  const teachingArr: TeachingEntry[] | undefined = Array.isArray(rawTeaching)
+    ? (rawTeaching as TeachingEntry[])
+    : rawTeaching && typeof rawTeaching === 'object'
+      ? [rawTeaching as TeachingEntry]
+      : undefined;
   const sameSignal = detail._same_signal as boolean | undefined;
 
   if (!teachingArr || teachingArr.length === 0) return null;
