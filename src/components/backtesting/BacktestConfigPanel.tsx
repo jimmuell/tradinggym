@@ -323,59 +323,104 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const StopField = (
+  const StopField = ({ dense = false, disabled = false }: { dense?: boolean; disabled?: boolean } = {}) => (
     <div className="space-y-1.5">
-      <Label htmlFor="stop-input" className="text-xs">
-        {stopUnit === 'points' ? 'Stop loss (points)' : 'Stop loss (% from entry)'}
-      </Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="stop-input" className={cn('text-xs', dense && 'whitespace-nowrap')}>
+          {dense ? 'Stop loss' : (stopUnit === 'points' ? 'Stop loss (points)' : 'Stop loss (% from entry)')}
+        </Label>
+        {dense && (
+          <span className="text-[10px] text-muted-foreground tabular-nums">
+            {stopUnit === 'points' ? 'pts' : '%'}
+          </span>
+        )}
+      </div>
       {stopUnit === 'points' ? (
         <Input id="stop-input" type="number" min={0} step={0.25}
           value={stopLossPoints}
           onChange={(e) => setStopLossPoints(Math.max(0, Number(e.target.value) || 0))}
+          disabled={disabled}
           className="tabular-nums" />
       ) : (
         <Input id="stop-input" type="number" min={0} max={100} step={0.1}
           value={stopLossPct}
           onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
+          disabled={disabled}
           className="tabular-nums" />
       )}
-      {stopUnit === 'points' && stopLossPoints > 0 && (
-        <p className="text-[11px] text-muted-foreground tabular-nums">
-          {stopLossPoints} pts = {formatUSD(pointsToDollars(stopLossPoints))} risk / contract
-          {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(stopLossPoints, qtyValue))}`}
-        </p>
+      {dense ? (
+        (stopUnit === 'points' ? stopLossPoints > 0 : stopLossPct > 0) && (
+          <p className="text-[10px] text-muted-foreground tabular-nums">
+            {stopUnit === 'points'
+              ? `${stopLossPoints} pts = ${formatUSD(pointsToDollars(stopLossPoints, qtyValue))} risk`
+              : `${stopLossPct}% = ${formatUSD((stopLossPct / 100) * initialBalance)} risk`}
+          </p>
+        )
+      ) : (
+        stopUnit === 'points' && stopLossPoints > 0 && (
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {stopLossPoints} pts = {formatUSD(pointsToDollars(stopLossPoints))} risk / contract
+            {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(stopLossPoints, qtyValue))}`}
+          </p>
+        )
       )}
     </div>
   );
 
-  const TargetField = (
+
+  const TargetField = ({ dense = false, disabled = false }: { dense?: boolean; disabled?: boolean } = {}) => (
     <div className="space-y-1.5">
-      <Label htmlFor="target-input" className="text-xs">
-        {stopUnit === 'points' ? 'Take profit (points)' : 'Take profit (% from entry)'}
-      </Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="target-input" className={cn('text-xs', dense && 'whitespace-nowrap')}>
+          {dense ? 'Take profit' : (stopUnit === 'points' ? 'Take profit (points)' : 'Take profit (% from entry)')}
+        </Label>
+        {dense && (
+          <span className="text-[10px] text-muted-foreground tabular-nums">
+            {stopUnit === 'points' ? 'pts' : '%'}
+          </span>
+        )}
+      </div>
       {stopUnit === 'points' ? (
         <Input id="target-input" type="number" min={0} step={0.25}
           value={takeProfitPoints}
           onChange={(e) => setTakeProfitPoints(Math.max(0, Number(e.target.value) || 0))}
+          disabled={disabled}
           className="tabular-nums" />
       ) : (
         <Input id="target-input" type="number" min={0} step={0.1}
           value={takeProfitPct}
           onChange={(e) => setTakeProfitPct(Math.max(0, Number(e.target.value) || 0))}
+          disabled={disabled}
           className="tabular-nums" />
       )}
-      {stopUnit === 'points' && takeProfitPoints > 0 && (
-        <p className="text-[11px] text-muted-foreground tabular-nums">
-          {takeProfitPoints} pts = {formatUSD(pointsToDollars(takeProfitPoints))} goal / contract
-          {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(takeProfitPoints, qtyValue))}`}
-        </p>
+      {dense ? (
+        (stopUnit === 'points' ? takeProfitPoints > 0 : takeProfitPct > 0) && (
+          <p className="text-[10px] text-muted-foreground tabular-nums">
+            {stopUnit === 'points'
+              ? `${takeProfitPoints} pts = ${formatUSD(pointsToDollars(takeProfitPoints, qtyValue))} target`
+              : `${takeProfitPct}% = ${formatUSD((takeProfitPct / 100) * initialBalance)} target`}
+          </p>
+        )
+      ) : (
+        stopUnit === 'points' && takeProfitPoints > 0 && (
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {takeProfitPoints} pts = {formatUSD(pointsToDollars(takeProfitPoints))} goal / contract
+            {qtyValue > 1 && ` · × ${qtyValue} = ${formatUSD(pointsToDollars(takeProfitPoints, qtyValue))}`}
+          </p>
+        )
       )}
     </div>
   );
 
-  const QtyField = (
+
+  const QtyField = ({ dense = false }: { dense?: boolean } = {}) => (
     <div className="space-y-1.5">
-      <Label htmlFor="qty-value" className="text-xs">Position size (contracts)</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="qty-value" className={cn('text-xs', dense && 'whitespace-nowrap')}>
+          {dense ? 'Position size' : 'Position size (contracts)'}
+        </Label>
+        {dense && <span className="text-[10px] text-muted-foreground">contracts</span>}
+      </div>
       <Input id="qty-value" type="number" min={1} step={1}
         value={qtyValue}
         onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
@@ -383,16 +428,21 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const SlippageField = (disabled = false) => (
+  const SlippageField = ({ disabled = false, dense = false }: { disabled?: boolean; dense?: boolean } = {}) => (
     <div className="space-y-1.5">
-      <Label htmlFor="slippage-ticks" className="text-xs">Slippage (ticks)</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="slippage-ticks" className={cn('text-xs', dense && 'whitespace-nowrap')}>
+          {dense ? 'Slippage' : 'Slippage (ticks)'}
+        </Label>
+        {dense && <span className="text-[10px] text-muted-foreground">ticks</span>}
+      </div>
       <Input id="slippage-ticks" type="number" min={0} step={1}
         value={slippageTicks}
         onChange={(e) => setSlippageTicks(Math.max(0, Number(e.target.value) || 0))}
         onBlur={(e) => setSlippageTicks(Math.max(0, Math.round(Number(e.target.value) || 0)))}
         disabled={disabled}
         className="tabular-nums" />
-      <p className="text-[11px] text-muted-foreground tabular-nums">
+      <p className={cn('text-muted-foreground tabular-nums', dense ? 'text-[10px]' : 'text-[11px]')}>
         {slippageTicks} ticks = {formatUSD(ticksToDollars(slippageTicks))} / contract per fill
       </p>
     </div>
@@ -419,10 +469,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const ValidationToggle = (
+  const ValidationToggle = ({ dense = false }: { dense?: boolean } = {}) => (
     <div className="flex items-start justify-between gap-3">
       <div className="space-y-0.5">
-        <Label htmlFor="run-validation">Statistical validation</Label>
+        <Label htmlFor="run-validation" className={cn(dense && 'whitespace-nowrap')}>Statistical validation</Label>
         <p className="text-xs text-muted-foreground">Check if your edge is real, not luck.</p>
       </div>
       {runValidation ? (
@@ -475,10 +525,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const ForceRegenField = (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-dashed border-border p-3">
+  const ForceRegenField = ({ dense = false }: { dense?: boolean } = {}) => (
+    <div className="flex items-start justify-between gap-3 rounded-lg border border-dashed border-border p-3">
       <div className="space-y-0.5">
-        <Label htmlFor="force-regenerate">Force-regenerate signal</Label>
+        <Label htmlFor="force-regenerate" className={cn(dense && 'whitespace-nowrap')}>Force-regenerate signal</Label>
         <p className="text-xs text-muted-foreground">
           Admin only. Ignores the cached signal and regenerates it via Claude for this run. Resets after each run.
         </p>
@@ -533,11 +583,11 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       <Section icon={ShieldCheck} title="Risk & execution">
         {vis.stopUnit === 'visible' && StopUnitToggle}
         <div className="grid grid-cols-2 gap-3">
-          {StopField}
-          {TargetField}
+          {StopField()}
+          {TargetField()}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {QtyField}
+          {QtyField()}
           {vis.slippage === 'visible' && SlippageField()}
         </div>
       </Section>
@@ -551,7 +601,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
       {vis.validation === 'visible' && (
         <Section icon={Activity} title="Validation">
-          {ValidationToggle}
+          {ValidationToggle()}
           {runValidation && vis.iterations === 'visible' && IterationsField()}
         </Section>
       )}
@@ -561,41 +611,37 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  // Cockpit (Guru / Admin): two-column dense
+  // Cockpit (Guru / Admin): responsive auto-fit grid
   const CockpitLayout = (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <Section icon={Target} title="Strategy & period" ribbon>
-            {StrategyField}
-            {DateRangeFields}
-            {DirectionField}
-          </Section>
-          <Section icon={Wallet} title="Account" ribbon>
-            <div className="grid grid-cols-2 gap-3">
-              {InitialBalanceField}
-              {CommissionField}
-            </div>
-          </Section>
-        </div>
-        <div className="space-y-4">
-          <Section icon={ShieldCheck} title="Risk & execution" ribbon>
-            {StopUnitToggle}
-            <div className="grid grid-cols-2 gap-3">
-              {StopField}
-              {TargetField}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {QtyField}
-              {SlippageField()}
-            </div>
-          </Section>
-          <Section icon={Activity} title="Validation" ribbon>
-            {ValidationToggle}
-            {IterationsField()}
-          </Section>
-          {vis.forceRegen === 'visible' && ForceRegenField}
-        </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+        <Section icon={Target} title="Strategy & period" ribbon>
+          {StrategyField}
+          {DateRangeFields}
+          {DirectionField}
+        </Section>
+        <Section icon={ShieldCheck} title="Risk & execution" ribbon>
+          {StopUnitToggle}
+          <div className="grid grid-cols-2 gap-2">
+            {StopField({ dense: true })}
+            {TargetField({ dense: true })}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {QtyField({ dense: true })}
+            {SlippageField({ dense: true })}
+          </div>
+        </Section>
+        <Section icon={Wallet} title="Account" ribbon>
+          <div className="grid grid-cols-2 gap-2">
+            {InitialBalanceField}
+            {CommissionField}
+          </div>
+        </Section>
+        <Section icon={Activity} title="Validation" ribbon>
+          {ValidationToggle({ dense: true })}
+          {IterationsField()}
+        </Section>
+        {vis.forceRegen === 'visible' && ForceRegenField({ dense: true })}
       </div>
 
       {/* Live cost summary */}
@@ -614,6 +660,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       </div>
     </div>
   );
+
 
   // ---------- Render ----------
 
