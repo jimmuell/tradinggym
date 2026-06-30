@@ -124,10 +124,15 @@ function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
       </>
     );
   }
-  const winnerLine = (
+  const hasRealWinner = (t.primary_best_win ?? 0) > 0;
+  const winnerLine = hasRealWinner ? (
     <p className="text-xs text-muted-foreground">
       Biggest winner you locked in: {signedDollars(t.primary_best_win ?? 0)}. Without the cap, that
       trade would have reached {signedDollars(t.variant_best_win ?? 0)}.
+    </p>
+  ) : (
+    <p className="text-xs text-muted-foreground">
+      No winning trades in this run, so there were no capped winners to measure.
     </p>
   );
 
