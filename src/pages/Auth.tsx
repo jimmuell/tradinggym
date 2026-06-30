@@ -353,6 +353,28 @@ export default function Auth() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {isDevHost && (
+          <div className="mt-6 rounded-md border border-dashed border-yellow-600/50 bg-yellow-950/20 p-3">
+            <div className="text-[10px] font-mono uppercase tracking-wider text-yellow-500 mb-2">
+              DEV ONLY · preview/localhost
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {DEV_ACCOUNTS.map((acct) => (
+                <Button
+                  key={acct.email}
+                  onClick={() => handleDevLogin(acct.email)}
+                  disabled={loading}
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-600/50 bg-yellow-950/30 text-yellow-200 hover:bg-yellow-900/40 hover:text-yellow-100"
+                >
+                  {acct.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       <LegalModal
         open={legalModal !== null}
