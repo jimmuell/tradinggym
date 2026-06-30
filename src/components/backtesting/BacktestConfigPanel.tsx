@@ -161,7 +161,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [startDate, setStartDate] = useState('2020-01-01');
   const [endDate, setEndDate] = useState('2025-12-31');
   const [initialBalance, setInitialBalance] = useState(10000);
-  const [commissionPct, setCommissionPct] = useState(0); // footgun fix: default 0
+  const [commissionPerRt, setCommissionPerRt] = useState(1.24); // ADR-030: flat $/round-trip
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
   // Validation OFF by default per spec (was true).
   const [runValidation, setRunValidation] = useState(false);
