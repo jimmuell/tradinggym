@@ -349,6 +349,18 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
     const sentTakeProfitPct = Number(run.take_profit_pct ?? 0);
     const sentSlippageTicks = Number(run.slippage_ticks ?? 0);
 
+    // ADR-030: flat $/round-trip commission. If the row carries the new fields,
+    // derive commission_rate=0 here. Legacy rows (commission_pct only) fall back
+    // to the percent model so historical reruns remain reproducible.
+    const commissionMode: string = (run.commission_mode as string)
+      ?? (run.commission_per_rt != null ? "flat_per_rt" : "pct");
+    const commissionPerRt = commissionMode === "flat_per_rt"
+      ? Number(run.commission_per_rt ?? 1.24)
+      : 0;
+    const commissionRate = commissionMode === "flat_per_rt"
+      ? 0
+      : Number(run.commission_pct ?? 0.1);
+
     console.log("ENGINE_REQUEST_RISK", JSON.stringify({
       run_id,
       row_stop_loss_pct: run.stop_loss_pct,
@@ -361,7 +373,9 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       sent_take_profit_points: sentTakeProfitPoints,
       sent_slippage_ticks: sentSlippageTicks,
       sent_qty_value: run.qty_value ?? 1,
-      sent_commission_pct: run.commission_pct ?? 0.1,
+      sent_commission_mode: commissionMode,
+      sent_commission_per_rt: commissionPerRt,
+      sent_commission_rate: commissionRate,
     }));
 
     // TEACH-COMPARE routing: when a stop is configured, call /run/compare so the
@@ -380,7 +394,10 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         signal_code: signalCode,
         direction: run.direction || "long_short",
         initial_capital: run.initial_balance || 10000,
-        commission_pct: run.commission_pct ?? 0.1,
+        commission_pct: commissionRate,
+        commission_mode: commissionMode,
+        commission_per_rt: commissionPerRt,
+        commission_rate: commissionRate,
         start_date: engineStartDate,
         end_date: engineEndDate,
         stop_loss_pct: sentStopLossPct,
@@ -397,6 +414,7 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         validation_iterations: validationIterations,
       }),
     });
+
 
 
     if (!engineResponse.ok) {
