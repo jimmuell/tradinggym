@@ -778,11 +778,26 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
           <span>Configure backtest</span>
-          {!isStarter && (
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-              {TIER_LABEL[effectiveTier]}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {!isStarter && canReuse && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-xs font-normal"
+                onClick={handleReuseLastRun}
+                title={`Reuse "${lastRun?.strategy_name}"`}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reuse last run
+              </Button>
+            )}
+            {!isStarter && (
+              <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                {TIER_LABEL[effectiveTier]}
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
