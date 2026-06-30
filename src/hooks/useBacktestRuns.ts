@@ -91,6 +91,8 @@ export interface NewBacktestRun {
   strategy_config?: Record<string, unknown>;
   direction?: string;
   commission_pct?: number;
+  commission_mode?: string;
+  commission_per_rt?: number;
   run_validation?: boolean;
   validation_iterations?: number;
   stop_loss_pct?: number;
