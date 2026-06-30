@@ -550,9 +550,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const CommissionField = (
     <div className="space-y-2">
       <Label>Commission ($ per round-trip, all-in)</Label>
-      <Input type="number" step="0.01" min="0" value={commissionPerRt}
-        onChange={(e) => setCommissionPerRt(Number(e.target.value))}
-        className="tabular-nums" />
+      <NumericField min={0} step={0.01} decimal
+        value={commissionPerRt}
+        onCommit={setCommissionPerRt} />
       <p className="text-[11px] text-muted-foreground">
         Flat dollars per round-trip (entry + exit + fees). Default 1.24 = Amp Futures MES all-in.
       </p>
