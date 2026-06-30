@@ -208,8 +208,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     if (isVisible('initialBalance')) setInitialBalance(lastRun.initial_balance ?? 10000);
     else setInitialBalance(10000);
 
-    if (isVisible('commission')) setCommissionPct(lastRun.commission_pct ?? 0);
-    else setCommissionPct(0);
+    if (isVisible('commission')) setCommissionPerRt(lastRun.commission_per_rt ?? 1.24);
+    else setCommissionPerRt(1.24);
 
     if (isVisible('qty')) setQtyValue(lastRun.qty_value ?? 1);
     else setQtyValue(1);
