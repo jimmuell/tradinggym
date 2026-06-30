@@ -514,10 +514,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </Label>
         {dense && <span className="text-[10px] text-muted-foreground">contracts</span>}
       </div>
-      <Input id="qty-value" type="number" min={1} step={1}
+      <NumericField id="qty-value" min={1} step={1}
         value={qtyValue}
-        onChange={(e) => setQtyValue(Math.max(1, Math.trunc(Number(e.target.value) || 1)))}
-        className="tabular-nums" />
+        onCommit={setQtyValue} />
     </div>
   );
 
