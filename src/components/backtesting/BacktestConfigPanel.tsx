@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
+import { useBacktestRuns } from '@/hooks/useBacktestRuns';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
 import { cn } from '@/lib/utils';
 
