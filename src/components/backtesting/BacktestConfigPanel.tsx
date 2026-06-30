@@ -294,7 +294,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       startDate,
       endDate,
       initialBalance,
-      commissionPct,
+      commissionPerRt,
       direction,
       timeframe: '5min',
       runValidation,
