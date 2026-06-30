@@ -433,17 +433,15 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         )}
       </div>
       {stopUnit === 'points' ? (
-        <Input id="stop-input" type="number" min={0} step={0.25}
+        <NumericField id="stop-input" min={0} step={0.25} decimal
           value={stopLossPoints}
-          onChange={(e) => setStopLossPoints(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setStopLossPoints}
+          disabled={disabled} />
       ) : (
-        <Input id="stop-input" type="number" min={0} max={100} step={0.1}
+        <NumericField id="stop-input" min={0} max={100} step={0.1} decimal
           value={stopLossPct}
-          onChange={(e) => setStopLossPct(Math.max(0, Number(e.target.value) || 0))}
-          disabled={disabled}
-          className="tabular-nums" />
+          onCommit={setStopLossPct}
+          disabled={disabled} />
       )}
       {dense ? (
         (stopUnit === 'points' ? stopLossPoints > 0 : stopLossPct > 0) && (
