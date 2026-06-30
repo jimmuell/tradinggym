@@ -528,12 +528,10 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </Label>
         {dense && <span className="text-[10px] text-muted-foreground">ticks</span>}
       </div>
-      <Input id="slippage-ticks" type="number" min={0} step={1}
+      <NumericField id="slippage-ticks" min={0} step={1}
         value={slippageTicks}
-        onChange={(e) => setSlippageTicks(Math.max(0, Number(e.target.value) || 0))}
-        onBlur={(e) => setSlippageTicks(Math.max(0, Math.round(Number(e.target.value) || 0)))}
-        disabled={disabled}
-        className="tabular-nums" />
+        onCommit={setSlippageTicks}
+        disabled={disabled} />
       <p className={cn('text-muted-foreground tabular-nums', dense ? 'text-[10px]' : 'text-[11px]')}>
         {slippageTicks} ticks = {formatUSD(ticksToDollars(slippageTicks))} / contract per fill
       </p>
