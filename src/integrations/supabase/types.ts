@@ -49,7 +49,9 @@ export type Database = {
           ai_signal_code: string | null
           avg_loser: number | null
           avg_winner: number | null
+          commission_mode: string | null
           commission_pct: number | null
+          commission_per_rt: number | null
           created_at: string
           direction: string | null
           end_date: string
@@ -93,7 +95,9 @@ export type Database = {
           ai_signal_code?: string | null
           avg_loser?: number | null
           avg_winner?: number | null
+          commission_mode?: string | null
           commission_pct?: number | null
+          commission_per_rt?: number | null
           created_at?: string
           direction?: string | null
           end_date: string
@@ -137,7 +141,9 @@ export type Database = {
           ai_signal_code?: string | null
           avg_loser?: number | null
           avg_winner?: number | null
+          commission_mode?: string | null
           commission_pct?: number | null
+          commission_per_rt?: number | null
           created_at?: string
           direction?: string | null
           end_date?: string
