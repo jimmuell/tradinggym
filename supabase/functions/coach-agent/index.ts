@@ -10,6 +10,12 @@ import { z } from "npm:zod@3.23.8";
 const DAILY_QUESTION_LIMIT = 25; // per non-admin user, per UTC day
 const PER_RUN_QUESTION_LIMIT = 15; // user-role messages allowed per run thread
 
+// Feature flag: gate the interactive coach. When false, only admins may call
+// this function — regular users get a clean refusal and no Anthropic call is
+// made. Flip the COACH_CHAT_ENABLED env var on the deployed function to
+// re-enable for all eligible users without redeploying code.
+const COACH_CHAT_ENABLED = Deno.env.get("COACH_CHAT_ENABLED") === "true";
+
 const TeachingSchema = z.object({
   dimension: z.string(),
   delta_net: z.number(),
