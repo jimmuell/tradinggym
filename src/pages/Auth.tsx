@@ -116,6 +116,35 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const isDevHost = (() => {
+    if (typeof window === 'undefined') return false;
+    const h = window.location.hostname;
+    return (
+      h === 'localhost' ||
+      h === '127.0.0.1' ||
+      h.startsWith('preview--') ||
+      h.endsWith('.lovableproject.com')
+    );
+  })();
+
+  const handleDevLogin = async (email: string) => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password: 'password123',
+    });
+    setLoading(false);
+    if (error) toast.error(error.message);
+  };
+
+  const DEV_ACCOUNTS: Array<{ label: string; email: string }> = [
+    { label: 'Starter', email: 'starter@gmail.com' },
+    { label: 'Pro', email: 'pro@gmail.com' },
+    { label: 'Expert', email: 'expert@gmail.com' },
+    { label: 'Guru', email: 'guru@gmail.com' },
+    { label: 'Admin', email: 'admin@gmail.com' },
+  ];
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#131722]">
       <PageSeo
