@@ -44,7 +44,7 @@ export interface BacktestConfig {
   startDate: string;
   endDate: string;
   initialBalance: number;
-  commissionPct: number;
+  commissionPerRt: number;
   direction: 'long_short' | 'long_only';
   timeframe: string;
   runValidation: boolean;
@@ -161,7 +161,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [startDate, setStartDate] = useState('2020-01-01');
   const [endDate, setEndDate] = useState('2025-12-31');
   const [initialBalance, setInitialBalance] = useState(10000);
-  const [commissionPct, setCommissionPct] = useState(0); // footgun fix: default 0
+  const [commissionPerRt, setCommissionPerRt] = useState(1.24); // ADR-030: flat $/round-trip
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
   // Validation OFF by default per spec (was true).
   const [runValidation, setRunValidation] = useState(false);
@@ -208,8 +208,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     if (isVisible('initialBalance')) setInitialBalance(lastRun.initial_balance ?? 10000);
     else setInitialBalance(10000);
 
-    if (isVisible('commission')) setCommissionPct(lastRun.commission_pct ?? 0);
-    else setCommissionPct(0);
+    if (isVisible('commission')) setCommissionPerRt(lastRun.commission_per_rt ?? 1.24);
+    else setCommissionPerRt(1.24);
 
     if (isVisible('qty')) setQtyValue(lastRun.qty_value ?? 1);
     else setQtyValue(1);
@@ -294,7 +294,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       startDate,
       endDate,
       initialBalance,
-      commissionPct,
+      commissionPerRt,
       direction,
       timeframe: '5min',
       runValidation,
@@ -323,7 +323,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPct, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue, forceRegenerate]);
+  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPerRt, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue, forceRegenerate]);
 
   const vis = useMemo(() => {
     const map = {} as Record<FieldId, Visibility>;
@@ -339,17 +339,15 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     const targetDollars = stopUnit === 'points'
       ? pointsToDollars(takeProfitPoints, qtyValue)
       : (takeProfitPct / 100) * initialBalance;
-    // Rough MES notional ~ $5,000/contract (ES ~5000 × $5/pt × 0.05 stub). Use a simple
-    // honest model: commissionPct% of $5,000 notional × 2 sides × qty per round-trip.
-    const MES_NOTIONAL = 5000;
-    const commissionPerRT = (commissionPct / 100) * MES_NOTIONAL * 2 * qtyValue;
+    // ADR-030: flat $/round-trip commission, all-in. Drag = $/RT × qty × trades.
+    const commissionPerRT = commissionPerRt * qtyValue;
     const commissionDrag100 = commissionPerRT * 100;
     return {
       stopDollars: Math.round(stopDollars),
       targetDollars: Math.round(targetDollars),
       commissionDrag100: Math.round(commissionDrag100),
     };
-  }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPct]);
+  }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPerRt]);
 
   // ---------- Sub-renderers (one source per field — works in both skins) ----------
 
@@ -557,12 +555,12 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
   const CommissionField = (
     <div className="space-y-2">
-      <Label>Commission %</Label>
-      <Input type="number" step="0.01" value={commissionPct}
-        onChange={(e) => setCommissionPct(Number(e.target.value))}
+      <Label>Commission ($ per round-trip, all-in)</Label>
+      <Input type="number" step="0.01" min="0" value={commissionPerRt}
+        onChange={(e) => setCommissionPerRt(Number(e.target.value))}
         className="tabular-nums" />
-      <p className="text-[11px] text-amber-600 dark:text-amber-400">
-        Percent commission heavily distorts futures results — a realistic $/round-trip model is coming. Default is 0.
+      <p className="text-[11px] text-muted-foreground">
+        Flat dollars per round-trip (entry + exit + fees). Default 1.24 = Amp Futures MES all-in.
       </p>
     </div>
   );

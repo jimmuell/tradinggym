@@ -66,6 +66,8 @@ export interface BacktestRun {
   execution_time_ms: number | null;
   direction: string | null;
   commission_pct: number | null;
+  commission_mode?: string | null;
+  commission_per_rt?: number | null;
   stop_loss_pct?: number | null;
   take_profit_pct?: number | null;
   stop_loss_points?: number | null;
@@ -89,6 +91,8 @@ export interface NewBacktestRun {
   strategy_config?: Record<string, unknown>;
   direction?: string;
   commission_pct?: number;
+  commission_mode?: string;
+  commission_per_rt?: number;
   run_validation?: boolean;
   validation_iterations?: number;
   stop_loss_pct?: number;

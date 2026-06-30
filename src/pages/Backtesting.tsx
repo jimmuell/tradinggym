@@ -50,7 +50,8 @@ export default function Backtesting() {
         take_profit_ticks: 0,
         max_trades_per_day: 10,
         direction: config.direction,
-        commission_pct: config.commissionPct,
+        commission_mode: 'flat_per_rt',
+        commission_per_rt: config.commissionPerRt,
         run_validation: config.runValidation,
         validation_iterations: config.validationIterations,
         // Mutual exclusivity: only one stop unit is ever stored per run.

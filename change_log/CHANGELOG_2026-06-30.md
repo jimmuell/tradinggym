@@ -17,3 +17,31 @@ On Guru/Admin tiers the backtest config panel rendered a fixed two-column cockpi
 ### Files changed
 - `src/pages/Backtesting.tsx`
 - `src/components/backtesting/BacktestConfigPanel.tsx`
+
+## ADR-030 — Flat $/round-trip commission (default $1.24)
+
+### Problem
+Percent-of-notional commission distorts futures backtest results. Brokers like Amp Futures charge a flat dollar amount per round-trip (entry + exit + fees), not a percent.
+
+### Solution
+- **Migration**: added `commission_mode` (text) and `commission_per_rt` (numeric) to `backtest_runs`. Kept `commission_pct` for historical reads.
+- **Edge function (`run-backtest`)**: derives `commission_rate = 0` when `commission_mode = 'flat_per_rt'` (clients don't need to send it). Forwards `commission_mode`, `commission_per_rt`, `commission_rate` to engine on both `/run` and `/run/compare`. Legacy rows fall back to the percent model. `ENGINE_REQUEST_RISK` log line updated to include the three commission fields.
+- **Frontend**:
+  - Commission field is now **"Commission ($ per round-trip, all-in)"**, default `1.24`. Legacy percent-distortion warning removed.
+  - Cockpit live cost summary: commission drag = `commission_per_rt × qty × trades`.
+  - `Backtesting.tsx` sends `{ commission_mode: 'flat_per_rt', commission_per_rt }`; no longer sends `commission_pct`.
+  - Reuse-last-run hydrates from `commission_per_rt`.
+
+### Deploy order
+1. Migration applied.
+2. `run-backtest` edge function redeployed.
+3. Frontend published last (this changelog entry).
+
+### Out of scope
+Slippage, validation panel, tier gating.
+
+### Files changed
+- `supabase/functions/run-backtest/index.ts`
+- `src/components/backtesting/BacktestConfigPanel.tsx`
+- `src/pages/Backtesting.tsx`
+- `src/hooks/useBacktestRuns.ts`
