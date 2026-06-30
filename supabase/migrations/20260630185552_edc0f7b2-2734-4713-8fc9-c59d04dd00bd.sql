@@ -1,0 +1,1 @@
+ALTER TABLE public.backtest_runs ADD COLUMN IF NOT EXISTS commission_mode text, ADD COLUMN IF NOT EXISTS commission_per_rt numeric;
