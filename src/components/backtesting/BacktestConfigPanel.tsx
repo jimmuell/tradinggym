@@ -11,7 +11,9 @@ import {
   Activity,
   ChevronDown,
   Settings2,
+  RotateCcw,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
+import { useBacktestRuns } from '@/hooks/useBacktestRuns';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
 import { cn } from '@/lib/utils';
 
@@ -140,6 +143,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const navigate = useNavigate();
   const { planState, isAdmin } = useTier();
   const { strategies, isLoading } = useStrategies();
+  const { runs } = useBacktestRuns();
+  const lastRun = runs[0] ?? null;
 
   // Admin role overrides plan for visibility purposes.
   const effectiveTier: PlanState = isAdmin ? 'admin' : planState;
@@ -171,6 +176,99 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [forceRegenerate, setForceRegenerate] = useState(false);
 
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
+
+  const canReuse = !!lastRun;
+
+  const handleReuseLastRun = () => {
+    if (!lastRun) return;
+    const isVisible = (id: FieldId) => visibilityFor(FIELDS.find((f) => f.id === id)!, effectiveTier) === 'visible';
+
+    // Strategy — hydrate only if it still exists
+    if (isVisible('strategy')) {
+      const stillExists = lastRun.strategy_id && strategies.some((s) => s.id === lastRun.strategy_id);
+      setStrategyId(stillExists ? (lastRun.strategy_id as string) : '');
+    } else {
+      setStrategyId('');
+    }
+
+    if (isVisible('dateRange')) {
+      setStartDate(lastRun.start_date);
+      setEndDate(lastRun.end_date);
+    } else {
+      setStartDate('2020-01-01');
+      setEndDate('2025-12-31');
+    }
+
+    if (isVisible('direction')) {
+      setDirection((lastRun.direction as 'long_short' | 'long_only') || 'long_short');
+    } else {
+      setDirection('long_short');
+    }
+
+    if (isVisible('initialBalance')) setInitialBalance(lastRun.initial_balance ?? 10000);
+    else setInitialBalance(10000);
+
+    if (isVisible('commission')) setCommissionPct(lastRun.commission_pct ?? 0);
+    else setCommissionPct(0);
+
+    if (isVisible('qty')) setQtyValue(lastRun.qty_value ?? 1);
+    else setQtyValue(1);
+
+    // Stop unit: decide based on which value the last run stored
+    const lastIsPoints = (lastRun.stop_loss_points ?? 0) > 0 || (lastRun.take_profit_points ?? 0) > 0
+      || ((lastRun.stop_loss_pct ?? 0) === 0 && (lastRun.take_profit_pct ?? 0) === 0);
+    const nextUnit: StopUnit = isVisible('stopUnit') ? (lastIsPoints ? 'points' : 'percent') : 'points';
+    setStopUnit(nextUnit);
+
+    if (isVisible('stop')) {
+      if (nextUnit === 'points') {
+        setStopLossPoints(lastRun.stop_loss_points ?? 0);
+        setStopLossPct(0);
+      } else {
+        setStopLossPct(lastRun.stop_loss_pct ?? 0);
+        setStopLossPoints(0);
+      }
+    } else {
+      setStopLossPoints(0);
+      setStopLossPct(0);
+    }
+
+    if (isVisible('target')) {
+      if (nextUnit === 'points') {
+        setTakeProfitPoints(lastRun.take_profit_points ?? 0);
+        setTakeProfitPct(0);
+      } else {
+        setTakeProfitPct(lastRun.take_profit_pct ?? 0);
+        setTakeProfitPoints(0);
+      }
+    } else {
+      setTakeProfitPoints(0);
+      setTakeProfitPct(0);
+    }
+
+    if (isVisible('slippage')) setSlippageTicks(lastRun.slippage_ticks ?? 0);
+    else setSlippageTicks(0);
+
+    if (isVisible('validation')) {
+      const had = !!lastRun.validation || !!lastRun.validation_error;
+      setRunValidation(had);
+    } else {
+      setRunValidation(false);
+    }
+
+    if (isVisible('iterations')) {
+      // Not persisted on the run row; keep current/default.
+      setValidationIterations((prev) => prev || VALIDATION_ITERATIONS_DEFAULT);
+    } else {
+      setValidationIterations(VALIDATION_ITERATIONS_DEFAULT);
+    }
+
+    // forceRegenerate always resets
+    setForceRegenerate(false);
+
+    toast.success(`Reused "${lastRun.strategy_name}"`);
+  };
+
 
   const applyQuickTestWeek = () => {
     const today = new Date();
@@ -680,11 +778,26 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       <CardHeader>
         <CardTitle className="flex items-center justify-between gap-2">
           <span>Configure backtest</span>
-          {!isStarter && (
-            <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-              {TIER_LABEL[effectiveTier]}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {!isStarter && canReuse && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-xs font-normal"
+                onClick={handleReuseLastRun}
+                title={`Reuse "${lastRun?.strategy_name}"`}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reuse last run
+              </Button>
+            )}
+            {!isStarter && (
+              <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                {TIER_LABEL[effectiveTier]}
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
