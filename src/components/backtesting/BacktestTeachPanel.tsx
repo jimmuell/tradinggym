@@ -210,7 +210,7 @@ function CommissionCardBody({ t }: { t: TeachingEntry }) {
     return (
       <>
         <p>
-          Commission flipped this from a win to a loss. Before fees you were up{' '}
+          Commission <strong>flipped this from a win to a loss</strong>. Before fees you were up{' '}
           {signedDollars(t.variant_net ?? 0)}; after {dollars(total)} in fees across {trades} trades,
           you finished at {signedDollars(t.primary_net ?? 0)}.
         </p>
