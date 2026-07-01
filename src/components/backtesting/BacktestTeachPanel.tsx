@@ -178,6 +178,7 @@ function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
   return <p>We couldn't produce a reliable comparison for this run.</p>;
 }
 
+// Renders the commission teaching dimension (third card).
 function CommissionCardBody({ t }: { t: TeachingEntry }) {
   if (t.sufficient_data === false) {
     return (
