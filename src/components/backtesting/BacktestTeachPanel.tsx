@@ -29,6 +29,12 @@ interface TeachingEntry {
   flips_profitability?: boolean;
   primary_net?: number;
   variant_net?: number;
+  // direction-specific
+  short_trade_count?: number;
+  short_net?: number;
+  primary_direction?: string;
+  variant_direction?: string;
+
 }
 
 interface Props {
