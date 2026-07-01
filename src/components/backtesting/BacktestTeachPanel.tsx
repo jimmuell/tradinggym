@@ -391,13 +391,18 @@ export default function BacktestTeachPanel({ run }: Props) {
         const isFirst = idx === 0;
         const title = titleFor(t.dimension);
         const body =
-          t.dimension === 'take_profit' ? (
+          t.dimension === 'stop' ? (
+            <StopCardBody t={t} />
+          ) : t.dimension === 'take_profit' ? (
             <TakeProfitCardBody t={t} />
           ) : t.dimension === 'commission' ? (
             <CommissionCardBody t={t} />
-          ) : (
-            <StopCardBody t={t} />
-          );
+          ) : t.dimension === 'direction' ? (
+            <DirectionCardBody t={t} />
+          ) : null;
+
+        if (!body) return null;
+
 
         // Attach coach + admin toggle only to the stop card (first card), preserving prior behavior.
         const isStop = t.dimension === 'stop';
