@@ -34,6 +34,10 @@ interface TeachingEntry {
   short_net?: number;
   primary_direction?: string;
   variant_direction?: string;
+  // slippage-specific
+  total_slippage?: number;
+  slippage_ticks?: number;
+
 
 }
 
