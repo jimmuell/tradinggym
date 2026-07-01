@@ -376,6 +376,8 @@ function SlippageCardBody({ t }: { t: TeachingEntry }) {
 }
 
 
+function titleFor(dimension: string): string {
+  if (dimension === 'slippage') return 'What slippage cost you';
   if (dimension === 'direction') return 'What your direction choice did';
   if (dimension === 'commission') return 'What commission cost you';
   if (dimension === 'stop') return 'What your stop did';
