@@ -14,11 +14,29 @@ async function setField(page: Page, id: string, value: string) {
   await input.blur();            // commit via onCommit
 }
 
+// Idle Run button only — NOT the disabled "Running backtest…". The button also carries a
+// "⌘↵" hint in its accessible name ("Run backtest ⌘↵"), so this is start-anchored (no `$`),
+// which still excludes "Running backtest…" (that name starts with "running…", not "run ").
+const RUN_IDLE = /^run backtest/i;
+
+// Wait until no backtest is running on this account (shared admin state can carry a run over):
+// during a run the button is replaced by the disabled "Running backtest…", so the idle button
+// being present again means the run has finished.
+async function waitForNoRunInProgress(page: Page) {
+  await expect(page.getByRole('button', { name: RUN_IDLE }))
+    .toBeVisible({ timeout: 300_000 });
+}
+
 async function runAndWaitForCommissionCard(page: Page) {
-  await page.getByRole('button', { name: /run backtest/i }).click();
-  // /run/compare now executes four engine runs (primary + 3 variants) — be patient.
+  const runBtn = page.getByRole('button', { name: RUN_IDLE });
+  await waitForNoRunInProgress(page);                       // don't click into a busy run
+  await expect(runBtn).toBeEnabled({ timeout: 30_000 });    // strategy chosen -> enabled
+  await runBtn.click();
+  // The button flips to a disabled "Running backtest…"; wait for it to return to idle so we
+  // assert on THIS run's result, not a stale card from a previous run.
+  await expect(runBtn).toBeVisible({ timeout: 300_000 });
   await page.getByText('What commission cost you').first()
-    .waitFor({ state: 'visible', timeout: 90_000 });
+    .waitFor({ state: 'visible', timeout: 120_000 });
 }
 
 // Run backtest stays disabled until a strategy is chosen — pick the first available.
@@ -35,10 +53,16 @@ async function baseConfig(page: Page, commission: string) {
 }
 
 test.describe('Commission teaching card (TEACH-COMPARE dim 3)', () => {
+  // A /run/compare backtest runs four engine runs (~up to 2 min each); the flip test runs two.
+  // Override the global 30 s timeout for this slow, backtest-driven spec only.
+  test.describe.configure({ timeout: 360_000 });
+
   test.beforeEach(async ({ page }) => {
     await login(page, TEST_ACCOUNTS.admin.email, TEST_ACCOUNTS.admin.password);
     await page.goto('/backtesting');
     await page.waitForLoadState('networkidle');
+    // Shared admin state can carry a prior test's run over — wait it out before configuring.
+    await waitForNoRunInProgress(page);
     await selectFirstStrategy(page);
   });
 
@@ -76,9 +100,12 @@ test.describe('Commission teaching card (TEACH-COMPARE dim 3)', () => {
 
     // Absurd commission guarantees primary goes negative while variant stays positive.
     await setField(page, 'commission-input', '1000');
-    await page.getByRole('button', { name: /run backtest/i }).click();
+    const runBtn = page.getByRole('button', { name: RUN_IDLE });
+    await waitForNoRunInProgress(page);                     // the first run must have finished
+    await expect(runBtn).toBeEnabled({ timeout: 30_000 });
+    await runBtn.click();
     await expect(page.getByText(/flipped this from a win to a loss/i))
-      .toBeVisible({ timeout: 90_000 });
+      .toBeVisible({ timeout: 120_000 });
   });
 
   test('zero commission shows the no-commission nudge', async ({ page }) => {
