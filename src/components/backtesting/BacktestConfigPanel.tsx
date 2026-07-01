@@ -550,7 +550,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const CommissionField = (
     <div className="space-y-2">
       <Label>Commission ($ per round-trip, all-in)</Label>
-      <NumericField min={0} step={0.01} decimal
+      <NumericField id="commission-input" min={0} step={0.01} decimal
         value={commissionPerRt}
         onCommit={setCommissionPerRt} />
       <p className="text-[11px] text-muted-foreground">
