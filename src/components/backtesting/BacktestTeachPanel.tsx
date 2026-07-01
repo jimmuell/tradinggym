@@ -318,7 +318,64 @@ function DirectionCardBody({ t }: { t: TeachingEntry }) {
   );
 }
 
-function titleFor(dimension: string): string {
+// Renders the slippage teaching dimension (fifth card) — execution-cost mirror of commission.
+function SlippageCardBody({ t }: { t: TeachingEntry }) {
+  if (t.sufficient_data === false) {
+    return (
+      <>
+        <p>Not enough trades to measure what slippage cost here.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  const total = t.total_slippage ?? 0;
+  const trades = t.trade_count ?? 0;
+  const ticks = t.slippage_ticks ?? 0;
+
+  // No slippage set — nothing to compare, just a nudge.
+  if (ticks <= 0 || total <= 0) {
+    return (
+      <>
+        <p>This run had no slippage set, so there's nothing to compare.</p>
+        <p className="text-xs text-muted-foreground">
+          Real fills usually slip a tick or two. Add slippage to see the bite it takes out of your edge.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Headline case: slippage turned a winner into a loser.
+  if (t.flips_profitability === true) {
+    return (
+      <>
+        <p>
+          Slippage <strong>flipped this from a win to a loss</strong>. Before slippage you were up{' '}
+          {signedDollars(t.variant_net ?? 0)}; after {dollars(total)} at {ticks} tick{ticks === 1 ? '' : 's'}{' '}
+          per fill across {trades} trades, you finished at {signedDollars(t.primary_net ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Normal case: slippage cost a known amount but didn't flip the result.
+  return (
+    <>
+      <p>
+        Slippage <strong>COST</strong> you {dollars(total)} across {trades} trades — at {ticks}{' '}
+        tick{ticks === 1 ? '' : 's'} per fill.
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Before slippage: {signedDollars(t.variant_net ?? 0)}. After slippage: {signedDollars(t.primary_net ?? 0)}.
+      </p>
+      <p className="text-xs text-muted-foreground">{CAPTION}</p>
+    </>
+  );
+}
+
+
   if (dimension === 'direction') return 'What your direction choice did';
   if (dimension === 'commission') return 'What commission cost you';
   if (dimension === 'stop') return 'What your stop did';
