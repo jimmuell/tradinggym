@@ -244,12 +244,84 @@ function CommissionCardBody({ t }: { t: TeachingEntry }) {
   );
 }
 
+// Renders the direction teaching dimension (fourth card): long_short vs long_only.
+function DirectionCardBody({ t }: { t: TeachingEntry }) {
+  const shorts = t.short_trade_count ?? 0;
+  const isLongShort = t.primary_direction === 'long_short';
+
+  // Not enough shorts to judge (or none taken).
+  if (t.sufficient_data === false || shorts === 0) {
+    return (
+      <>
+        <p>{isLongShort
+          ? "This run didn't take enough short trades to tell what trading both sides did."
+          : "You traded long-only, and there weren't enough short setups to compare against here."}</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // The direction choice flipped a win into a loss (or vice versa).
+  if (t.flips_profitability === true) {
+    const longOnlyNet = isLongShort ? (t.variant_net ?? 0) : (t.primary_net ?? 0);
+    const withShortsNet = isLongShort ? (t.primary_net ?? 0) : (t.variant_net ?? 0);
+    return (
+      <>
+        <p>
+          {isLongShort ? 'Trading both sides' : 'Adding shorts'}{' '}
+          <strong>flipped this between a win and a loss</strong>. Long-only:{' '}
+          {signedDollars(longOnlyNet)}. With shorts: {signedDollars(withShortsNet)}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {shorts} short trades, netting {signedDollars(t.short_net ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Long & Short run: attribute the shorts' contribution directly.
+  if (isLongShort) {
+    const helped = t.direction === 'saved';   // delta_net > 0 => shorts made money
+    return (
+      <>
+        <p>
+          Your short trades <strong>{helped ? 'ADDED' : 'COST'}</strong> you{' '}
+          {dollars(Math.abs(t.delta_net))} across {shorts} shorts.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Long-only: {signedDollars(t.variant_net ?? 0)}. With shorts: {signedDollars(t.primary_net ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Long-only run: what-if of adding shorts. direction 'cost' => not trading them cost you =>
+  // the shorts would have earned; 'saved' => they'd have lost, so staying long-only was better.
+  const wouldEarn = t.direction === 'cost';
+  return (
+    <>
+      <p>
+        You traded long-only. Adding shorts <strong>would have {wouldEarn ? 'earned' : 'lost'}</strong>{' '}
+        you {dollars(Math.abs(t.short_net ?? 0))} across {shorts} would-be shorts.
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Long-only: {signedDollars(t.primary_net ?? 0)}. With shorts: {signedDollars(t.variant_net ?? 0)}.
+      </p>
+      <p className="text-xs text-muted-foreground">{CAPTION}</p>
+    </>
+  );
+}
+
 function titleFor(dimension: string): string {
+  if (dimension === 'direction') return 'What your direction choice did';
   if (dimension === 'commission') return 'What commission cost you';
   if (dimension === 'stop') return 'What your stop did';
   if (dimension === 'take_profit') return 'What your take-profit did';
   return `What your ${dimension.replace(/_/g, ' ')} did`;
 }
+
 
 export default function BacktestTeachPanel({ run }: Props) {
   const { isAdmin } = useTier();
