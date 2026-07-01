@@ -226,7 +226,7 @@ function CommissionCardBody({ t }: { t: TeachingEntry }) {
   return (
     <>
       <p>
-        Commission COST you {dollars(total)} across {trades} trades — about{' '}
+        Commission <strong>COST</strong> you {dollars(total)} across {trades} trades — about{' '}
         {dollars(perTrade)} per round-trip.
       </p>
       <p className="text-xs text-muted-foreground">
