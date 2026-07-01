@@ -154,7 +154,7 @@ function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
     return (
       <>
         <p>
-          Your take-profit left money on the table — winners that would have run further got
+          Your take-profit <strong>left money on the table</strong> — winners that would have run further got
           capped. Letting them run would have made about {dollars(t.delta_net)} more across these
           trades.
         </p>
@@ -167,7 +167,7 @@ function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
     return (
       <>
         <p>
-          Your take-profit locked in gains before trades reversed — without it you'd have given
+          Your take-profit <strong>locked in gains</strong> before trades reversed — without it you'd have given
           back about {dollars(t.delta_net)}.
         </p>
         {winnerLine}
