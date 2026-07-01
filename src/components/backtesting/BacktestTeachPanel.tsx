@@ -24,6 +24,11 @@ interface TeachingEntry {
   primary_best_win?: number;
   variant_best_win?: number;
   n_resamples?: number;
+  // commission-specific
+  total_commission?: number;
+  flips_profitability?: boolean;
+  primary_net?: number;
+  variant_net?: number;
 }
 
 interface Props {
@@ -173,7 +178,67 @@ function TakeProfitCardBody({ t }: { t: TeachingEntry }) {
   return <p>We couldn't produce a reliable comparison for this run.</p>;
 }
 
+function CommissionCardBody({ t }: { t: TeachingEntry }) {
+  if (t.sufficient_data === false) {
+    return (
+      <>
+        <p>Not enough trades to measure what commission cost here.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  const total = t.total_commission ?? 0;
+  const trades = t.trade_count ?? 0;
+  const perTrade = trades > 0 ? total / trades : 0;
+
+  // No commission set — nothing to compare, just a nudge.
+  if (total <= 0) {
+    return (
+      <>
+        <p>This run had no commission set, so there's nothing to compare.</p>
+        <p className="text-xs text-muted-foreground">
+          Real MES trading costs about $1.24 per round-trip, all-in. Add it to see your true P&L.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Headline case: fees turned a winner into a loser.
+  if (t.flips_profitability === true) {
+    return (
+      <>
+        <p>
+          Commission flipped this from a win to a loss. Before fees you were up{' '}
+          {signedDollars(t.variant_net ?? 0)}; after {dollars(total)} in fees across {trades} trades,
+          you finished at {signedDollars(t.primary_net ?? 0)}.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          That's about {dollars(perTrade)} per round-trip.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Normal case: fees cost a known amount but didn't flip the result.
+  return (
+    <>
+      <p>
+        Commission COST you {dollars(total)} across {trades} trades — about{' '}
+        {dollars(perTrade)} per round-trip.
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Before fees: {signedDollars(t.variant_net ?? 0)}. After fees: {signedDollars(t.primary_net ?? 0)}.
+      </p>
+      <p className="text-xs text-muted-foreground">{CAPTION}</p>
+    </>
+  );
+}
+
 function titleFor(dimension: string): string {
+  if (dimension === 'commission') return 'What commission cost you';
   if (dimension === 'stop') return 'What your stop did';
   if (dimension === 'take_profit') return 'What your take-profit did';
   return `What your ${dimension.replace(/_/g, ' ')} did`;
@@ -249,6 +314,8 @@ export default function BacktestTeachPanel({ run }: Props) {
         const body =
           t.dimension === 'take_profit' ? (
             <TakeProfitCardBody t={t} />
+          ) : t.dimension === 'commission' ? (
+            <CommissionCardBody t={t} />
           ) : (
             <StopCardBody t={t} />
           );
