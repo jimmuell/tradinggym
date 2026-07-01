@@ -462,6 +462,8 @@ export default function BacktestTeachPanel({ run }: Props) {
             <CommissionCardBody t={t} />
           ) : t.dimension === 'direction' ? (
             <DirectionCardBody t={t} />
+          ) : t.dimension === 'slippage' ? (
+            <SlippageCardBody t={t} />
           ) : null;
 
         if (!body) return null;
