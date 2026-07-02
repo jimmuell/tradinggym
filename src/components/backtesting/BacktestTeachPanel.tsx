@@ -37,8 +37,12 @@ interface TeachingEntry {
   // slippage-specific
   total_slippage?: number;
   slippage_ticks?: number;
-
-
+  // position-size-specific
+  contracts?: number;
+  qty_type?: string;
+  size_multiple?: number;
+  primary_max_dd?: number;
+  variant_max_dd?: number;
 }
 
 interface Props {

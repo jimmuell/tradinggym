@@ -1,32 +1,56 @@
-## ADR-030 — Flat $/round-trip commission
+## POSITION-SIZE-TEACH-CARD — 6th & final teaching dimension
 
-**Pre-flight done:**
-- Migration applied: `commission_mode text`, `commission_per_rt numeric` added to `backtest_runs`.
-- Confirmed `commission_pct` is nullable with default `0.1` — safe to drop from new inserts.
-- Engine v25.5.0 live on Railway — skipping ping.
+Add a `PositionSizeCardBody` to `src/components/backtesting/BacktestTeachPanel.tsx` and wire it into the body-picker for `dimension === 'position_size'`. Frontend-first / safe no-op until engine v25.9.0 emits the block (body-picker already returns `null` for unknown dimensions).
 
-**Deploy order:** edge function → frontend (migration already done).
+### Files touched
+- `src/components/backtesting/BacktestTeachPanel.tsx` (only)
 
-### 1. Edge function (`supabase/functions/run-backtest/index.ts`)
-- Accept new payload fields: `commission_mode` ("flat_per_rt"), `commission_per_rt` (number, default 1.24).
-- Derive `commission_rate: 0` internally when mode is `flat_per_rt` (do not require client to send it).
-- Forward `commission_mode`, `commission_per_rt`, `commission_rate` to engine on both `/run` and `/run/compare`.
-- Persist `commission_mode` + `commission_per_rt` on the `backtest_runs` insert; stop writing `commission_pct` on new rows.
-- Add `ENGINE_REQUEST_RISK` console log line with the three commission fields + stop/target.
-- Redeploy via `supabase--deploy_edge_functions`.
+No engine, edge function, or SQL changes.
 
-### 2. Frontend
-- `src/components/backtesting/BacktestConfigPanel.tsx`: replace percent commission field with **"Commission ($ per round-trip, all-in)"** numeric input, default `1.24`. Remove any legacy percent-distortion warnings. Update cockpit live cost summary so "Commission drag" = `commission_per_rt * qty`.
-- `src/pages/Backtesting.tsx` (or wherever the payload is built): send `{ commission_mode: "flat_per_rt", commission_per_rt }`; stop sending `commission_pct`/`commission_rate`.
-- Historical reads (run history / compare / explain panels): keep reading `commission_pct` as fallback for older rows; prefer `commission_per_rt` when present for display.
+### Changes
 
-### 3. Out of scope
-Slippage, validation panel, tier gating — untouched.
+**1. Extend `TeachingEntry` interface** with position-size fields:
+```
+// position-size-specific
+contracts?: number;
+qty_type?: string;           // "fixed" | others
+size_multiple?: number;      // e.g. 2 for 2 contracts
+primary_max_dd?: number;
+variant_max_dd?: number;
+// reuses existing: primary_net, variant_net, direction, significance
+```
 
-### 4. Verification
-- Run a backtest, confirm `backtest_runs` row has `commission_mode='flat_per_rt'`, `commission_per_rt=1.24`, `commission_pct` null.
-- Confirm edge function logs show `ENGINE_REQUEST_RISK` with the three fields.
-- Old history rows still render (fallback to `commission_pct`).
+**2. Add `titleFor('position_size')`** → `"What your position size did"` (place at top of `titleFor` next to the other explicit dimensions).
 
-### 5. Changelog
-Append entry to `change_log/CHANGELOG_2026-06-30.md`.
+**3. Add `PositionSizeCardBody({ t })`** mirroring the structural pattern of `SlippageCardBody` / `CommissionCardBody`, using `dollars` / `signedDollars` helpers and the shared `CAPTION` footer. No confidence/significance line (deterministic).
+
+Cases:
+- **Neutral / 1-contract fixed** (`direction === 'neutral'` and `qty_type === 'fixed'` and `contracts === 1`):  
+  "You traded 1 contract — nothing to compare." + CAPTION.
+- **Neutral / non-fixed sizing** (`direction === 'neutral'` and `qty_type !== 'fixed'`):  
+  "Position-size comparison isn't available for this sizing method yet." + CAPTION.
+- **Main case** (`direction === 'saved' | 'cost'`, size ≠ 1):  
+  > Trading **{contracts} contracts** turned a 1-contract result of **{signedDollars(variant_net)}** into **{signedDollars(primary_net)}** — that's **{size_multiple}×** the P&L and about **{size_multiple}×** the max drawdown (**{signedDollars(variant_max_dd)} → {signedDollars(primary_max_dd)}**).  
+  > Size multiplies your outcome and your risk, not your edge.
+  
+  Verdict phrase wrapped in `<strong>` per the "one rule everywhere" style: bold the "**{size_multiple}× the P&L and about {size_multiple}× the max drawdown**" clause (the core verdict). Plus CAPTION footer.
+- **Fallback**: `null` (safe no-op).
+
+**4. Wire into body-picker** in the `teachingArr.map` block:
+```
+: t.dimension === 'position_size' ? (
+    <PositionSizeCardBody t={t} />
+  )
+```
+placed after the `slippage` branch. `if (!body) return null;` guard is already in place.
+
+### Non-changes
+- Coach chat / admin mock toggle remain attached only to the stop card — unchanged.
+- No changes to `stopBlock`, `sameSignal` handling, or ordering (order follows engine's emission order in `_teaching`).
+
+### Verification
+1. Preview a completed run — confirm existing 5 cards render unchanged and no 6th card yet (engine still on v25.8.0).
+2. No console errors.
+3. Publish.
+
+Full render verified later, after engine v25.9.0 ships.
