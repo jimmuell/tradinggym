@@ -37,8 +37,12 @@ interface TeachingEntry {
   // slippage-specific
   total_slippage?: number;
   slippage_ticks?: number;
-
-
+  // position-size-specific
+  contracts?: number;
+  qty_type?: string;
+  size_multiple?: number;
+  primary_max_dd?: number;
+  variant_max_dd?: number;
 }
 
 interface Props {
@@ -375,8 +379,58 @@ function SlippageCardBody({ t }: { t: TeachingEntry }) {
   );
 }
 
+// Renders the position-size teaching dimension (sixth card) — amplification, not cost.
+function PositionSizeCardBody({ t }: { t: TeachingEntry }) {
+  const contracts = t.contracts ?? 0;
+  const qtyType = t.qty_type ?? 'fixed';
+  const sizeMultiple = t.size_multiple ?? 0;
+
+  // Neutral: 1-contract fixed run — nothing to compare.
+  if (t.direction === 'neutral' && qtyType === 'fixed' && contracts === 1) {
+    return (
+      <>
+        <p>You traded 1 contract — nothing to compare.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Neutral: non-fixed sizing method not yet supported.
+  if (t.direction === 'neutral') {
+    return (
+      <>
+        <p>Position-size comparison isn't available for this sizing method yet.</p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  // Main case: size ≠ 1 contract — surface amplification of P&L and drawdown.
+  if (t.direction === 'saved' || t.direction === 'cost') {
+    return (
+      <>
+        <p>
+          Trading {contracts} contracts turned a 1-contract result of{' '}
+          {signedDollars(t.variant_net ?? 0)} into {signedDollars(t.primary_net ?? 0)} — that's{' '}
+          <strong>
+            {sizeMultiple}× the P&amp;L and about {sizeMultiple}× the max drawdown
+          </strong>{' '}
+          ({signedDollars(t.variant_max_dd ?? 0)} → {signedDollars(t.primary_max_dd ?? 0)}).
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Size multiplies your outcome and your risk, not your edge.
+        </p>
+        <p className="text-xs text-muted-foreground">{CAPTION}</p>
+      </>
+    );
+  }
+
+  return null;
+}
+
 
 function titleFor(dimension: string): string {
+  if (dimension === 'position_size') return 'What your position size did';
   if (dimension === 'slippage') return 'What slippage cost you';
   if (dimension === 'direction') return 'What your direction choice did';
   if (dimension === 'commission') return 'What commission cost you';
@@ -384,6 +438,7 @@ function titleFor(dimension: string): string {
   if (dimension === 'take_profit') return 'What your take-profit did';
   return `What your ${dimension.replace(/_/g, ' ')} did`;
 }
+
 
 
 export default function BacktestTeachPanel({ run }: Props) {
@@ -464,6 +519,8 @@ export default function BacktestTeachPanel({ run }: Props) {
             <DirectionCardBody t={t} />
           ) : t.dimension === 'slippage' ? (
             <SlippageCardBody t={t} />
+          ) : t.dimension === 'position_size' ? (
+            <PositionSizeCardBody t={t} />
           ) : null;
 
         if (!body) return null;
