@@ -519,6 +519,8 @@ export default function BacktestTeachPanel({ run }: Props) {
             <DirectionCardBody t={t} />
           ) : t.dimension === 'slippage' ? (
             <SlippageCardBody t={t} />
+          ) : t.dimension === 'position_size' ? (
+            <PositionSizeCardBody t={t} />
           ) : null;
 
         if (!body) return null;
