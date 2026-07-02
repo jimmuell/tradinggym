@@ -110,8 +110,11 @@ export default function Backtesting() {
         <div className="space-y-6">
           <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
           <BacktestTeachPanel run={latest} />
-          <BacktestComparePanel runs={runs} />
-          <BacktestOptimizePanel runs={runs} />
+          <div className="flex flex-wrap items-center gap-2">
+            <BacktestComparePanel runs={runs} />
+            <BacktestOptimizePanel runs={runs} />
+            <BacktestCoachPanel run={latest} />
+          </div>
           <BacktestRunHistory runs={runs} />
         </div>
       </div>
