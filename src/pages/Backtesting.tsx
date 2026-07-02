@@ -11,6 +11,7 @@ import BacktestRunHistory from '@/components/backtesting/BacktestRunHistory';
 import BacktestTeachPanel from '@/components/backtesting/BacktestTeachPanel';
 import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel';
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
+import BacktestCoachPanel from '@/components/backtesting/BacktestCoachPanel';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
@@ -109,8 +110,11 @@ export default function Backtesting() {
         <div className="space-y-6">
           <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
           <BacktestTeachPanel run={latest} />
-          <BacktestComparePanel runs={runs} />
-          <BacktestOptimizePanel runs={runs} />
+          <div className="flex flex-wrap items-center gap-2">
+            <BacktestComparePanel runs={runs} />
+            <BacktestOptimizePanel runs={runs} />
+            <BacktestCoachPanel run={latest} />
+          </div>
           <BacktestRunHistory runs={runs} />
         </div>
       </div>

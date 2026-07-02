@@ -1,12 +1,7 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useTier } from '@/contexts/TierContext';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
-import CoachChat from './CoachChat';
-import { COACH_CHAT_ENABLED } from '@/lib/featureFlags';
 
 interface TeachingEntry {
   dimension: string;
@@ -443,7 +438,6 @@ function titleFor(dimension: string): string {
 
 export default function BacktestTeachPanel({ run }: Props) {
   const { isAdmin } = useTier();
-  const [mockMode, setMockMode] = useState(false);
 
   if (!run) return null;
 
@@ -484,51 +478,18 @@ export default function BacktestTeachPanel({ run }: Props) {
     });
   }
 
-  const adminToggle = isAdmin ? (
-    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-      <Label htmlFor="coach-mock-toggle" className="text-xs cursor-pointer">
-        Coach: {mockMode ? 'Mock (no API cost)' : 'Live'}
-      </Label>
-      <Switch
-        id="coach-mock-toggle"
-        checked={mockMode}
-        onCheckedChange={setMockMode}
-        aria-label="Toggle coach mock mode"
-      />
-    </div>
-  ) : null;
-
   // Broken comparison — show a single honest card.
   if (sameSignal !== true) {
     return (
-      <Shell title="What your stop did" adminToggle={adminToggle}>
+      <Shell title="What your stop did">
         <p>We couldn't produce a reliable comparison for this run.</p>
       </Shell>
     );
   }
 
-  const stopBlock = teachingArr.find((x) => x.dimension === 'stop');
-
-  // Build coach card message from the stop block (coach is gated; payload unchanged).
-  const buildCardMessage = (t: TeachingEntry): string => {
-    if (t.significance === 'inconclusive') {
-      return `Your stop made no meaningful difference here — within normal noise. Worst loss with the stop: ${signedDollars(t.primary_worst_loss ?? 0)}. Without it: ${signedDollars(t.variant_worst_loss ?? 0)}.`;
-    }
-    if (t.significance === 'saved') {
-      return `Your stop SAVED you ${dollars(t.delta_net)} over ${t.trade_count} trades. Worst loss with the stop: ${signedDollars(t.primary_worst_loss ?? 0)}. Without it: ${signedDollars(t.variant_worst_loss ?? 0)}.`;
-    }
-    if (t.significance === 'cost') {
-      return `Your stop COST you ${dollars(t.delta_net)} over ${t.trade_count} trades.`;
-    }
-    return '';
-  };
-
-  const showCoach = COACH_CHAT_ENABLED || isAdmin;
-
   return (
     <div className="space-y-4">
       {teachingArr.map((t, idx) => {
-        const isFirst = idx === 0;
         const title = titleFor(t.dimension);
         const body =
           t.dimension === 'stop' ? (
@@ -547,28 +508,13 @@ export default function BacktestTeachPanel({ run }: Props) {
 
         if (!body) return null;
 
-
-        // Attach coach + admin toggle only to the stop card (first card), preserving prior behavior.
-        const isStop = t.dimension === 'stop';
-        const toggle = isStop ? adminToggle : undefined;
-        const coach =
-          isStop && showCoach && stopBlock ? (
-            <CoachChat
-              run={run}
-              teaching={stopBlock as never}
-              sameSignal={sameSignal === true}
-              cardMessage={buildCardMessage(stopBlock)}
-              mockMode={isAdmin && mockMode}
-            />
-          ) : null;
-
         return (
-          <Shell key={`${t.dimension}-${idx}`} title={title} adminToggle={toggle}>
+          <Shell key={`${t.dimension}-${idx}`} title={title}>
             {body}
-            {coach}
           </Shell>
         );
       })}
     </div>
   );
 }
+
