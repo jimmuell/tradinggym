@@ -462,6 +462,28 @@ export default function BacktestTeachPanel({ run }: Props) {
 
   if (!teachingArr || teachingArr.length === 0) return null;
 
+  // TEMP: mock a position_size teaching entry (admin-only) to verify the 6th card renders
+  // before engine v25.9.0 ships. Remove once the engine emits this dimension for real.
+  if (isAdmin && !teachingArr.some((x) => x.dimension === 'position_size')) {
+    teachingArr.push({
+      dimension: 'position_size',
+      delta_net: 500,
+      direction: 'saved',
+      significance: 'deterministic',
+      delta_ci_low: 0,
+      delta_ci_high: 0,
+      trade_count: 42,
+      sufficient_data: true,
+      contracts: 2,
+      qty_type: 'fixed',
+      size_multiple: 2,
+      primary_net: 1000,
+      variant_net: 500,
+      primary_max_dd: -800,
+      variant_max_dd: -400,
+    });
+  }
+
   const adminToggle = isAdmin ? (
     <div className="flex items-center gap-2 text-xs text-muted-foreground">
       <Label htmlFor="coach-mock-toggle" className="text-xs cursor-pointer">
