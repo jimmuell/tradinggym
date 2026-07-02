@@ -378,19 +378,33 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
       sent_commission_rate: commissionRate,
     }));
 
-    // TEACH-COMPARE routing: when a stop is configured, call /run/compare so the
-    // engine returns a stop-neutralized variant + teaching/significance data alongside
-    // the user's primary result. Without a stop, the normal single-run path is unchanged.
-    const hasStop = sentStopLossPoints > 0 || sentStopLossPct > 0;
-    const enginePath = hasStop ? "/run/compare" : "/run";
+    // ADR-037 async: ONE path for every run. The engine's /run/async runs the COMPARE
+    // pipeline in the background and writes progress + results directly to this
+    // backtest_runs row. The app polls the row and renders on complete/failed.
 
-    const engineResponse = await fetch(`${engineUrl}${enginePath}`, {
+    // Persist the fields the ENGINE does not write, BEFORE handing off (from here on the
+    // engine owns status + the result columns).
+    await supabase
+      .from("backtest_runs")
+      .update({
+        status: "running",
+        progress: 0,
+        ai_signal_code: signalCode,
+        signal_hash: signalHash,
+        run_validation: runValidation,
+        validation_iterations: validationIterations,
+        error_message: null,
+      })
+      .eq("id", run_id);
+
+    const engineResponse = await fetch(`${engineUrl}/run/async`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": engineApiKey,
       },
       body: JSON.stringify({
+        run_id, // REQUIRED by /run/async (engine's AsyncBacktestRequest)
         signal_code: signalCode,
         direction: run.direction || "long_short",
         initial_capital: run.initial_balance || 10000,
@@ -407,112 +421,39 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         slippage_ticks: sentSlippageTicks,
         qty_type: "fixed",
         qty_value: run.qty_value ?? 1,
-        // Ask the engine for its honest validation verdict. Budget read from the
-        // request with fallback to defaults (see above); kept modest so /run
-        // stays responsive.
         run_validation: runValidation,
         validation_iterations: validationIterations,
       }),
     });
 
-
-
-    if (!engineResponse.ok) {
+    // /run/async returns 202 Accepted. Anything else is a handoff failure — mark the row
+    // failed with a clear reason and stop. (503 means the engine is missing its Supabase
+    // service-role env vars on Railway.)
+    if (engineResponse.status !== 202) {
       const errorText = await engineResponse.text();
+      const hint =
+        engineResponse.status === 503
+          ? " (engine missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)"
+          : "";
       await supabase
         .from("backtest_runs")
         .update({
           status: "failed",
-          error_message: `Engine API error: ${engineResponse.status} - ${errorText.substring(0, 500)}`,
+          error_message: `Engine did not accept the async job: ${engineResponse.status}${hint} - ${errorText.substring(0, 400)}`,
           ai_signal_code: signalCode,
         })
         .eq("id", run_id);
-      return new Response(JSON.stringify({ error: "Engine execution failed" }), {
+      return new Response(JSON.stringify({ error: "Engine did not accept the job" }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const engineData = await engineResponse.json();
-
-    // Compare-mode envelope: primary is the authoritative result, teaching is the
-    // judged stop comparison. Single-run mode: engineData IS the result.
-    const result = hasStop && engineData?.primary ? engineData.primary : engineData;
-    const teaching = hasStop ? (engineData?.teaching ?? null) : null;
-    const sameSignal = hasStop ? (engineData?.same_signal ?? null) : null;
-
-    if (result?.status === "error") {
-      await supabase
-        .from("backtest_runs")
-        .update({
-          status: "failed",
-          error_message: (result.error ?? "").substring(0, 2000),
-          ai_signal_code: signalCode,
-          engine_version: result.engine_version,
-          execution_time_ms: result.execution_time_ms,
-        })
-        .eq("id", run_id);
-      return new Response(JSON.stringify({ error: result.error }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // --- Step 5: Write results back ---
-    const kpis = result.kpis || {};
-
-    // Persist teaching/same_signal inside results_detail (existing jsonb) so a page
-    // refresh can still render the teach card — no schema change required.
-    const resultsDetail: Record<string, unknown> = {
-      ...kpis,
-      ...(teaching ? { _teaching: teaching } : {}),
-      ...(sameSignal !== null ? { _same_signal: sameSignal } : {}),
-    };
-
-    await supabase
-      .from("backtest_runs")
-      .update({
-        status: "complete",
-        total_trades: kpis.total_trades || 0,
-        wins: kpis.num_winning || 0,
-        losses: kpis.num_losing || 0,
-        net_pnl: kpis.net_profit || 0,
-        win_rate: kpis.win_rate || 0,
-        profit_factor: kpis.profit_factor || 0,
-        max_drawdown: kpis.max_drawdown_pct || 0,
-        avg_winner: kpis.avg_winning || 0,
-        avg_loser: kpis.avg_losing || 0,
-        results_detail: resultsDetail,
-        equity_curve: result.equity_curve || [],
-        // Compare-mode (v25.3.0+) returns validation at the TOP level of the envelope
-        // for the PRIMARY result, not inside primary. Fall back to the envelope so
-        // stop-run verdicts still populate; single-run continues to read result.validation.
-        validation: result.validation ?? engineData.validation ?? null,
-        validation_error: result.validation_error ?? engineData.validation_error ?? null,
-        run_validation: runValidation,
-        validation_iterations: validationIterations,
-        ai_signal_code: signalCode,
-        signal_hash: signalHash,
-        engine_version: result.engine_version,
-        execution_time_ms: result.execution_time_ms,
-        error_message: null,
-      })
-      .eq("id", run_id);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        run_id,
-        total_trades: kpis.total_trades,
-        net_profit: kpis.net_profit,
-        win_rate: kpis.win_rate,
-        execution_time_ms: result.execution_time_ms,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    // Accepted. The engine drives the row to complete/failed in the background; the app polls.
+    return new Response(JSON.stringify({ run_id, status: "accepted" }), {
+      status: 202,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("run-backtest error:", err);
     // Ensure no run is left stuck in 'running'
