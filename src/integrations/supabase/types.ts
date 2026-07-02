@@ -66,6 +66,7 @@ export type Database = {
           max_trades_per_day: number
           net_pnl: number | null
           profit_factor: number | null
+          progress: number
           qty_value: number
           results_detail: Json | null
           run_validation: boolean
@@ -112,6 +113,7 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          progress?: number
           qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
@@ -158,6 +160,7 @@ export type Database = {
           max_trades_per_day?: number
           net_pnl?: number | null
           profit_factor?: number | null
+          progress?: number
           qty_value?: number
           results_detail?: Json | null
           run_validation?: boolean
@@ -1846,6 +1849,7 @@ export type Database = {
         Args: { _application_id: string }
         Returns: undefined
       }
+      fail_stale_backtests: { Args: never; Returns: number }
       get_admin_detailed_stats: { Args: never; Returns: Json }
       get_admin_guru_applications: {
         Args: never
