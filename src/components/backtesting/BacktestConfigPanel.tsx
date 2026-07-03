@@ -222,7 +222,7 @@ interface Props {
 
 export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount }: Props) {
   const navigate = useNavigate();
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading } = useTier();
   const { strategies, isLoading } = useStrategies();
   const { runs } = useBacktestRuns();
   const lastRun = runs[0] ?? null;
@@ -457,6 +457,20 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       commissionDrag100: Math.round(commissionDrag100),
     };
   }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPerRt]);
+
+  // ---------- Loading guard — prevent Starter-lock flash while tier resolves ----------
+  if (loading) {
+    return (
+      <Card className="relative">
+        <CardContent className="flex min-h-[320px] items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-sm">Loading your plan…</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // ---------- Sub-renderers (one source per field — works in both skins) ----------
 
