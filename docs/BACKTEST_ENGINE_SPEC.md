@@ -192,3 +192,34 @@ If an AI agent needs to recreate the backtesting flow in a standalone app, the a
 4. Environment variables for `BACKTEST_ENGINE_URL` and `BACKTEST_ENGINE_API_KEY`.
 
 The engine itself should remain an external service; do not reimplement the engine inside the standalone app unless the engine repo is also included.
+
+## 12. Callback Contract (ADR-040)
+
+The engine no longer writes to Supabase directly. Instead, `run-backtest` includes two extra
+fields in the `/run/async` request body:
+
+```
+callback_url:    "<supabaseUrl>/functions/v1/backtest-callback"
+callback_secret: "<BACKTEST_CALLBACK_SECRET>"
+```
+
+The engine POSTs progress and final results to `callback_url` with:
+
+- Header: `X-Callback-Secret: <callback_secret>` (constant-time compared on the receiver).
+- Content-Type: `application/json`
+- Body: `{ "run_id": "<uuid>", "fields": { ...columns to write... } }`
+
+Only the following `backtest_runs` columns are accepted; any other keys in `fields` are
+silently dropped by the callback:
+
+`status`, `progress`, `net_pnl`, `total_trades`, `wins`, `losses`, `win_rate`,
+`profit_factor`, `max_drawdown`, `avg_winner`, `avg_loser`, `results_detail`,
+`equity_curve`, `engine_version`, `execution_time_ms`, `signal_hash`, `validation`,
+`validation_error`, `error_message`.
+
+**Idempotency:** once a row is `complete` or `failed`, further non-terminal updates are
+skipped with `{ ok: true, skipped: "row already terminal" }` (HTTP 200). Terminal-to-terminal
+transitions are allowed.
+
+**Errors:** 401 on bad/missing secret, 400 on malformed body, 500 on DB failure or when
+`BACKTEST_CALLBACK_SECRET` is not configured on the receiver.
