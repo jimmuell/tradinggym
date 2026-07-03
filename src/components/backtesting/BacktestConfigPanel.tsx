@@ -767,18 +767,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const ForceRegenField = ({ dense = false }: { dense?: boolean } = {}) => (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-dashed border-border p-3">
-      <div className="space-y-0.5">
-        <Label htmlFor="force-regenerate" className={cn(dense && 'whitespace-nowrap')}>Force-regenerate signal</Label>
-        <p className="text-xs text-muted-foreground">
-          Admin only. Ignores the cached signal and regenerates it via Claude for this run. Resets after each run.
-        </p>
-      </div>
-      <Switch id="force-regenerate" checked={forceRegenerate} onCheckedChange={setForceRegenerate} />
-    </div>
-  );
-
   // ---------- Section primitive ----------
   const Section = ({
     icon: Icon,
