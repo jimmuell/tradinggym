@@ -423,6 +423,8 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         qty_value: run.qty_value ?? 1,
         run_validation: runValidation,
         validation_iterations: validationIterations,
+        callback_url: `${supabaseUrl}/functions/v1/backtest-callback`,
+        callback_secret: Deno.env.get("BACKTEST_CALLBACK_SECRET")!,
       }),
     });
 
