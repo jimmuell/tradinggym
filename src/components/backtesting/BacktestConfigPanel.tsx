@@ -177,9 +177,6 @@ type FieldId =
   | 'validation'
   | 'iterations'
 
-
-  
-
 type FieldGroup = 'essentials' | 'risk' | 'account' | 'validation' | 'admin';
 
 interface FieldDef {
