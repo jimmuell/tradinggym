@@ -177,7 +177,7 @@ type FieldId =
   | 'stopUnit'
   | 'validation'
   | 'iterations'
-  | 'forceRegen';
+  
 
 type FieldGroup = 'essentials' | 'risk' | 'account' | 'validation' | 'admin';
 
