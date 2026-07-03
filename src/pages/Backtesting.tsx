@@ -72,7 +72,6 @@ export default function Backtesting() {
         take_profit_points: isPoints ? config.takeProfitPoints : 0,
         slippage_ticks: config.slippageTicks,
         qty_value: config.qtyValue,
-        force_regenerate: config.forceRegenerate,
       });
       toast.success('Backtest started — results will appear shortly');
     } catch (err) {
@@ -81,7 +80,7 @@ export default function Backtesting() {
   };
 
   const handleRetry = () => {
-    if (lastConfig) handleRun({ ...lastConfig, forceRegenerate: false });
+    if (lastConfig) handleRun(lastConfig);
   };
 
   const handleCancel = async () => {

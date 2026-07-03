@@ -137,7 +137,6 @@ export interface BacktestConfig {
   takeProfitPoints: number;
   slippageTicks: number;
   qtyValue: number;
-  forceRegenerate: boolean;
 }
 
 const ITERATION_STOPS = [
@@ -177,7 +176,6 @@ type FieldId =
   | 'stopUnit'
   | 'validation'
   | 'iterations'
-  | 'forceRegen';
 
 type FieldGroup = 'essentials' | 'risk' | 'account' | 'validation' | 'admin';
 
@@ -201,7 +199,6 @@ const FIELDS: FieldDef[] = [
   { id: 'stopUnit',       group: 'risk',       minTier: 'expert', label: 'Points / Percent stops' },
   { id: 'validation',     group: 'validation', minTier: 'expert', label: 'Statistical validation' },
   { id: 'iterations',     group: 'validation', minTier: 'guru',   label: 'Validation iterations' },
-  { id: 'forceRegen',     group: 'admin',      minTier: 'admin',  label: 'Force-regenerate signal' },
 ];
 
 type Visibility = 'visible' | 'upsell' | 'hidden';
@@ -254,8 +251,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [takeProfitPoints, setTakeProfitPoints] = useState(0);
   const [slippageTicks, setSlippageTicks] = useState(0);
   const [qtyValue, setQtyValue] = useState(1);
-  const [forceRegenerate, setForceRegenerate] = useState(false);
-
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const canReuse = !!lastRun;
@@ -344,8 +339,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       setValidationIterations(VALIDATION_ITERATIONS_DEFAULT);
     }
 
-    // forceRegenerate always resets
-    setForceRegenerate(false);
 
     toast.success(`Reused "${lastRun.strategy_name}"`);
   };
@@ -415,9 +408,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       takeProfitPoints,
       slippageTicks,
       qtyValue,
-      forceRegenerate,
     });
-    if (forceRegenerate) setForceRegenerate(false);
   };
 
   // Cmd/Ctrl+Enter to submit on cockpit tiers
@@ -432,7 +423,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPerRt, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue, forceRegenerate]);
+  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPerRt, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue]);
 
   const vis = useMemo(() => {
     const map = {} as Record<FieldId, Visibility>;
@@ -767,18 +758,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
-  const ForceRegenField = ({ dense = false }: { dense?: boolean } = {}) => (
-    <div className="flex items-start justify-between gap-3 rounded-lg border border-dashed border-border p-3">
-      <div className="space-y-0.5">
-        <Label htmlFor="force-regenerate" className={cn(dense && 'whitespace-nowrap')}>Force-regenerate signal</Label>
-        <p className="text-xs text-muted-foreground">
-          Admin only. Ignores the cached signal and regenerates it via Claude for this run. Resets after each run.
-        </p>
-      </div>
-      <Switch id="force-regenerate" checked={forceRegenerate} onCheckedChange={setForceRegenerate} />
-    </div>
-  );
-
   // ---------- Section primitive ----------
   const Section = ({
     icon: Icon,
@@ -883,7 +862,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           {ValidationToggle({ dense: true })}
           {IterationsField()}
         </Section>
-        {vis.forceRegen === 'visible' && ForceRegenField({ dense: true })}
       </div>
 
       {/* Live cost summary */}
