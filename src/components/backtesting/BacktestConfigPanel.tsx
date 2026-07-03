@@ -344,8 +344,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       setValidationIterations(VALIDATION_ITERATIONS_DEFAULT);
     }
 
-    // forceRegenerate always resets
-    setForceRegenerate(false);
 
     toast.success(`Reused "${lastRun.strategy_name}"`);
   };
