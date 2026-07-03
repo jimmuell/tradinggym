@@ -201,7 +201,7 @@ const FIELDS: FieldDef[] = [
   { id: 'stopUnit',       group: 'risk',       minTier: 'expert', label: 'Points / Percent stops' },
   { id: 'validation',     group: 'validation', minTier: 'expert', label: 'Statistical validation' },
   { id: 'iterations',     group: 'validation', minTier: 'guru',   label: 'Validation iterations' },
-  { id: 'forceRegen',     group: 'admin',      minTier: 'admin',  label: 'Force-regenerate signal' },
+  
 ];
 
 type Visibility = 'visible' | 'upsell' | 'hidden';
