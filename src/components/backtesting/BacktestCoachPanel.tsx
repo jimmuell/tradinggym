@@ -91,10 +91,6 @@ export default function BacktestCoachPanel({ run }: Props) {
 
   if (!run || !canCoach || !showCoach) return null;
 
-  const hasStopConfig =
-    Number(run.stop_loss_points ?? 0) > 0 || Number(run.stop_loss_pct ?? 0) > 0;
-  if (!hasStopConfig) return null;
-
   const detail = (run.results_detail ?? {}) as Record<string, unknown>;
   const rawTeaching = detail._teaching ?? (detail as { teaching?: unknown }).teaching;
   const teachingArr: TeachingEntry[] | undefined = Array.isArray(rawTeaching)
@@ -104,8 +100,12 @@ export default function BacktestCoachPanel({ run }: Props) {
       : undefined;
   const sameSignal = detail._same_signal as boolean | undefined;
 
-  const stopBlock = teachingArr?.find((x) => x.dimension === 'stop');
-  if (!teachingArr || !stopBlock || sameSignal !== true) return null;
+  // Show the button whenever this run has any usable teaching data.
+  // Prefer the stop block as chat context, but fall back to the first available
+  // dimension so runs without a stop still get a coach.
+  if (!teachingArr || teachingArr.length === 0 || sameSignal !== true) return null;
+  const stopBlock =
+    teachingArr.find((x) => x.dimension === 'stop') ?? teachingArr[0];
 
   const cardMessage = buildCardMessage(stopBlock);
 
