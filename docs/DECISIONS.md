@@ -148,3 +148,23 @@ until the SQL was run manually) and did NOT auto-redeploy the edge function on m
 
 **Next:** Step 4 (explainability / compare / optimize) → deferred engine round (point/tick
 stops → ADR-023; slippage model → ADR-024, both parked) → back-tester package rehome.
+
+## ADR-040 — Engine writes results via `backtest-callback`, not direct DB
+
+**Context:** Lovable Cloud does not expose the `SUPABASE_SERVICE_ROLE_KEY` to users or agents.
+The engine on Railway therefore cannot be given the credentials needed to `UPDATE backtest_runs`
+directly, which was the ADR-037 async assumption.
+
+**Decision:** The engine POSTs progress/results to a new public edge function
+`backtest-callback` running inside Lovable Cloud (where the service_role client is trivially
+available). The engine authenticates with `X-Callback-Secret: <BACKTEST_CALLBACK_SECRET>`;
+`run-backtest` passes the same secret + callback URL to `/run/async` on every job.
+
+**Guarantees:**
+- Column whitelist inside the callback — a leaked secret cannot scribble arbitrary columns.
+- Constant-time secret compare.
+- Idempotency: a row already in `complete`/`failed` is never reverted to `running`.
+- UUID-validated `run_id`; malformed bodies → 400.
+
+**Deploy:** `BACKTEST_CALLBACK_SECRET` must exist in Lovable Cloud secrets AND on Railway
+(same value) before either side is exercised.

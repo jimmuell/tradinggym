@@ -423,23 +423,20 @@ ${JSON.stringify(canonicalConfig, null, 2)}`;
         qty_value: run.qty_value ?? 1,
         run_validation: runValidation,
         validation_iterations: validationIterations,
+        callback_url: `${supabaseUrl}/functions/v1/backtest-callback`,
+        callback_secret: Deno.env.get("BACKTEST_CALLBACK_SECRET")!,
       }),
     });
 
     // /run/async returns 202 Accepted. Anything else is a handoff failure — mark the row
-    // failed with a clear reason and stop. (503 means the engine is missing its Supabase
-    // service-role env vars on Railway.)
+    // failed with a clear reason and stop.
     if (engineResponse.status !== 202) {
       const errorText = await engineResponse.text();
-      const hint =
-        engineResponse.status === 503
-          ? " (engine missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY)"
-          : "";
       await supabase
         .from("backtest_runs")
         .update({
           status: "failed",
-          error_message: `Engine did not accept the async job: ${engineResponse.status}${hint} - ${errorText.substring(0, 400)}`,
+          error_message: `Engine did not accept the async job: ${engineResponse.status} - ${errorText.substring(0, 400)}`,
           ai_signal_code: signalCode,
         })
         .eq("id", run_id);
