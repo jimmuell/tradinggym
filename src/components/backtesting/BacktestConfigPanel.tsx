@@ -883,7 +883,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           {ValidationToggle({ dense: true })}
           {IterationsField()}
         </Section>
-        {vis.forceRegen === 'visible' && ForceRegenField({ dense: true })}
+        
       </div>
 
       {/* Live cost summary */}
