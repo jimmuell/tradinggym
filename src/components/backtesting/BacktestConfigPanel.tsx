@@ -862,7 +862,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
           {ValidationToggle({ dense: true })}
           {IterationsField()}
         </Section>
-        
       </div>
 
       {/* Live cost summary */}
