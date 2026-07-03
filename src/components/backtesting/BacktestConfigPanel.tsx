@@ -406,8 +406,13 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             pattern="\d{4}-\d{2}-\d{2}"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="tabular-nums"
+            aria-invalid={!!startDateError}
+            aria-describedby={startDateError ? 'bt-start-date-error' : undefined}
+            className={cn('tabular-nums', startDateError && 'border-destructive focus-visible:ring-destructive')}
           />
+          {startDateError && (
+            <p id="bt-start-date-error" className="text-[11px] text-destructive">{startDateError}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="bt-end-date">End date</Label>
@@ -419,10 +424,18 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             pattern="\d{4}-\d{2}-\d{2}"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="tabular-nums"
+            aria-invalid={!!endDateError || !!orderError}
+            aria-describedby={endDateError || orderError ? 'bt-end-date-error' : undefined}
+            className={cn('tabular-nums', (endDateError || orderError) && 'border-destructive focus-visible:ring-destructive')}
           />
+          {(endDateError || orderError) && (
+            <p id="bt-end-date-error" className="text-[11px] text-destructive">{endDateError ?? orderError}</p>
+          )}
         </div>
       </div>
+      {!startDateError && !endDateError && !orderError && (
+        <p className="text-[11px] text-muted-foreground">Data available {DATA_MIN} to {DATA_MAX}.</p>
+      )}
       <div className="flex justify-end">
         <Button type="button" variant="outline" size="sm" onClick={applyQuickTestWeek} className="gap-1.5">
           <CalendarRange className="h-3.5 w-3.5" />
