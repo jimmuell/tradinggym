@@ -12,6 +12,7 @@ import BacktestTeachPanel from '@/components/backtesting/BacktestTeachPanel';
 import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel';
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import BacktestCoachPanel from '@/components/backtesting/BacktestCoachPanel';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
