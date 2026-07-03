@@ -432,7 +432,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPerRt, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue, forceRegenerate]);
+  }, [isCockpit, canSubmit, selectedStrategy, startDate, endDate, initialBalance, commissionPerRt, direction, runValidation, validationIterations, stopUnit, stopLossPct, takeProfitPct, stopLossPoints, takeProfitPoints, slippageTicks, qtyValue]);
 
   const vis = useMemo(() => {
     const map = {} as Record<FieldId, Visibility>;
