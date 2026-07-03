@@ -285,7 +285,29 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   };
 
   const selectedStrategy = strategies.find((s) => s.id === strategyId) || null;
-  const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits;
+
+  // ---- Date validation ----
+  const DATA_MIN = '2008-01-02';
+  const DATA_MAX = '2026-04-09';
+  const validateDate = (v: string): string | null => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return 'Use format YYYY-MM-DD';
+    const [y, m, d] = v.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
+      return 'Not a real calendar date';
+    }
+    if (v < DATA_MIN) return `No data before ${DATA_MIN}`;
+    if (v > DATA_MAX) return `No data after ${DATA_MAX}`;
+    return null;
+  };
+  const startDateError = validateDate(startDate);
+  const endDateError = validateDate(endDate);
+  const orderError = !startDateError && !endDateError && startDate > endDate
+    ? 'End date is before start date'
+    : null;
+  const datesValid = !startDateError && !endDateError && !orderError;
+
+  const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits && datesValid;
 
   const handleRun = () => {
     if (!canSubmit) return;
