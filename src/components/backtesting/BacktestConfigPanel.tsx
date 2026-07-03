@@ -137,7 +137,6 @@ export interface BacktestConfig {
   takeProfitPoints: number;
   slippageTicks: number;
   qtyValue: number;
-  
 }
 
 const ITERATION_STOPS = [
