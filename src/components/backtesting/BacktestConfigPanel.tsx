@@ -458,6 +458,20 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     };
   }, [stopUnit, stopLossPoints, takeProfitPoints, stopLossPct, takeProfitPct, qtyValue, initialBalance, commissionPerRt]);
 
+  // ---------- Loading guard — prevent Starter-lock flash while tier resolves ----------
+  if (loading) {
+    return (
+      <Card className="relative">
+        <CardContent className="flex min-h-[320px] items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-sm">Loading your plan…</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // ---------- Sub-renderers (one source per field — works in both skins) ----------
 
   const StrategyField = (
