@@ -352,17 +352,23 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
 
   const applyQuickTestWeek = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const daysSinceMonday = (dayOfWeek + 6) % 7;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - daysSinceMonday - 7);
-    const friday = new Date(monday);
-    friday.setDate(monday.getDate() + 4);
-    const fmt = (d: Date) => d.toISOString().split('T')[0];
+    const DATA_MAX_STR = '2026-04-09';
+    const [my, mm, md] = DATA_MAX_STR.split('-').map(Number);
+    const maxDate = new Date(my, mm - 1, md);
+    // Anchor to the most recent Friday on/before the data window's last date
+    const anchor = new Date(maxDate);
+    const dow = anchor.getDay(); // 0=Sun..6=Sat
+    const daysBackToFriday = (dow - 5 + 7) % 7;
+    const friday = new Date(anchor);
+    friday.setDate(anchor.getDate() - daysBackToFriday);
+    const monday = new Date(friday);
+    monday.setDate(friday.getDate() - 4);
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     setStartDate(fmt(monday));
     setEndDate(fmt(friday));
   };
+
 
   const selectedStrategy = strategies.find((s) => s.id === strategyId) || null;
 
