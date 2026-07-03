@@ -473,22 +473,24 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     </div>
   );
 
+  const DATA_MIN_DATE = parseYmd(DATA_MIN)!;
+  const DATA_MAX_DATE = parseYmd(DATA_MAX)!;
+  const startAsDate = parseYmd(startDate);
+  const endAsDate = parseYmd(endDate);
+
   const DateRangeFields = (
     <>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="bt-start-date">Start date</Label>
-          <Input
+          <DatePickerField
             id="bt-start-date"
-            type="text"
-            inputMode="numeric"
-            placeholder="YYYY-MM-DD"
-            pattern="\d{4}-\d{2}-\d{2}"
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            aria-invalid={!!startDateError}
-            aria-describedby={startDateError ? 'bt-start-date-error' : undefined}
-            className={cn('tabular-nums', startDateError && 'border-destructive focus-visible:ring-destructive')}
+            onChange={setStartDate}
+            minDate={DATA_MIN_DATE}
+            maxDate={DATA_MAX_DATE}
+            disabledAfter={endAsDate}
+            invalid={!!startDateError || !!orderError}
           />
           {startDateError && (
             <p id="bt-start-date-error" className="text-[11px] text-destructive">{startDateError}</p>
@@ -496,17 +498,14 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         </div>
         <div className="space-y-2">
           <Label htmlFor="bt-end-date">End date</Label>
-          <Input
+          <DatePickerField
             id="bt-end-date"
-            type="text"
-            inputMode="numeric"
-            placeholder="YYYY-MM-DD"
-            pattern="\d{4}-\d{2}-\d{2}"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            aria-invalid={!!endDateError || !!orderError}
-            aria-describedby={endDateError || orderError ? 'bt-end-date-error' : undefined}
-            className={cn('tabular-nums', (endDateError || orderError) && 'border-destructive focus-visible:ring-destructive')}
+            onChange={setEndDate}
+            minDate={DATA_MIN_DATE}
+            maxDate={DATA_MAX_DATE}
+            disabledBefore={startAsDate}
+            invalid={!!endDateError || !!orderError}
           />
           {(endDateError || orderError) && (
             <p id="bt-end-date-error" className="text-[11px] text-destructive">{endDateError ?? orderError}</p>
