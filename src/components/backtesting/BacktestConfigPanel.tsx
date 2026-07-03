@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarRange,
+  CalendarIcon,
   Lock,
   Loader2,
   Play,
@@ -32,11 +33,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
 import { useBacktestRuns } from '@/hooks/useBacktestRuns';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
 import { cn } from '@/lib/utils';
+
+// ---- Date helpers (local, no TZ drift) ----
+const parseYmd = (v: string): Date | undefined => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return undefined;
+  const [y, m, d] = v.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return undefined;
+  return dt;
+};
+const formatYmd = (d: Date): string => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+interface DatePickerFieldProps {
+  id: string;
+  value: string;
+  onChange: (v: string) => void;
+  minDate: Date;
+  maxDate: Date;
+  disabledBefore?: Date;
+  disabledAfter?: Date;
+  invalid?: boolean;
+}
+function DatePickerField({ id, value, onChange, minDate, maxDate, disabledBefore, disabledAfter, invalid }: DatePickerFieldProps) {
+  const [open, setOpen] = useState(false);
+  const selected = parseYmd(value);
+  const defaultMonth = selected ?? disabledBefore ?? minDate;
+  const disabledMatcher = [
+    { before: minDate },
+    { after: maxDate },
+    ...(disabledBefore ? [{ before: disabledBefore }] : []),
+    ...(disabledAfter ? [{ after: disabledAfter }] : []),
+  ];
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          className={cn(
+            'w-full justify-start text-left font-normal tabular-nums',
+            !selected && 'text-muted-foreground',
+            invalid && 'border-destructive focus-visible:ring-destructive',
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+          {selected ? formatYmd(selected) : 'YYYY-MM-DD'}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+        <Calendar
+          mode="single"
+          selected={selected}
+          defaultMonth={defaultMonth}
+          onSelect={(d) => {
+            if (d) {
+              onChange(formatYmd(d));
+              setOpen(false);
+            }
+          }}
+          fromDate={minDate}
+          toDate={maxDate}
+          captionLayout="dropdown-buttons"
+          fromYear={minDate.getFullYear()}
+          toYear={maxDate.getFullYear()}
+          disabled={disabledMatcher}
+          initialFocus
+          className={cn('p-3 pointer-events-auto')}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export type StopUnit = 'percent' | 'points';
 
