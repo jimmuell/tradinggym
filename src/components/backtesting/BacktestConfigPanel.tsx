@@ -415,9 +415,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       takeProfitPoints,
       slippageTicks,
       qtyValue,
-      forceRegenerate,
+      qtyValue,
     });
-    if (forceRegenerate) setForceRegenerate(false);
   };
 
   // Cmd/Ctrl+Enter to submit on cockpit tiers
