@@ -285,7 +285,29 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   };
 
   const selectedStrategy = strategies.find((s) => s.id === strategyId) || null;
-  const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits;
+
+  // ---- Date validation ----
+  const DATA_MIN = '2008-01-02';
+  const DATA_MAX = '2026-04-09';
+  const validateDate = (v: string): string | null => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return 'Use format YYYY-MM-DD';
+    const [y, m, d] = v.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) {
+      return 'Not a real calendar date';
+    }
+    if (v < DATA_MIN) return `No data before ${DATA_MIN}`;
+    if (v > DATA_MAX) return `No data after ${DATA_MAX}`;
+    return null;
+  };
+  const startDateError = validateDate(startDate);
+  const endDateError = validateDate(endDate);
+  const orderError = !startDateError && !endDateError && startDate > endDate
+    ? 'End date is before start date'
+    : null;
+  const datesValid = !startDateError && !endDateError && !orderError;
+
+  const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits && datesValid;
 
   const handleRun = () => {
     if (!canSubmit) return;
@@ -384,8 +406,13 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             pattern="\d{4}-\d{2}-\d{2}"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="tabular-nums"
+            aria-invalid={!!startDateError}
+            aria-describedby={startDateError ? 'bt-start-date-error' : undefined}
+            className={cn('tabular-nums', startDateError && 'border-destructive focus-visible:ring-destructive')}
           />
+          {startDateError && (
+            <p id="bt-start-date-error" className="text-[11px] text-destructive">{startDateError}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="bt-end-date">End date</Label>
@@ -397,10 +424,18 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
             pattern="\d{4}-\d{2}-\d{2}"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="tabular-nums"
+            aria-invalid={!!endDateError || !!orderError}
+            aria-describedby={endDateError || orderError ? 'bt-end-date-error' : undefined}
+            className={cn('tabular-nums', (endDateError || orderError) && 'border-destructive focus-visible:ring-destructive')}
           />
+          {(endDateError || orderError) && (
+            <p id="bt-end-date-error" className="text-[11px] text-destructive">{endDateError ?? orderError}</p>
+          )}
         </div>
       </div>
+      {!startDateError && !endDateError && !orderError && (
+        <p className="text-[11px] text-muted-foreground">Data available {DATA_MIN} to {DATA_MAX}.</p>
+      )}
       <div className="flex justify-end">
         <Button type="button" variant="outline" size="sm" onClick={applyQuickTestWeek} className="gap-1.5">
           <CalendarRange className="h-3.5 w-3.5" />
