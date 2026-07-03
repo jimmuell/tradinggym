@@ -415,7 +415,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       takeProfitPoints,
       slippageTicks,
       qtyValue,
-      qtyValue,
     });
   };
 
