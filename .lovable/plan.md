@@ -1,43 +1,46 @@
-## Findings (pre-plan)
+# Plan: Backtest engine + recent frontend changelog doc
 
-- **DB failed rows:** there are currently **no `status='failed'` rows**. The 07-03 01:56 UTC pending row (`db51e68f…`) that was stuck earlier has already been cleared. So there is no `error_message` to report right now — we'll capture one on the fresh verification run below.
-- **Source of run-backtest** (`supabase/functions/run-backtest/index.ts` lines 400-428): the `/run/async` body **already includes** both `callback_url: ${supabaseUrl}/functions/v1/backtest-callback` and `callback_secret: Deno.env.get("BACKTEST_CALLBACK_SECRET")`. Non-202 responses are captured into `error_message` and returned as 502. So the issue is purely that this source is not the deployed version.
-- **BACKTEST_CALLBACK_SECRET:** present in Lovable Cloud → Secrets (visible in the secrets listing). No `set_secret` needed.
-- **Frontend "blank screen" on non-202:** `handleRun` in `src/pages/Backtesting.tsx` already `try/catch`es and toasts; `BacktestResultsPanel` already renders `run.error_message`. The crash is almost certainly a downstream child that reads `results_detail` without a null-guard when `status='failed'`. I'll audit and guard.
-- **Date-inputs / Run-button fixes** live only in preview; need `Publish`.
+## Deliverable
+One markdown file at `/mnt/documents/BACKTEST_AND_FRONTEND_CHANGELOG.md`, with two sections, one line per item, dated.
 
-## Plan
+## Sources (all three)
+1. **`change_log/*.md`** — primary source of truth for dated entries.
+2. **`git log`** — sweep commits touching:
+   - Backtest engine surface: `supabase/functions/run-backtest/**`, `supabase/functions/backtest-callback/**`, `docs/BACKTEST_ENGINE_SPEC.md`, `src/hooks/useBacktestRuns.ts`, `src/hooks/useRunBacktest.ts` — full history.
+   - Frontend: any `src/**` change from `2026-06-26` through today (`2026-07-03`).
+3. **`docs/DECISIONS.md` + `docs/BACKTEST_ENGINE_SPEC.md`** — cross-reference to fill undocumented engine milestones (ADRs, contract changes).
 
-### 1. Redeploy edge functions
-Deploy `run-backtest` and `backtest-callback` so the live copies match the repo (callback_url/secret wiring + whitelisted callback columns).
+Dedupe by (date, one-line description). Prefer changelog wording; fall back to commit subject; annotate `(ADR-###)` when an ADR exists.
 
-### 2. Confirm the deployed source
-Immediately after deploy, call `run-backtest` with an intentionally invalid payload to force the engine to echo back the 422 → the returned `error_message` will show whether `callback_url` reached it. Expected: no "missing callback_url" — instead an engine-side 4xx about the bad payload or a 202.
+## Document structure
 
-### 3. Harden the failure UI (no more blank screen)
-Two small guards, both in the frontend only:
+```
+# TradingGYM — Backtest engine & recent frontend changes
+_Generated YYYY-MM-DD_
 
-- **`src/components/backtesting/BacktestResultsPanel.tsx`** — when `run.status === 'failed'`, return the error card and short-circuit BEFORE any child that reads `results_detail` (Teach/Coach panels are already null-guarded; audit the Results body for unguarded `run.results_detail.<x>` reads and wrap in `run.results_detail ?? {}`).
-- **`src/pages/Backtesting.tsx`** — wrap the panel column in an `ErrorBoundary` (new tiny component at `src/components/ErrorBoundary.tsx`) so any future render error surfaces inline instead of white-screening the route.
+## Backtest engine (all time)
+- YYYY-MM-DD — <one-line item> [source: changelog | git | ADR-###]
+- ...
 
-No engine or DB changes. No changes to `BacktestCoachPanel` / `BacktestTeachPanel` gating.
+## Frontend (2026-06-26 → 2026-07-03)
+- YYYY-MM-DD — <one-line item> [source: ...]
+- ...
 
-### 4. Publish the frontend
-Call `preview_ui--publish` so the text-input date fields, the 10-min stale-run gating on the Run button, and the new ErrorBoundary reach `keen-chart-clone.lovable.app`.
+## Sources scanned
+- change_log/CHANGELOG_2026-05-07_to_2026-05-08.md
+- change_log/CHANGELOG_2026-05-08.md
+- change_log/CHANGELOG_2026-06-26.md
+- change_log/CHANGELOG_2026-06-30.md
+- git log (path-filtered, see above)
+- docs/DECISIONS.md, docs/BACKTEST_ENGINE_SPEC.md
+```
 
-### 5. Verify end-to-end (in-range window)
-Post-publish, run a backtest with `2025-11-01 → 2025-12-31` (inside the engine's 2025-10-01 → 2026-04-09 data range) and:
-- Confirm the row goes `pending → running → complete`.
-- Pull `backtest-callback` logs — expect a `200`. A `401` = secret mismatch; a `500` = payload/whitelist issue.
-- If it still fails, pull the newest failed row's `error_message` and report it verbatim.
+## Steps
+1. Read all four changelogs + `docs/DECISIONS.md` + `docs/BACKTEST_ENGINE_SPEC.md` in parallel.
+2. Run two `git log` sweeps (engine paths, all time; `src/**` since 2026-06-26) into `/tmp`.
+3. Merge → dedupe → sort ascending by date.
+4. Write the markdown to `/mnt/documents/` and emit a `<presentation-artifact>` tag.
 
 ## Out of scope
-- Changing engine behavior on Railway.
-- The Ask-the-Coach / Teach panel gating (separate thread).
-- Date-picker redesign — keep the text `YYYY-MM-DD` mask as-is.
-
-## Deliverables
-- Deployed `run-backtest` + `backtest-callback` matching the repo.
-- New `src/components/ErrorBoundary.tsx` and a small guard pass in `BacktestResultsPanel.tsx`.
-- Published site.
-- Verification run log + callback log excerpt reported back inline.
+- No code changes. Read-only doc generation.
+- No engine-repo (`mes-orb-strategy`) history — this repo only. I'll note that limitation in the doc.
