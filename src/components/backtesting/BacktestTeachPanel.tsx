@@ -436,14 +436,19 @@ function titleFor(dimension: string): string {
 
 
 
+const ALL_DIMENSIONS = [
+  'stop',
+  'take_profit',
+  'commission',
+  'direction',
+  'slippage',
+  'position_size',
+] as const;
+
 export default function BacktestTeachPanel({ run }: Props) {
   const { isAdmin } = useTier();
 
   if (!run) return null;
-
-  const hasStopConfig =
-    Number(run.stop_loss_points ?? 0) > 0 || Number(run.stop_loss_pct ?? 0) > 0;
-  if (!hasStopConfig) return null;
 
   const detail = (run.results_detail ?? {}) as Record<string, unknown>;
   const rawTeaching = detail._teaching ?? (detail as { teaching?: unknown }).teaching;
@@ -454,43 +459,61 @@ export default function BacktestTeachPanel({ run }: Props) {
       : undefined;
   const sameSignal = detail._same_signal as boolean | undefined;
 
-  if (!teachingArr || teachingArr.length === 0) return null;
-
-  // TEMP: mock a position_size teaching entry (admin-only) to verify the 6th card renders
-  // before engine v25.9.0 ships. Remove once the engine emits this dimension for real.
-  if (isAdmin && !teachingArr.some((x) => x.dimension === 'position_size')) {
-    teachingArr.push({
-      dimension: 'position_size',
-      delta_net: 500,
-      direction: 'saved',
-      significance: 'deterministic',
-      delta_ci_low: 0,
-      delta_ci_high: 0,
-      trade_count: 42,
-      sufficient_data: true,
-      contracts: 2,
-      qty_type: 'fixed',
-      size_multiple: 2,
-      primary_net: 1000,
-      variant_net: 500,
-      primary_max_dd: -800,
-      variant_max_dd: -400,
-    });
-  }
-
-  // Broken comparison — show a single honest card.
-  if (sameSignal !== true) {
+  // No teaching data at all.
+  if (!teachingArr || teachingArr.length === 0) {
+    if (!isAdmin) return null;
     return (
-      <Shell title="What your stop did">
-        <p>We couldn't produce a reliable comparison for this run.</p>
+      <Shell title="Teaching cards">
+        <p>No teaching data was returned for this run.</p>
+        <p className="text-xs text-muted-foreground">
+          The engine emits <code>_teaching</code> once a completed run has enough trades to
+          compare against a counterfactual. Run a longer date range or a strategy that fires more
+          often to see the six teach-compare cards here.
+        </p>
       </Shell>
     );
   }
 
+  // Broken comparison — show a single honest card (all users).
+  if (sameSignal !== true) {
+    return (
+      <Shell title="Teaching cards">
+        <p>We couldn't produce a reliable comparison for this run.</p>
+        {isAdmin && (
+          <p className="text-xs text-muted-foreground">
+            <code>_same_signal</code> was not true — the counterfactual signal drifted from the
+            primary run, so per-dimension deltas aren't attributable.
+          </p>
+        )}
+      </Shell>
+    );
+  }
+
+  // Non-admin: only render dimensions the engine actually returned.
+  const dimensionsToRender: string[] = isAdmin
+    ? [...ALL_DIMENSIONS, ...teachingArr.map((t) => t.dimension).filter((d) => !ALL_DIMENSIONS.includes(d as typeof ALL_DIMENSIONS[number]))]
+    : teachingArr.map((t) => t.dimension);
+
   return (
     <div className="space-y-4">
-      {teachingArr.map((t, idx) => {
-        const title = titleFor(t.dimension);
+      {dimensionsToRender.map((dim, idx) => {
+        const t = teachingArr.find((x) => x.dimension === dim);
+        const title = titleFor(dim);
+
+        // Admin sees a placeholder for engine-expected dimensions that weren't returned.
+        if (!t) {
+          return (
+            <Shell key={`${dim}-${idx}`} title={title}>
+              <p className="text-muted-foreground">No data for this dimension in this run.</p>
+              <p className="text-xs text-muted-foreground">
+                The engine didn't emit a <code>{dim}</code> teaching entry — usually because that
+                input wasn't configured (e.g. no slippage, 1-contract fixed size) or trade count
+                was too low.
+              </p>
+            </Shell>
+          );
+        }
+
         const body =
           t.dimension === 'stop' ? (
             <StopCardBody t={t} />
