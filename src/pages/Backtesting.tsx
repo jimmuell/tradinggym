@@ -33,7 +33,7 @@ export default function Backtesting() {
   const now_ = Date.now();
   const hasActive = runs.some((r) => {
     if (r.status !== 'pending' && r.status !== 'running') return false;
-    const ts = new Date(r.updated_at ?? r.created_at).getTime();
+    const ts = new Date((r as unknown as { updated_at?: string }).updated_at ?? r.created_at).getTime();
     return now_ - ts < STALE_MS;
   });
 
