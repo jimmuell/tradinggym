@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { forceAdminTier, stubBacktestRuns } from "./helpers/tier";
+import { forceAdminTier, stubBacktestRuns, stubCompletedNoStopRun } from "./helpers/tier";
 
 test.use({ storageState: "e2e/.auth.json" });
 
@@ -63,5 +63,26 @@ test.describe("Backtesting form (deterministic)", () => {
     // page stays intact (not a blank crash)
     await expect(page.getByText(/Configure backtest/i)).toBeVisible();
     await expect(page.getByText(/failed|error|did not accept/i).first()).toBeVisible({ timeout: 30_000 });
+  });
+
+  // 3 — THE regression: a completed NO-STOP run must still render all six teach cards + Ask the
+  //     Coach. Fully mocked (completed-row fixture + forced admin tier) — no real backtest.
+  test("no-stop completed run renders all 6 teach cards + Ask the Coach", async ({ page }) => {
+    await forceAdminTier(page);
+    await stubCompletedNoStopRun(page);
+    await page.goto("/backtesting");
+
+    // the six exact titles (from titleFor)
+    for (const title of [
+      "What your stop did", "What your take-profit did", "What commission cost you",
+      "What your direction choice did", "What slippage cost you", "What your position size did",
+    ]) {
+      await expect(page.getByText(title)).toBeVisible();
+    }
+    await expect(page.getByRole("button", { name: /ask the coach/i })).toBeVisible();
+
+    // must NOT be a fallback state
+    await expect(page.getByText(/No teaching data was returned/i)).toHaveCount(0);
+    await expect(page.getByText(/couldn't produce a reliable comparison/i)).toHaveCount(0);
   });
 });
