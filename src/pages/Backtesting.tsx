@@ -26,7 +26,16 @@ export default function Backtesting() {
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
 
   const latest = runs[0] ?? null;
-  const hasActive = runs.some((r) => r.status === 'pending' || r.status === 'running');
+  // A run is only "active" if it's pending/running AND was updated recently.
+  // Anything older than 10 min is considered stuck (engine never called back)
+  // and must not block the Run button — user can still cancel it explicitly.
+  const STALE_MS = 10 * 60 * 1000;
+  const now_ = Date.now();
+  const hasActive = runs.some((r) => {
+    if (r.status !== 'pending' && r.status !== 'running') return false;
+    const ts = new Date((r as unknown as { updated_at?: string }).updated_at ?? r.created_at).getTime();
+    return now_ - ts < STALE_MS;
+  });
 
   // Count runs created in current calendar month
   const now = new Date();

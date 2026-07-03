@@ -375,12 +375,30 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
     <>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label>Start date</Label>
-          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <Label htmlFor="bt-start-date">Start date</Label>
+          <Input
+            id="bt-start-date"
+            type="text"
+            inputMode="numeric"
+            placeholder="YYYY-MM-DD"
+            pattern="\d{4}-\d{2}-\d{2}"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="tabular-nums"
+          />
         </div>
         <div className="space-y-2">
-          <Label>End date</Label>
-          <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <Label htmlFor="bt-end-date">End date</Label>
+          <Input
+            id="bt-end-date"
+            type="text"
+            inputMode="numeric"
+            placeholder="YYYY-MM-DD"
+            pattern="\d{4}-\d{2}-\d{2}"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="tabular-nums"
+          />
         </div>
       </div>
       <div className="flex justify-end">
