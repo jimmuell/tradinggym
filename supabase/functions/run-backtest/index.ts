@@ -153,9 +153,11 @@ serve(async (req) => {
 
 Given a trading strategy configuration as JSON, generate Python code that creates boolean signal columns on a pandas DataFrame called 'df' that has columns: Open, High, Low, Close, Volume.
 
-AVAILABLE INDICATOR FUNCTIONS (already in scope, do NOT import them):
+AVAILABLE INDICATOR FUNCTIONS (already in scope, do NOT import them). PREFER these for any indicator they cover — only fall back to raw pandas/numpy for logic no helper provides:
+
 - calc_ema(series, length) → EMA
-- calc_sma(series, length) → SMA  
+- calc_sma(series, length) → SMA
+- calc_smma(series, length) → Smoothed MA (RMA / Wilder's smoothing)
 - calc_rsi(series, length) → RSI (default 14)
 - calc_atr(df, length) → ATR (needs df with High/Low/Close)
 - calc_macd(series, fast, slow, signal) → returns (macd_line, signal_line, histogram)
@@ -172,15 +174,42 @@ AVAILABLE INDICATOR FUNCTIONS (already in scope, do NOT import them):
 
 PANDAS AND NUMPY are available as 'pd' and 'np'.
 
+PERFORMANCE (your code runs over ~1.3 MILLION rows of 18-year 5-minute data — this is critical):
+
+- Your code MUST be vectorized. NEVER write a Python for/while loop over individual bars/rows, and NEVER use .apply(...) or .rolling(...).apply(...) with a Python function over the price series — these iterate 1.3M+ times and are prohibitively slow.
+
+- Use vectorized pandas/numpy: boolean masks, .shift(), .cummax()/.cummin(), .where(), .ffill(), and the provided calc_* helpers.
+
+- For per-session / per-day values (e.g. the ORB opening-range high/low), use a vectorized groupby on the day instead of a loop. Illustrative pattern (adapt to the strategy):
+
+    eastern = df.index.tz_convert('US/Eastern')
+
+    orb_mask = (eastern.hour == 9) & (eastern.minute == 30)
+
+    df['_orb_high'] = df['High'].where(orb_mask).groupby(eastern.date).transform('first')
+
+    df['_orb_low']  = df['Low'].where(orb_mask).groupby(eastern.date).transform('first')
+
+  A per-DAY groupby (a few thousand groups) is acceptable; a per-BAR loop is not.
+
 RULES:
+
 1. You MUST create these columns on df: long_entry (bool), long_exit (bool), short_entry (bool), short_exit (bool)
+
 2. Set them to False by default, then apply your logic
+
 3. Do NOT use any import statements (they are stripped and any referenced module name will raise NameError)
+
 4. Do NOT use open(), os, sys, subprocess, exec, eval, or __import__
+
 5. Do NOT reference pytz, datetime, timezone, pd.Timestamp(tz=...) with pytz objects, or any other module — only 'pd', 'np', and the listed helpers exist
+
 6. Return ONLY the executable Python code, no markdown fences, no explanations
+
 7. The code will be executed with exec() where df is already defined
+
 8. Use .fillna(False) on all boolean columns to avoid NaN issues
+
 9. For time-based filters (like ORB), use df.index which is already normalized to a timezone-aware pandas DatetimeIndex before your code runs. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
 
     // IMPORTANT: feed ONLY the inputs that determine the signal. Date range, risk
