@@ -254,8 +254,6 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const [takeProfitPoints, setTakeProfitPoints] = useState(0);
   const [slippageTicks, setSlippageTicks] = useState(0);
   const [qtyValue, setQtyValue] = useState(1);
-  
-
   const sliderIndex = Math.max(0, ITERATION_STOPS.findIndex((s) => s.value === validationIterations));
 
   const canReuse = !!lastRun;
