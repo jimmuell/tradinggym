@@ -222,7 +222,7 @@ interface Props {
 
 export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount }: Props) {
   const navigate = useNavigate();
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading } = useTier();
   const { strategies, isLoading } = useStrategies();
   const { runs } = useBacktestRuns();
   const lastRun = runs[0] ?? null;
