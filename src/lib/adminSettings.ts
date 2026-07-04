@@ -25,13 +25,16 @@ const writeBool = (key: string, value: boolean) => {
 export const isDevHost = (): boolean => {
   if (typeof window === 'undefined') return false;
   const h = window.location.hostname;
-  return (
-    h === 'localhost' ||
-    h === '127.0.0.1' ||
-    h.startsWith('preview--') ||
-    h.endsWith('.lovableproject.com') ||
-    h.endsWith('.lovable.app')
-  );
+  if (h === 'localhost' || h === '127.0.0.1') return true;
+  if (h.endsWith('.lovableproject.com')) return true;
+  // Only Lovable *preview* subdomains count as dev, not the published *.lovable.app
+  if (
+    h.endsWith('.lovable.app') &&
+    (h.startsWith('preview--') || h.startsWith('id-preview--'))
+  ) {
+    return true;
+  }
+  return false;
 };
 
 export const getDevSignInPreview = () => readBool(KEY_PREVIEW, true);
