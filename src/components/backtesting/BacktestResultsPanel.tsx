@@ -51,11 +51,9 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
   }
 
   if (run.status === 'pending' || run.status === 'running') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Backtesting in progress</CardTitle>
-        </CardHeader>
+    return <InProgressCard run={run} onCancel={onCancel} isCanceling={isCanceling} />;
+  }
+
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Backtesting 18 years of data — this may take up to 2 minutes…
