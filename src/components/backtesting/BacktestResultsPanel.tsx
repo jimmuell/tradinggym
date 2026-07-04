@@ -25,6 +25,7 @@ import BacktestKpiCards from './BacktestKpiCards';
 import BacktestVerdictPanel from './BacktestVerdictPanel';
 import BacktestTradeSummary from './BacktestTradeSummary';
 import BacktestExplainPanel from './BacktestExplainPanel';
+import { formatRuntime } from '@/lib/formatRuntime';
 import type { BacktestRun } from '@/hooks/useBacktestRuns';
 
 interface Props {
@@ -111,9 +112,12 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
           />
 
           <p className="text-xs text-muted-foreground">
-            Engine v{run.engine_version || '?'} ·{' '}
-            {run.execution_time_ms ? (run.execution_time_ms / 1000).toFixed(1) : '?'}s ·{' '}
-            {run.direction || 'long_short'}
+            Engine v{run.engine_version || '?'} · Runtime:{' '}
+            {formatRuntime(run.execution_time_ms) ?? '?'}
+            {run.estimated_runtime_ms != null && (
+              <span className="opacity-80"> · estimated ~{formatRuntime(run.estimated_runtime_ms)}</span>
+            )}
+            {' · '}{run.direction || 'long_short'}
           </p>
 
           <BacktestVerdictPanel run={run} />
