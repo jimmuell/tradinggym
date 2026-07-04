@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
 import PageSeo from '@/components/seo/PageSeo';
+import { shouldShowDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
