@@ -116,16 +116,16 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const isDevHost = (() => {
-    if (typeof window === 'undefined') return false;
-    const h = window.location.hostname;
-    return (
-      h === 'localhost' ||
-      h === '127.0.0.1' ||
-      h.startsWith('preview--') ||
-      h.endsWith('.lovableproject.com')
-    );
-  })();
+  const [showDevSignIn, setShowDevSignIn] = useState(shouldShowDevSignIn());
+  useEffect(() => {
+    const sync = () => setShowDevSignIn(shouldShowDevSignIn());
+    window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
 
   const handleDevLogin = async (email: string) => {
     setLoading(true);
