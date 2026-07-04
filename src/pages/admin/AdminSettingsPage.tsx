@@ -70,9 +70,9 @@ export default function AdminSettingsPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <div>
-              <Label className="text-sm font-medium">Enabled in preview</Label>
+              <Label className="text-sm font-medium">Enabled on preview / localhost</Label>
               <p className="text-xs text-muted-foreground">
-                localhost, *.lovable.app, *.lovableproject.com
+                localhost, *.lovableproject.com, id-preview--*.lovable.app
               </p>
             </div>
             <Switch
@@ -83,9 +83,9 @@ export default function AdminSettingsPage() {
 
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <div>
-              <Label className="text-sm font-medium">Enabled in production</Label>
+              <Label className="text-sm font-medium">Enabled on published site</Label>
               <p className="text-xs text-muted-foreground">
-                Custom domains and all other hosts.
+                Your published *.lovable.app URL and any custom domain.
               </p>
             </div>
             <Switch
