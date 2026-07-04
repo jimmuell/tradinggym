@@ -47,16 +47,20 @@ serve(async (req) => {
 
     const { data: profile } = await admin
       .from("profiles")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, plan_state, role")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const customerId = (profile as { stripe_customer_id?: string } | null)?.stripe_customer_id;
+    const profileRow = profile as { stripe_customer_id?: string; plan_state?: string; role?: string } | null;
+    const customerId = profileRow?.stripe_customer_id;
     if (!customerId) {
-      return json(
-        { error: "no_subscription", message: "No active subscription found. Please subscribe first." },
-        400,
-      );
+      const isAdmin = profileRow?.role === "admin" || profileRow?.plan_state === "admin";
+      return json({
+        error: "no_subscription",
+        message: isAdmin
+          ? "Admin account — no subscription required."
+          : "No active subscription found. Please subscribe first.",
+      });
     }
 
     const body = await req.json().catch(() => ({}));
