@@ -60,6 +60,7 @@ import NotFound from "./pages/NotFound";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import AdminConfigPage from "./pages/admin/AdminConfigPage";
