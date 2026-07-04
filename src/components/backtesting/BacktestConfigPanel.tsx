@@ -38,6 +38,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
 import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import { useBacktestRuntimeEstimate, daysBetweenDates } from '@/hooks/useBacktestRuntimeEstimate';
+import { formatRuntime } from '@/lib/formatRuntime';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
 import { cn } from '@/lib/utils';
 
@@ -137,6 +139,7 @@ export interface BacktestConfig {
   takeProfitPoints: number;
   slippageTicks: number;
   qtyValue: number;
+  estimatedRuntimeMs?: number;
 }
 
 const ITERATION_STOPS = [
