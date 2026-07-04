@@ -72,6 +72,7 @@ export default function Backtesting() {
         take_profit_points: isPoints ? config.takeProfitPoints : 0,
         slippage_ticks: config.slippageTicks,
         qty_value: config.qtyValue,
+        estimated_runtime_ms: config.estimatedRuntimeMs,
       });
       toast.success('Backtest started — results will appear shortly');
     } catch (err) {
