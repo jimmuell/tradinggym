@@ -225,6 +225,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
   const { planState, isAdmin, loading } = useTier();
   const { strategies, isLoading } = useStrategies();
   const { runs } = useBacktestRuns();
+  const runtimeModel = useBacktestRuntimeEstimate();
   const lastRun = runs[0] ?? null;
 
   // Admin role overrides plan for visibility purposes.
@@ -391,6 +392,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
 
   const canSubmit = !!selectedStrategy && !isRunning && !isStarter && !outOfCredits && datesValid;
 
+  const estimateDays = datesValid ? daysBetweenDates(startDate, endDate) : null;
+  const estimatedMs = estimateDays != null ? runtimeModel.estimateMs(estimateDays) : null;
+
   const handleRun = () => {
     if (!canSubmit) return;
     // ALWAYS submit the full payload — hidden fields still send their defaults.
@@ -411,6 +415,7 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
       takeProfitPoints,
       slippageTicks,
       qtyValue,
+      estimatedRuntimeMs: estimatedMs ?? undefined,
     });
   };
 
