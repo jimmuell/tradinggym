@@ -130,12 +130,14 @@ export default function Dashboard() {
                 {getPlanName(planState)}
               </p>
               <p className="text-xs text-muted-foreground">
-                {planState === 'starter'
+                {planState === 'admin'
+                  ? "Admin account — no subscription required."
+                  : planState === 'starter'
                   ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
                   : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
               </p>
             </div>
-            {!['pro', 'expert', 'guru'].includes(planState) ? (
+            {planState === 'admin' ? null : !['pro', 'expert', 'guru'].includes(planState) ? (
               <Link to="/pricing" className="shrink-0">
                 <Button size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" />
