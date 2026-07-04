@@ -38,7 +38,7 @@ const STAT_TOOLTIPS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { currentTier, planState } = useTier();
+  const { currentTier, planState, isAdmin } = useTier();
   const navigate = useNavigate();
   const portal = useCustomerPortal();
 
@@ -130,14 +130,14 @@ export default function Dashboard() {
                 {getPlanName(planState)}
               </p>
               <p className="text-xs text-muted-foreground">
-                {planState === 'admin'
+                {isAdmin
                   ? "Admin account — no subscription required."
-                  : planState === 'starter'
+                  : !['pro', 'expert', 'guru'].includes(planState)
                   ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
                   : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
               </p>
             </div>
-            {planState === 'admin' ? null : !['pro', 'expert', 'guru'].includes(planState) ? (
+            {isAdmin ? null : !['pro', 'expert', 'guru'].includes(planState) ? (
               <Link to="/pricing" className="shrink-0">
                 <Button size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" />
