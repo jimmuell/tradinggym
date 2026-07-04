@@ -354,7 +354,7 @@ export default function Auth() {
           </TabsContent>
         </Tabs>
 
-        {isDevHost && (
+        {showDevSignIn && (
           <div className="mt-6 rounded-md border border-dashed border-yellow-600/50 bg-yellow-950/20 p-3">
             <div className="text-[10px] font-mono uppercase tracking-wider text-yellow-500 mb-2">
               DEV ONLY · preview/localhost
