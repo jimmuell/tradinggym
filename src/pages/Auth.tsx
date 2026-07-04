@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
 import PageSeo from '@/components/seo/PageSeo';
-import { shouldShowDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
+import { fetchDevSignInEnabled, getLocalDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -116,12 +116,15 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const [showDevSignIn, setShowDevSignIn] = useState(shouldShowDevSignIn());
+  const [showDevSignIn, setShowDevSignIn] = useState(getLocalDevSignIn());
   useEffect(() => {
-    const sync = () => setShowDevSignIn(shouldShowDevSignIn());
+    let cancelled = false;
+    fetchDevSignInEnabled().then((v) => { if (!cancelled) setShowDevSignIn(v); });
+    const sync = () => setShowDevSignIn(getLocalDevSignIn());
     window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
     window.addEventListener('storage', sync);
     return () => {
+      cancelled = true;
       window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
       window.removeEventListener('storage', sync);
     };
