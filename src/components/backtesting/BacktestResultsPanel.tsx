@@ -54,30 +54,6 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
     return <InProgressCard run={run} onCancel={onCancel} isCanceling={isCanceling} />;
   }
 
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Backtesting 18 years of data — this may take up to 2 minutes…
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-20" />
-            ))}
-          </div>
-          {onCancel && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onCancel}
-              disabled={isCanceling}
-              className="gap-2"
-            >
-              {isCanceling ? 'Canceling…' : 'Cancel job'}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
 
   if (run.status === 'failed') {
     return (
