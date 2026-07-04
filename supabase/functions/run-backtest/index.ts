@@ -210,7 +210,53 @@ RULES:
 
 8. Use .fillna(False) on all boolean columns to avoid NaN issues
 
-9. For time-based filters (like ORB), use df.index which is already normalized to a timezone-aware pandas DatetimeIndex before your code runs. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters`;
+9. For time-based filters (like ORB), use df.index which is already normalized to a timezone-aware pandas DatetimeIndex before your code runs. For timezone conversion use df.index.tz_convert('US/Eastern') (pandas accepts tz strings natively — no pytz needed). Use df.index.hour and df.index.minute for hour/minute filters
+
+ENTRY & EXIT QUALITY (this determines whether the backtest is trustworthy — follow carefully):
+
+A backtest is only meaningful if entries and exits reflect the strategy's real intent.
+Badly-structured signals produce hundreds of spurious trades and meaningless results.
+
+1. ENTRIES ARE EVENTS, NOT STATES. An entry must be edge-triggered — it fires on the bar
+   where a condition BECOMES true, not on every bar the condition IS true. For a breakout
+   above a level L, use a true crossover:
+       long_entry = (df['Close'].shift(1) <= L) & (df['Close'] > L)
+   NOT:
+       long_entry = df['Close'] > L        # fires every bar above L — wrong
+   Use detect_crossover(...) / detect_crossunder(...) where they apply.
+
+2. NEVER EXIT ON RE-TOUCHING THE ENTRY LEVEL. Do not write an exit that fires the instant
+   price returns to the entry/breakout line, e.g. long_exit = df['Close'] <= orb_high.
+   On choppy bars this re-fires every bar and churns in and out around the level (thousands
+   of spurious round-trips). This is the single most common failure — avoid it entirely.
+
+3. MATCH THE EXIT TO THE STRATEGY TYPE:
+   - Breakout / momentum (e.g. ORB): exit on the strategy's protective stop, its profit
+     target, and/or an end-of-session flatten — NOT on re-touching the breakout level. If
+     the strategy gives no explicit target/stop, rely on the engine's stop/target (applied
+     downstream) plus the end-of-day flatten below; otherwise leave long_exit/short_exit False.
+   - Trend-following (e.g. moving-average crossover): exiting on the OPPOSITE cross is
+     correct and expected — keep it (e.g. detect_crossunder for a long).
+   - Mean-reversion: exit on reversion to the mean / the opposite band, as specified.
+
+4. INTRADAY STRATEGIES MUST FLATTEN AT SESSION END. If the strategy is intraday (e.g. ORB
+   on 5m), always force an exit on the last regular-session bar so nothing is held overnight.
+   US equity-index RTH closes 16:00 US/Eastern (the last 5-minute bar starts 15:55):
+       eastern = df.index.tz_convert('US/Eastern')
+       _eod = (eastern.hour == 15) & (eastern.minute == 55)
+       df['long_exit']  = df['long_exit']  | _eod
+       df['short_exit'] = df['short_exit'] | _eod
+
+5. HONOR THE STRATEGY'S STATED RULES. The config may include entry_rules and exit_rules
+   arrays (from an uploaded or authored strategy). Implement those faithfully; only fall
+   back to the defaults above when a rule is unspecified.
+
+6. ONE TRADE PER SETUP. The entry must not immediately re-fire on the bar right after an
+   exit around the same level (a true crossover in rule 1 handles this for breakouts).
+   Never re-enter simply because a level condition still holds.
+
+The goal: a trader reading your signals should see a sane number of trades that match the
+strategy's description — not hundreds of round-trips per day oscillating around one price.`;
 
     // IMPORTANT: feed ONLY the inputs that determine the signal. Date range, risk
     // params (stop/take-profit/qty), balance, commission, and direction are applied by
