@@ -1,50 +1,58 @@
-// Admin-controlled runtime settings, stored in localStorage.
+// Admin-controlled runtime settings.
 //
-// NOTE: These are temporary/pre-launch controls. They will be removed prior to
-// public launch. Because they live in localStorage they only affect the
-// current browser — good enough for admin/dev workflow, not a security
-// boundary. The dev sign-in buttons only work for seeded dev accounts anyway.
+// A single global toggle controls whether the dev auto sign-in buttons appear
+// on the /auth page. Stored in the `app_config` table so it applies across
+// preview AND published URLs (localStorage is a per-origin fallback for
+// instant UI while the DB value loads).
+//
+// NOTE: Pre-launch control — remove before public launch.
 
-const KEY_PREVIEW = 'tg_admin_dev_signin_preview';
-const KEY_PROD = 'tg_admin_dev_signin_prod';
-const EVENT = 'tg-admin-settings-change';
+import { supabase } from '@/integrations/supabase/client';
 
-const readBool = (key: string, defaultValue: boolean): boolean => {
-  if (typeof window === 'undefined') return defaultValue;
-  const v = window.localStorage.getItem(key);
-  if (v === null) return defaultValue;
-  return v === '1' || v === 'true';
-};
+const CONFIG_KEY = 'DEV_SIGNIN_ENABLED';
+const LS_KEY = 'tg_admin_dev_signin_enabled';
+export const ADMIN_SETTINGS_EVENT = 'tg-admin-settings-change';
 
-const writeBool = (key: string, value: boolean) => {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(key, value ? '1' : '0');
-  window.dispatchEvent(new CustomEvent(EVENT));
-};
+const parseBool = (v: string | null | undefined): boolean =>
+  v === '1' || v === 'true';
 
-export const isDevHost = (): boolean => {
+/** Local cached value (used for the initial synchronous render). */
+export const getLocalDevSignIn = (): boolean => {
   if (typeof window === 'undefined') return false;
-  const h = window.location.hostname;
-  if (h === 'localhost' || h === '127.0.0.1') return true;
-  if (h.endsWith('.lovableproject.com')) return true;
-  // Only Lovable *preview* subdomains count as dev, not the published *.lovable.app
-  if (
-    h.endsWith('.lovable.app') &&
-    (h.startsWith('preview--') || h.startsWith('id-preview--'))
-  ) {
-    return true;
-  }
-  return false;
+  return parseBool(window.localStorage.getItem(LS_KEY));
 };
 
-export const getDevSignInPreview = () => readBool(KEY_PREVIEW, true);
-export const getDevSignInProd = () => readBool(KEY_PROD, false);
+const writeLocal = (value: boolean) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(LS_KEY, value ? '1' : '0');
+  window.dispatchEvent(new CustomEvent(ADMIN_SETTINGS_EVENT));
+};
 
-export const setDevSignInPreview = (v: boolean) => writeBool(KEY_PREVIEW, v);
-export const setDevSignInProd = (v: boolean) => writeBool(KEY_PROD, v);
+/** Fetch the global toggle from the DB, falling back to localStorage. */
+export const fetchDevSignInEnabled = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', CONFIG_KEY)
+      .maybeSingle();
+    if (error) throw error;
+    const v = parseBool(data?.value);
+    writeLocal(v); // cache
+    return v;
+  } catch {
+    return getLocalDevSignIn();
+  }
+};
 
-/** Whether the dev auto sign-in buttons should be visible in the current env. */
-export const shouldShowDevSignIn = (): boolean =>
-  isDevHost() ? getDevSignInPreview() : getDevSignInProd();
-
-export const ADMIN_SETTINGS_EVENT = EVENT;
+/** Admin-only: update the global toggle. */
+export const setDevSignInEnabled = async (value: boolean): Promise<void> => {
+  const { error } = await supabase
+    .from('app_config')
+    .upsert(
+      { key: CONFIG_KEY, value: value ? 'true' : 'false' },
+      { onConflict: 'key' },
+    );
+  if (error) throw error;
+  writeLocal(value);
+};

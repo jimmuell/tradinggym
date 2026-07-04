@@ -5,43 +5,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
 import {
-  ADMIN_SETTINGS_EVENT,
-  getDevSignInPreview,
-  getDevSignInProd,
-  setDevSignInPreview,
-  setDevSignInProd,
-  isDevHost,
+  fetchDevSignInEnabled,
+  setDevSignInEnabled,
 } from '@/lib/adminSettings';
 import { COACH_CHAT_ENABLED } from '@/lib/featureFlags';
 
 export default function AdminSettingsPage() {
   const { isAdmin, isLoading } = useUserRole();
-  const [previewOn, setPreviewOn] = useState(getDevSignInPreview());
-  const [prodOn, setProdOn] = useState(getDevSignInProd());
+  const [enabled, setEnabled] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const sync = () => {
-      setPreviewOn(getDevSignInPreview());
-      setProdOn(getDevSignInProd());
-    };
-    window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
-      window.removeEventListener('storage', sync);
-    };
+    let cancelled = false;
+    fetchDevSignInEnabled().then((v) => { if (!cancelled) setEnabled(v); });
+    return () => { cancelled = true; };
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="p-6"><Skeleton className="h-64 w-full" /></div>
-    );
+    return <div className="p-6"><Skeleton className="h-64 w-full" /></div>;
   }
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
 
-  const env = isDevHost() ? 'preview' : 'production';
+  const handleToggle = async (v: boolean) => {
+    setSaving(true);
+    const prev = enabled;
+    setEnabled(v);
+    try {
+      await setDevSignInEnabled(v);
+      toast.success(`Dev sign-in buttons ${v ? 'enabled' : 'disabled'} globally`);
+    } catch (err) {
+      setEnabled(prev);
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
@@ -51,60 +52,38 @@ export default function AdminSettingsPage() {
 
       <div>
         <h1 className="text-2xl font-bold">Admin Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Platform-wide toggles. Current environment: <span className="font-mono">{env}</span>.
-        </p>
+        <p className="text-sm text-muted-foreground">Platform-wide toggles.</p>
       </div>
 
-      {/* Dev Auto Sign-in Buttons */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <KeyRound className="h-5 w-5" /> Dev Auto Sign-in Buttons
           </CardTitle>
           <CardDescription>
-            Show the quick sign-in buttons (Starter / Pro / Expert / Guru / Admin) on the
-            /auth page. Only works for seeded dev accounts. Stored per-browser.
+            Show the quick sign-in buttons (Starter / Pro / Expert / Guru / Admin)
+            on the /auth page. Applies globally to all URLs — preview, published,
+            and custom domains. Only works for seeded dev accounts.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <div>
-              <Label className="text-sm font-medium">Enabled on preview / localhost</Label>
+              <Label className="text-sm font-medium">Show dev sign-in buttons everywhere</Label>
               <p className="text-xs text-muted-foreground">
-                localhost, *.lovableproject.com, id-preview--*.lovable.app
+                Single global switch — takes effect on next page load / refresh.
               </p>
             </div>
-            <Switch
-              checked={previewOn}
-              onCheckedChange={(v) => { setDevSignInPreview(v); setPreviewOn(v); }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <div>
-              <Label className="text-sm font-medium">Enabled on published site</Label>
-              <p className="text-xs text-muted-foreground">
-                Your published *.lovable.app URL and any custom domain.
-              </p>
-            </div>
-            <Switch
-              checked={prodOn}
-              onCheckedChange={(v) => { setDevSignInProd(v); setProdOn(v); }}
-            />
+            <Switch checked={enabled} disabled={saving} onCheckedChange={handleToggle} />
           </div>
 
           <div className="flex items-start gap-2 rounded-md border border-yellow-600/40 bg-yellow-950/10 p-3 text-xs text-yellow-500">
             <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>
-              This control is temporary and will be removed prior to public launch.
-              Toggles are stored in your browser's localStorage.
-            </span>
+            <span>Temporary pre-launch control. Remove before public launch.</span>
           </div>
         </CardContent>
       </Card>
 
-      {/* Feature Flags (stub) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -130,7 +109,6 @@ export default function AdminSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Maintenance stub */}
       <Card>
         <CardHeader>
           <CardTitle>Maintenance Mode</CardTitle>

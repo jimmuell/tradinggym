@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
 import PageSeo from '@/components/seo/PageSeo';
-import { shouldShowDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
+import { fetchDevSignInEnabled, getLocalDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -116,12 +116,15 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const [showDevSignIn, setShowDevSignIn] = useState(shouldShowDevSignIn());
+  const [showDevSignIn, setShowDevSignIn] = useState(getLocalDevSignIn());
   useEffect(() => {
-    const sync = () => setShowDevSignIn(shouldShowDevSignIn());
+    let cancelled = false;
+    fetchDevSignInEnabled().then((v) => { if (!cancelled) setShowDevSignIn(v); });
+    const sync = () => setShowDevSignIn(getLocalDevSignIn());
     window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
     window.addEventListener('storage', sync);
     return () => {
+      cancelled = true;
       window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
       window.removeEventListener('storage', sync);
     };
@@ -357,7 +360,7 @@ export default function Auth() {
         {showDevSignIn && (
           <div className="mt-6 rounded-md border border-dashed border-yellow-600/50 bg-yellow-950/20 p-3">
             <div className="text-[10px] font-mono uppercase tracking-wider text-yellow-500 mb-2">
-              DEV ONLY · preview/localhost
+              DEV ONLY · admin-toggled
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {DEV_ACCOUNTS.map((acct) => (
