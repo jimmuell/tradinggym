@@ -58,6 +58,7 @@ export type Database = {
           engine_version: string | null
           equity_curve: Json | null
           error_message: string | null
+          estimated_runtime_ms: number | null
           execution_time_ms: number | null
           id: string
           initial_balance: number
@@ -105,6 +106,7 @@ export type Database = {
           engine_version?: string | null
           equity_curve?: Json | null
           error_message?: string | null
+          estimated_runtime_ms?: number | null
           execution_time_ms?: number | null
           id?: string
           initial_balance?: number
@@ -152,6 +154,7 @@ export type Database = {
           engine_version?: string | null
           equity_curve?: Json | null
           error_message?: string | null
+          estimated_runtime_ms?: number | null
           execution_time_ms?: number | null
           id?: string
           initial_balance?: number

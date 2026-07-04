@@ -1,0 +1,1 @@
+ALTER TABLE public.backtest_runs ADD COLUMN IF NOT EXISTS estimated_runtime_ms integer;
