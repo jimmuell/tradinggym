@@ -131,3 +131,46 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
     </Card>
   );
 }
+
+function InProgressCard({
+  run,
+  onCancel,
+  isCanceling,
+}: {
+  run: BacktestRun;
+  onCancel?: () => void;
+  isCanceling?: boolean;
+}) {
+  const elapsed = useElapsedSeconds(run.created_at);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <span>Backtesting in progress</span>
+          <span className="text-muted-foreground font-normal tabular-nums">· {formatElapsed(elapsed)}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Backtesting 18 years of data — this may take up to 2 minutes…
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-20" />
+          ))}
+        </div>
+        {onCancel && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isCanceling}
+            className="gap-2"
+          >
+            {isCanceling ? 'Canceling…' : 'Cancel job'}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
