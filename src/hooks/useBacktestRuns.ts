@@ -64,6 +64,7 @@ export interface BacktestRun {
   error_message: string | null;
   engine_version: string | null;
   execution_time_ms: number | null;
+  estimated_runtime_ms?: number | null;
   direction: string | null;
   commission_pct: number | null;
   commission_mode?: string | null;
@@ -101,6 +102,7 @@ export interface NewBacktestRun {
   take_profit_points?: number;
   slippage_ticks?: number;
   qty_value?: number;
+  estimated_runtime_ms?: number;
 }
 
 export function useBacktestRuns() {
