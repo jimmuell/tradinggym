@@ -99,7 +99,7 @@ const PLANS: PlanCard[] = [
 
 export default function PricingPage() {
   const navigate = useNavigate();
-  const { planState, loading } = useTier();
+  const { planState, loading, isAdmin } = useTier();
   const checkout = useCreateCheckout();
   const portal = useCustomerPortal();
   const [searchParams] = useSearchParams();
@@ -242,7 +242,7 @@ export default function PricingPage() {
 
 
         <div className="flex flex-col items-center gap-3 mt-8">
-          {planState !== 'starter' && (
+          {!isAdmin && planState !== 'starter' && (
             <Button
               variant="ghost"
               onClick={() => portal.mutate(undefined)}
@@ -263,7 +263,9 @@ export default function PricingPage() {
             </Button>
           )}
           <p className="text-center text-xs text-muted-foreground">
-            {planState === 'starter'
+            {isAdmin
+              ? 'Admin account — no subscription required.'
+              : planState === 'starter'
               ? 'Stripe Checkout will open in this window. You can cancel any time.'
               : 'Update payment method, change plan, or cancel in the billing portal.'}
           </p>

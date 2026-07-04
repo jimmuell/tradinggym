@@ -13,7 +13,7 @@ import { getPlanDisplayName } from '@/lib/tierUtils';
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
-  const { planState } = useTier();
+  const { planState, isAdmin } = useTier();
   const portal = useCustomerPortal();
 
   return (
@@ -34,16 +34,18 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-foreground font-medium">
-                Current Plan: {getPlanDisplayName(planState)}
+                Current Plan: {isAdmin ? 'Admin' : getPlanDisplayName(planState)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {planState === 'starter'
+                {isAdmin
+                  ? 'Admin account — no subscription required.'
+                  : planState === 'starter'
                   ? 'Upgrade to unlock advanced features.'
                   : 'Manage your subscription, payment method, or download invoices.'}
               </p>
             </div>
             <div>
-              {planState === 'starter' ? (
+              {isAdmin ? null : planState === 'starter' ? (
                 <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
                   <Link to="/pricing">View Plans</Link>
                 </Button>
