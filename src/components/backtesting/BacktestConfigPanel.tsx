@@ -945,6 +945,14 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount 
         {!isStarter && (
           <div className={cn(isCockpit && 'lg:sticky lg:bottom-2 lg:bg-card lg:pt-2 lg:-mx-1 lg:px-1')}>
             {RunButton}
+            {estimatedMs != null && (
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                Estimated run time: ~{formatRuntime(estimatedMs)}
+                {!runtimeModel.isCalibrated && (
+                  <span className="opacity-80"> (rough — improves as you run more backtests)</span>
+                )}
+              </p>
+            )}
           </div>
         )}
 
