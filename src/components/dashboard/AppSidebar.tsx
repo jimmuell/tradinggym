@@ -127,6 +127,7 @@ export function AppSidebar() {
   const adminItems = [
     { title: 'Overview', url: '/admin' },
     { title: 'Users', url: '/admin/users' },
+    { title: 'Settings', url: '/admin/settings' },
     { title: 'Guru Applications', url: '/admin/gurus' },
     { title: 'Invite Codes', url: '/admin/invites' },
     { title: 'Configuration', url: '/admin/config' },

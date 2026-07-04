@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import LegalModal from '@/components/LegalModal';
 import PageSeo from '@/components/seo/PageSeo';
+import { shouldShowDevSignIn, ADMIN_SETTINGS_EVENT } from '@/lib/adminSettings';
 
 export default function Auth() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -116,16 +116,16 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const isDevHost = (() => {
-    if (typeof window === 'undefined') return false;
-    const h = window.location.hostname;
-    return (
-      h === 'localhost' ||
-      h === '127.0.0.1' ||
-      h.startsWith('preview--') ||
-      h.endsWith('.lovableproject.com')
-    );
-  })();
+  const [showDevSignIn, setShowDevSignIn] = useState(shouldShowDevSignIn());
+  useEffect(() => {
+    const sync = () => setShowDevSignIn(shouldShowDevSignIn());
+    window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
 
   const handleDevLogin = async (email: string) => {
     setLoading(true);
@@ -354,7 +354,7 @@ export default function Auth() {
           </TabsContent>
         </Tabs>
 
-        {isDevHost && (
+        {showDevSignIn && (
           <div className="mt-6 rounded-md border border-dashed border-yellow-600/50 bg-yellow-950/20 p-3">
             <div className="text-[10px] font-mono uppercase tracking-wider text-yellow-500 mb-2">
               DEV ONLY · preview/localhost

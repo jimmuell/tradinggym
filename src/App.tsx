@@ -60,6 +60,7 @@ import NotFound from "./pages/NotFound";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
 import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminSettingsPage from "./pages/admin/AdminSettingsPage";
 import AdminGuruApplicationsPage from "./pages/admin/AdminGuruApplicationsPage";
 import AdminInviteCodesPage from "./pages/admin/AdminInviteCodesPage";
 import AdminConfigPage from "./pages/admin/AdminConfigPage";
@@ -153,6 +154,7 @@ const App = () => (
               
               <Route path="/admin" element={<LayoutRoute><AdminOverviewPage /></LayoutRoute>} />
               <Route path="/admin/users" element={<LayoutRoute><AdminUsersPage /></LayoutRoute>} />
+              <Route path="/admin/settings" element={<LayoutRoute><AdminSettingsPage /></LayoutRoute>} />
               <Route path="/admin/gurus" element={<LayoutRoute><AdminGuruApplicationsPage /></LayoutRoute>} />
               <Route path="/admin/invites" element={<LayoutRoute><AdminInviteCodesPage /></LayoutRoute>} />
               <Route path="/admin/config" element={<LayoutRoute><AdminConfigPage /></LayoutRoute>} />
