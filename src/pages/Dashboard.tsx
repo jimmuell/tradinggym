@@ -135,7 +135,7 @@ export default function Dashboard() {
                   : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
               </p>
             </div>
-            {planState === 'starter' ? (
+            {!['pro', 'expert', 'guru'].includes(planState) ? (
               <Link to="/pricing" className="shrink-0">
                 <Button size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" />
