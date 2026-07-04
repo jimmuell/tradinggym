@@ -1,46 +1,32 @@
-# Plan: Backtest engine + recent frontend changelog doc
+## What & why
 
-## Deliverable
-One markdown file at `/mnt/documents/BACKTEST_AND_FRONTEND_CHANGELOG.md`, with two sections, one line per item, dated.
+Add a live-updating elapsed-time counter next to the "Backtesting in progress" title in `BacktestResultsPanel.tsx`, and confirm final runtime persistence.
 
-## Sources (all three)
-1. **`change_log/*.md`** — primary source of truth for dated entries.
-2. **`git log`** — sweep commits touching:
-   - Backtest engine surface: `supabase/functions/run-backtest/**`, `supabase/functions/backtest-callback/**`, `docs/BACKTEST_ENGINE_SPEC.md`, `src/hooks/useBacktestRuns.ts`, `src/hooks/useRunBacktest.ts` — full history.
-   - Frontend: any `src/**` change from `2026-06-26` through today (`2026-07-03`).
-3. **`docs/DECISIONS.md` + `docs/BACKTEST_ENGINE_SPEC.md`** — cross-reference to fill undocumented engine milestones (ADRs, contract changes).
+## Storage check (already done)
 
-Dedupe by (date, one-line description). Prefer changelog wording; fall back to commit subject; annotate `(ADR-###)` when an ADR exists.
+- `backtest_runs.execution_time_ms` already exists and is written by the engine on completion (via `backtest-callback` — it's in the ALLOWED write list).
+- `created_at` is set when the row is inserted (status `pending`).
+- **Conclusion: no schema change or new persistence needed.** Start = `created_at`, end = `created_at + execution_time_ms` (or "now" while running).
 
-## Document structure
+## Frontend change (only file touched)
 
-```
-# TradingGYM — Backtest engine & recent frontend changes
-_Generated YYYY-MM-DD_
+`src/components/backtesting/BacktestResultsPanel.tsx`, the `pending/running` branch (lines 36–65):
 
-## Backtest engine (all time)
-- YYYY-MM-DD — <one-line item> [source: changelog | git | ADR-###]
-- ...
-
-## Frontend (2026-06-26 → 2026-07-03)
-- YYYY-MM-DD — <one-line item> [source: ...]
-- ...
-
-## Sources scanned
-- change_log/CHANGELOG_2026-05-07_to_2026-05-08.md
-- change_log/CHANGELOG_2026-05-08.md
-- change_log/CHANGELOG_2026-06-26.md
-- change_log/CHANGELOG_2026-06-30.md
-- git log (path-filtered, see above)
-- docs/DECISIONS.md, docs/BACKTEST_ENGINE_SPEC.md
-```
-
-## Steps
-1. Read all four changelogs + `docs/DECISIONS.md` + `docs/BACKTEST_ENGINE_SPEC.md` in parallel.
-2. Run two `git log` sweeps (engine paths, all time; `src/**` since 2026-06-26) into `/tmp`.
-3. Merge → dedupe → sort ascending by date.
-4. Write the markdown to `/mnt/documents/` and emit a `<presentation-artifact>` tag.
+1. Add a small `useElapsed(startIso)` hook (local to the file): `useState` + `useEffect` with `setInterval(…, 1000)`, cleared on unmount. Returns seconds since `startIso`.
+2. Render the elapsed time inline with the title, e.g.:
+   ```
+   Backtesting in progress · 0:42
+   ```
+   Format `m:ss` under 1 h, `h:mm:ss` above. Use `tabular-nums text-muted-foreground` so digits don't jitter.
+3. Drive it from `run.created_at`. The `useBacktestRuns` query already refetches every 5 s while a run is active, so `run` stays fresh; the 1 s interval gives smooth ticking between refetches.
+4. On the completed branch (line ~124) the existing `execution_time_ms` display already shows final runtime — no change needed there.
 
 ## Out of scope
-- No code changes. Read-only doc generation.
-- No engine-repo (`mes-orb-strategy`) history — this repo only. I'll note that limitation in the doc.
+
+- No changes to the edge function, callback, DB schema, hashing, or any other panel.
+- No new dependency.
+
+## Verification
+
+- Start a run → title shows "Backtesting in progress · 0:01", ticks every second, stops when the card flips to the completed view.
+- Completed card still shows the final `execution_time_ms` seconds as today.
