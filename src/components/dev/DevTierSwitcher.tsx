@@ -199,6 +199,5 @@ function DevTierSwitcherInner() {
 }
 
 export default function DevTierSwitcher() {
-  if (!import.meta.env.DEV) return null;
   return <DevTierSwitcherInner />;
 }
