@@ -266,14 +266,14 @@ export default function Landing() {
             MES • MNQ • ES • NQ • YM Futures
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
-            Build{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
-              Test
-            </span>{" "}
+            Build <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Test</span>{" "}
             Master
           </h1>
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Turn any trading idea into a structured strategy — then backtest it against real historical data, watch it play out step-by-step on real market charts, and practice until the pattern is second nature. Backtesting, playback, simulated reps, and performance tracking in one system. <span className="text-white font-medium">Zero-risk, unlimited reps — practice until you own it.</span>
+            Turn any trading idea into a structured strategy — then backtest it against 18 years of real historical
+            data, watch it play out step-by-step on real market charts, and practice until the pattern is second nature.
+            Backtesting, playback, simulated reps, and performance tracking in one system.{" "}
+            <span className="text-white font-medium">Zero-risk, unlimited reps — practice until you own it.</span>
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link to="/auth">
@@ -298,7 +298,8 @@ export default function Landing() {
             </a>
           </div>
           <p className="text-xs text-gray-600 mt-6">
-            For educational and simulation purposes only. Not financial advice. Paper trading only — no real money at risk.
+            For educational and simulation purposes only. Not financial advice. Paper trading only — no real money at
+            risk.
           </p>
         </div>
       </section>
@@ -371,11 +372,7 @@ export default function Landing() {
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">From idea to instinct in four steps</h2>
           <div className="grid md:grid-cols-4 gap-8">
             {howItWorks.map((s, i) => (
-              <div
-                key={s.title}
-                className="relative animate-fade-in"
-                style={{ animationDelay: `${i * 120}ms` }}
-              >
+              <div key={s.title} className="relative animate-fade-in" style={{ animationDelay: `${i * 120}ms` }}>
                 {i < howItWorks.length - 1 && (
                   <div className="hidden md:block absolute top-8 left-[calc(50%+40px)] right-[-40px] h-px bg-gradient-to-r from-blue-500/30 to-transparent" />
                 )}
@@ -412,8 +409,8 @@ export default function Landing() {
                         isGuru
                           ? "bg-amber-500 text-black"
                           : p.highlight
-                          ? "bg-blue-500 text-white"
-                          : "bg-white/10 text-gray-300"
+                            ? "bg-blue-500 text-white"
+                            : "bg-white/10 text-gray-300"
                       }`}
                     >
                       {p.badge}
@@ -424,8 +421,8 @@ export default function Landing() {
                       isGuru
                         ? "border-amber-500/40 shadow-lg shadow-amber-500/10"
                         : p.highlight
-                        ? "border-blue-500/50 shadow-xl shadow-blue-500/20 ring-1 ring-blue-500/30"
-                        : "border-white/5"
+                          ? "border-blue-500/50 shadow-xl shadow-blue-500/20 ring-1 ring-blue-500/30"
+                          : "border-white/5"
                     }`}
                   >
                     <CardContent className="p-6 flex flex-col h-full">
@@ -447,11 +444,7 @@ export default function Landing() {
                             >
                               <Check
                                 className={`h-4 w-4 shrink-0 mt-0.5 ${
-                                  isComingSoon
-                                    ? "text-gray-600"
-                                    : isGuru
-                                    ? "text-amber-400"
-                                    : "text-blue-400"
+                                  isComingSoon ? "text-gray-600" : isGuru ? "text-amber-400" : "text-blue-400"
                                 }`}
                               />
                               <span className="flex-1">
@@ -477,8 +470,8 @@ export default function Landing() {
                             isGuru
                               ? "bg-amber-500 hover:bg-amber-600 text-black"
                               : p.highlight
-                              ? "bg-blue-600 hover:bg-blue-700 text-white"
-                              : "bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
+                                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                                : "bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10"
                           }`}
                         >
                           Get Started
@@ -501,7 +494,8 @@ export default function Landing() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Run Your Trading Education Business</h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-            Turn your trading expertise into recurring income — create classes, publish content, and host live sessions all inside TradingGYM. No separate website needed.
+            Turn your trading expertise into recurring income — create classes, publish content, and host live sessions
+            all inside TradingGYM. No separate website needed.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
             <span className="px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium">
@@ -548,24 +542,25 @@ export default function Landing() {
 
             {/* Links */}
             <div className="flex items-center justify-center gap-6 text-sm text-gray-400">
-              <Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+              <Link to="/terms" className="hover:text-white transition-colors">
+                Terms of Service
+              </Link>
               <span className="text-gray-700">·</span>
-              <Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <Link to="/privacy" className="hover:text-white transition-colors">
+                Privacy Policy
+              </Link>
             </div>
 
             {/* Copyright */}
-            <p className="text-gray-600 text-xs text-center md:text-right">
-              © {new Date().getFullYear()} TradingGYM
-            </p>
+            <p className="text-gray-600 text-xs text-center md:text-right">© {new Date().getFullYear()} TradingGYM</p>
           </div>
 
           {/* Disclaimers */}
           <div className="mt-10 pt-6 border-t border-white/5 space-y-2 text-center">
-            <p className="text-gray-500 text-xs">
-              Built for MES, MNQ, ES, NQ & YM futures traders.
-            </p>
+            <p className="text-gray-500 text-xs">Built for MES, MNQ, ES, NQ & YM futures traders.</p>
             <p className="text-gray-600 text-xs max-w-3xl mx-auto leading-relaxed">
-              TradingGYM is an independent educational platform. For simulation and educational purposes only. Not financial advice. Past performance does not guarantee future results.
+              TradingGYM is an independent educational platform. For simulation and educational purposes only. Not
+              financial advice. Past performance does not guarantee future results.
             </p>
           </div>
         </div>
