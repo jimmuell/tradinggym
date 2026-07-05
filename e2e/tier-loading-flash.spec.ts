@@ -8,10 +8,11 @@
 // panel. The fix adds a loading guard that renders "Loading your plan…" until the tier resolves.
 //
 // How this test forces the (normally sub-second, flaky) window open: it intercepts the same
-// TierContext profiles query the tier helper mocks, but DELAYS the response ~800ms. That makes
+// TierContext profiles query the tier helper intercepts, but DELAYS the response ~800ms. That makes
 // the loading state deterministic, so we can assert the lock is never rendered during it.
 //
-// Fully mocked + quota-free: no real backtest runs, no dependence on the shared account's plan.
+// Forced tier (via an intercepted, delayed profiles fetch) + stubbed run list, quota-free: no real
+// backtest runs, no dependence on the shared account's plan.
 
 import { test, expect, type Page } from "@playwright/test";
 import { stubBacktestRuns } from "./helpers/tier";

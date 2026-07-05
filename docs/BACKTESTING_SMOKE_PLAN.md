@@ -38,19 +38,20 @@ npx playwright test e2e/backtesting.spec.ts   # just backtesting
 npx playwright test --ui               # watch it, good for spot-checking
 ```
 
-Cost profile (measured): ~8s fixed login/setup + ~1.6s per test. Fully mocked — no real
-backtests, no quota use, independent of the account's plan.
+Cost profile (measured): ~8s fixed login/setup + ~1.6s per test. No real backtests — the tier is
+forced to admin, run paths are stubbed, and completed runs are served from saved replay data; no
+quota use, independent of the account's plan.
 
 | # | What it guards (a silent regression from the async-backtest session) | Status |
 |---|---|---|
 | 1 | Date pickers render valid, populated defaults (they went blank/uneditable) | ✅ on main |
 | 2 | Run button stays disabled until a strategy is selected | ✅ on main |
 | 4 | A failed run shows an error, **not** a blank white screen (ErrorBoundary) | ✅ on main |
-| 3 | A **no-stop** run still renders all 6 teach cards + "Ask the Coach" (mocked fixture) | ✅ on main (`0bc7c85`) |
+| 3 | A **no-stop** run still renders all 6 teach cards + "Ask the Coach" (saved replay data) | ✅ on main (`0bc7c85`) |
 
 All four silent-regression guards are now automated — including test 3, the exact bug that
-hid every teaching card on no-stop runs. It's fully mocked (a completed no-stop-run fixture +
-forced admin tier), so it costs no quota and no real backtest. **Everything past these four
+hid every teaching card on no-stop runs. It's served from saved replay data (a completed no-stop-run
+fixture) + forced admin tier, so it costs no quota and no real backtest. **Everything past these four
 stays manual** — that's the line: automate the silent, tedious, exact regressions; eyeball the
 rest.
 
