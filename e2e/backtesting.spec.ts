@@ -1,7 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { forceAdminTier, stubBacktestRuns, stubCompletedNoStopRun } from "./helpers/tier";
 
-test.use({ storageState: "e2e/.auth.json" });
+// locale pinned so the panel's toLocaleString($ amounts) is deterministic across runners.
+test.use({ storageState: "e2e/.auth.json", locale: "en-US" });
 
 // Deterministic, quota-free: the tier is mocked to admin (fully unlocked, unmetered) and any
 // real-run path is mocked, so nothing here depends on the shared account's plan or 5/month cap
@@ -84,5 +85,42 @@ test.describe("Backtesting form (deterministic)", () => {
     // must NOT be a fallback state
     await expect(page.getByText(/No teaching data was returned/i)).toHaveCount(0);
     await expect(page.getByText(/couldn't produce a reliable comparison/i)).toHaveCount(0);
+  });
+
+  // 3b — CONTENT: each of the six card bodies shows the correct values, rendered straight from the
+  //      REAL captured results_detail (e2e/fixtures/no-stop-run.json — admin run c9accb3b, a genuine
+  //      no-stop run, engine 25.18.1). This is the field→display spec-as-code: it catches a card
+  //      that renders the wrong number/branch, not just a missing title. If the fixture is refreshed
+  //      from a newer real run, update these expected strings to match its values.
+  test("all 6 teach card bodies render the fixture's real values", async ({ page }) => {
+    await forceAdminTier(page);
+    await stubCompletedNoStopRun(page);
+    await page.goto("/backtesting");
+    await expect(page.getByText("What your stop did")).toBeVisible(); // teach panel is up
+
+    // stop — no-stop run: inconclusive, worst loss identical with/without
+    await expect(page.getByText(/Your stop made no meaningful difference/)).toBeVisible();
+    await expect(page.getByText("Worst loss with the stop: -$77.49. Without it: -$77.49.")).toBeVisible();
+
+    // take-profit — inconclusive, biggest winner $132.51 (uncapped == capped here)
+    await expect(page.getByText(/Your take-profit made no meaningful difference/)).toBeVisible();
+    await expect(
+      page.getByText("Biggest winner you locked in: $132.51. Without the cap, that trade would have reached $132.51."),
+    ).toBeVisible();
+
+    // commission — $100.44 over 81 trades == $1.24/round-trip; profitable before & after fees
+    await expect(page.getByText("Commission COST you $100.44 across 81 trades")).toBeVisible();
+    await expect(page.getByText("$1.24 per round-trip")).toBeVisible();
+    await expect(page.getByText("Before fees: $255. After fees: $154.56.")).toBeVisible();
+
+    // direction — long/short: the 48 short trades COST $12.04
+    await expect(page.getByText("Your short trades COST you $12.04 across 48 shorts.")).toBeVisible();
+    await expect(page.getByText("Long-only: $166.6. With shorts: $154.56.")).toBeVisible();
+
+    // slippage — none set → nudge (correct rendering for slippage_ticks:0)
+    await expect(page.getByText("This run had no slippage set")).toBeVisible();
+
+    // position size — 1 contract → nothing to compare (correct rendering for qty 1)
+    await expect(page.getByText("You traded 1 contract")).toBeVisible();
   });
 });

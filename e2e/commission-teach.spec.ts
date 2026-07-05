@@ -2,7 +2,8 @@ import { test, expect } from "@playwright/test";
 import { forceAdminTier, stubCompletedRun } from "./helpers/tier";
 import noStopResultsDetail from "./fixtures/no-stop-run.json" with { type: "json" };
 
-test.use({ storageState: "e2e/.auth.json" });
+// locale pinned so the card's toLocaleString($ amounts) is deterministic across runners.
+test.use({ storageState: "e2e/.auth.json", locale: "en-US" });
 
 // Deterministic, quota-free coverage of the commission teaching card. No real backtests: the tier
 // is forced to admin and a COMPLETED run row carrying a tailored _teaching commission block is
@@ -33,34 +34,25 @@ function detailWithCommission(commission: Teaching) {
 test.describe("Commission teaching card (deterministic, mocked)", () => {
   test("renders the commission card and the per-round-trip math ties out", async ({ page }) => {
     await forceAdminTier(page);
-    // 21779.36 / 17564 == exactly 1.24 per round-trip.
-    await stubCompletedRun(page, detailWithCommission({
-      dimension: "commission",
-      direction: "cost",
-      significance: "cost",
-      delta_net: -21779.36,
-      delta_ci_low: -22500,
-      delta_ci_high: -21000,
-      trade_count: 17564,
-      sufficient_data: true,
-      total_commission: 21779.36,
-      flips_profitability: false,
-      primary_net: -49386,
-      variant_net: -27606.64,
-    }));
+    // Use the REAL captured commission block from the fixture (no synthetic override) so this
+    // asserts against real engine data, not a hand-picked value.
+    await stubCompletedRun(page, noStopResultsDetail);
     await page.goto("/backtesting");
 
     await expect(page.getByText("What commission cost you")).toBeVisible();
 
-    // Relationship check: total == count × per-round-trip, and the per-RT figure is $1.24.
+    // Relationship check: the rendered per-round-trip figure is the card's own total ÷ trades,
+    // and total ≈ count × perRt (within cent-rounding). No hardcoded dollar value.
     const line = await page.getByText(/Commission COST you .*per round-trip/).innerText();
     const m = line.match(/\$([\d,]+\.?\d*)\s+across\s+(\d+)\s+trades\D+\$([\d.]+)\s+per round-trip/i);
     expect(m, `could not parse commission line: "${line}"`).not.toBeNull();
     const total = parseFloat(m![1].replace(/,/g, ""));
     const count = parseInt(m![2], 10);
     const perRt = parseFloat(m![3]);
-    expect(perRt).toBeCloseTo(1.24, 2);
-    expect(Math.abs(total - count * 1.24)).toBeLessThan(0.01);
+    expect(count).toBeGreaterThan(0);
+    expect(total).toBeGreaterThan(0);
+    expect(perRt).toBeCloseTo(total / count, 2);
+    expect(Math.abs(total - count * perRt)).toBeLessThan(count * 0.005 + 0.01);
   });
 
   test("commission that flips a win into a loss shows the flip headline", async ({ page }) => {
