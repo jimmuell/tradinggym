@@ -4,8 +4,8 @@ import { forceAdminTier, stubBacktestRuns, stubCompletedNoStopRun } from "./help
 // locale pinned so the panel's toLocaleString($ amounts) is deterministic across runners.
 test.use({ storageState: "e2e/.auth.json", locale: "en-US" });
 
-// Deterministic, quota-free: the tier is mocked to admin (fully unlocked, unmetered) and any
-// real-run path is mocked, so nothing here depends on the shared account's plan or 5/month cap
+// Deterministic, quota-free: the tier is forced to admin (fully unlocked, unmetered) and any
+// real-run path is intercepted, so nothing here depends on the shared account's plan or 5/month cap
 // and no real backtest is executed. NOTE: the date fields are a calendar PICKER
 // (DatePickerField -> #bt-start-date / #bt-end-date), NOT a typed `placeholder="YYYY-MM-DD"`
 // input, so we assert the populated defaults rather than typing.
@@ -50,7 +50,7 @@ test.describe("Backtesting form (deterministic)", () => {
     await expect(run).toBeEnabled();
   });
 
-  // 4 — ErrorBoundary: a failed handoff shows an error, not a blank white screen (mocked run)
+  // 4 — ErrorBoundary: a failed handoff shows an error, not a blank white screen (intercepted 502 handoff)
   test("failed run shows an error, not a blank screen", async ({ page }) => {
     await page.route("**/functions/v1/run-backtest", (route) =>
       route.fulfill({
@@ -67,7 +67,8 @@ test.describe("Backtesting form (deterministic)", () => {
   });
 
   // 3 — THE regression: a completed NO-STOP run must still render all six teach cards + Ask the
-  //     Coach. Fully mocked (completed-row fixture + forced admin tier) — no real backtest.
+  //     Coach. Served from saved replay data — source run id: c9accb3b-c7f1-49a8-bd49-e6e10615145f.
+  //     Forced admin tier — no real backtest.
   test("no-stop completed run renders all 6 teach cards + Ask the Coach", async ({ page }) => {
     await forceAdminTier(page);
     await stubCompletedNoStopRun(page);

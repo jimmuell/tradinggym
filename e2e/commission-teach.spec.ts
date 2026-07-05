@@ -7,7 +7,8 @@ test.use({ storageState: "e2e/.auth.json", locale: "en-US" });
 
 // Deterministic, quota-free coverage of the commission teaching card. No real backtests: the tier
 // is forced to admin and a COMPLETED run row carrying a tailored _teaching commission block is
-// served from a mock, so BacktestTeachPanel renders the card straight from data.
+// served from saved replay data — source run id: c9accb3b-c7f1-49a8-bd49-e6e10615145f, so
+// BacktestTeachPanel renders the card straight from data.
 //
 // This replaces the former real-run spec (admin login + live /run/compare, ~2 min, metered 5/mo)
 // per docs/BACKTESTING_SMOKE_PLAN.md — a real end-to-end backtest is a manual step, not automated.
@@ -31,7 +32,7 @@ function detailWithCommission(commission: Teaching) {
   };
 }
 
-test.describe("Commission teaching card (deterministic, mocked)", () => {
+test.describe("Commission teaching card (deterministic, saved replay data)", () => {
   test("renders the commission card and the per-round-trip math ties out", async ({ page }) => {
     await forceAdminTier(page);
     // Use the REAL captured commission block from the fixture (no synthetic override) so this

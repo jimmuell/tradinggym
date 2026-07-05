@@ -30,7 +30,7 @@ export async function forceAdminTier(page: Page) {
 //  - GET  -> no rows, so `hasActive` is false and the Run button stays idle ("Run backtest",
 //    not "Running backtest…") regardless of leftover pending rows on the shared account.
 //  - POST -> a fake inserted row (useCreateBacktestRun does .insert().select().single()), so a
-//    mocked/failed run never writes a real pending row that would carry over to later tests.
+//    stubbed/failed run never writes a real pending row that would carry over to later tests.
 export async function stubBacktestRuns(page: Page) {
   await page.route("**/rest/v1/backtest_runs*", async (route) => {
     if (route.request().method() === "POST") {
@@ -45,7 +45,8 @@ export async function stubBacktestRuns(page: Page) {
   });
 }
 
-// A completed run row served entirely from mocks (no real backtest, no quota). The field set is
+// A completed run row served from saved replay data — source run id: c9accb3b-c7f1-49a8-bd49-e6e10615145f
+// (no real backtest, no quota). The field set is
 // complete enough that BacktestResultsPanel — which shares an ErrorBoundary with the teach/coach
 // panels — renders without crashing; only results_detail varies per scenario.
 const COMPLETED_RUN_BASE = {
@@ -87,7 +88,7 @@ const COMPLETED_RUN_BASE = {
   created_at: "2026-07-03T00:00:00Z",
 };
 
-// Serve a single completed row on GET; swallow POST as a fake pending insert so a mocked run never
+// Serve a single completed row on GET; swallow POST as a fake pending insert so a stubbed run never
 // writes a real pending row that would carry over to later tests.
 function serveCompletedRow(page: Page, row: Record<string, unknown>) {
   return page.route("**/rest/v1/backtest_runs*", async (route) => {

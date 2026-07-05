@@ -27,6 +27,9 @@ before.
 
 ## Automated (Playwright) — run anytime, ~8s, free
 
+> **Saved replay data** = a real completed run's `results_detail`, captured from the DB (source run id
+> recorded in the fixture) and replayed in tests to verify display — not fabricated data.
+
 Location: `e2e/backtesting.spec.ts` (+ `e2e/helpers/tier.ts`). Run:
 
 ```bash
