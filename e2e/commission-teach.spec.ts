@@ -1,89 +1,110 @@
-import { test, expect, type Page } from '@playwright/test';
-import { login } from './helpers/auth';
-import { TEST_ACCOUNTS } from './auth.env';
+import { test, expect } from "@playwright/test";
+import { forceAdminTier, stubCompletedRun } from "./helpers/tier";
+import noStopResultsDetail from "./fixtures/no-stop-run.json" with { type: "json" };
 
-// The teach panel only appears when a stop is set (edge fn routes to /run/compare),
-// and only renders three cards when the engine emits three teaching blocks (v25.6.0).
+test.use({ storageState: "e2e/.auth.json" });
 
-async function setField(page: Page, id: string, value: string) {
-  const input = page.locator(`#${id}`).first();
-  await input.scrollIntoViewIfNeeded();
-  await input.click();
-  await input.fill('');          // NumericField is string-draft; clear then type
-  await input.fill(value);
-  await input.blur();            // commit via onCommit
+// Deterministic, quota-free coverage of the commission teaching card. No real backtests: the tier
+// is forced to admin and a COMPLETED run row carrying a tailored _teaching commission block is
+// served from a mock, so BacktestTeachPanel renders the card straight from data.
+//
+// This replaces the former real-run spec (admin login + live /run/compare, ~2 min, metered 5/mo)
+// per docs/BACKTESTING_SMOKE_PLAN.md — a real end-to-end backtest is a manual step, not automated.
+// It also supersedes PR #19, which hardened that real-run approach rather than moving off it.
+//
+// The card branches on the commission block (see BacktestTeachPanel.CommissionCardBody):
+//   total_commission <= 0        -> "no commission set" nudge
+//   flips_profitability === true -> "flipped this from a win to a loss"
+//   otherwise                    -> "Commission COST you $X across N trades … $Y per round-trip"
+
+type Teaching = Record<string, unknown> & { dimension: string };
+
+// The no-stop fixture's other five teaching blocks + _same_signal:true, with the commission block
+// swapped for the scenario under test, so the full teach panel still renders around it.
+function detailWithCommission(commission: Teaching) {
+  const base = noStopResultsDetail as { _teaching: Teaching[] } & Record<string, unknown>;
+  return {
+    ...base,
+    _same_signal: true,
+    _teaching: base._teaching.map((t) => (t.dimension === "commission" ? commission : t)),
+  };
 }
 
-async function runAndWaitForCommissionCard(page: Page) {
-  await page.getByRole('button', { name: /run backtest/i }).click();
-  // /run/compare now executes four engine runs (primary + 3 variants) — be patient.
-  await page.getByText('What commission cost you').first()
-    .waitFor({ state: 'visible', timeout: 90_000 });
-}
+test.describe("Commission teaching card (deterministic, mocked)", () => {
+  test("renders the commission card and the per-round-trip math ties out", async ({ page }) => {
+    await forceAdminTier(page);
+    // 21779.36 / 17564 == exactly 1.24 per round-trip.
+    await stubCompletedRun(page, detailWithCommission({
+      dimension: "commission",
+      direction: "cost",
+      significance: "cost",
+      delta_net: -21779.36,
+      delta_ci_low: -22500,
+      delta_ci_high: -21000,
+      trade_count: 17564,
+      sufficient_data: true,
+      total_commission: 21779.36,
+      flips_profitability: false,
+      primary_net: -49386,
+      variant_net: -27606.64,
+    }));
+    await page.goto("/backtesting");
 
-// Run backtest stays disabled until a strategy is chosen — pick the first available.
-async function selectFirstStrategy(page: Page) {
-  await page.getByRole('combobox').first().click();
-  await page.getByRole('option').first().click();
-}
+    await expect(page.getByText("What commission cost you")).toBeVisible();
 
-async function baseConfig(page: Page, commission: string) {
-  await setField(page, 'stop-input', '2');
-  await setField(page, 'target-input', '8');
-  await setField(page, 'qty-value', '1');
-  await setField(page, 'commission-input', commission);
-}
-
-test.describe('Commission teaching card (TEACH-COMPARE dim 3)', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page, TEST_ACCOUNTS.admin.email, TEST_ACCOUNTS.admin.password);
-    await page.goto('/backtesting');
-    await page.waitForLoadState('networkidle');
-    await selectFirstStrategy(page);
-  });
-
-  test('renders three teaching cards and commission math ties out', async ({ page }) => {
-    await baseConfig(page, '1.24');
-    await runAndWaitForCommissionCard(page);
-
-    // All three cards present (implicitly asserts same_signal true + all dims).
-    await expect(page.getByText('What your stop did')).toBeVisible();
-    await expect(page.getByText('What your take-profit did')).toBeVisible();
-    await expect(page.getByText('What commission cost you')).toBeVisible();
-
-    // Relationship check: total == count × 1.24, and per-RT text is 1.24.
+    // Relationship check: total == count × per-round-trip, and the per-RT figure is $1.24.
     const line = await page.getByText(/Commission COST you .*per round-trip/).innerText();
     const m = line.match(/\$([\d,]+\.?\d*)\s+across\s+(\d+)\s+trades\D+\$([\d.]+)\s+per round-trip/i);
     expect(m, `could not parse commission line: "${line}"`).not.toBeNull();
-    const total = parseFloat(m![1].replace(/,/g, ''));
+    const total = parseFloat(m![1].replace(/,/g, ""));
     const count = parseInt(m![2], 10);
     const perRt = parseFloat(m![3]);
     expect(perRt).toBeCloseTo(1.24, 2);
     expect(Math.abs(total - count * 1.24)).toBeLessThan(0.01);
   });
 
-  test('commission flips a pre-fee-profitable run into a loss', async ({ page }) => {
-    await baseConfig(page, '1.24');
-    await runAndWaitForCommissionCard(page);
+  test("commission that flips a win into a loss shows the flip headline", async ({ page }) => {
+    await forceAdminTier(page);
+    // Before fees +$500; after $21,779.36 in fees -> finished at -$21,279.36 (a flip).
+    await stubCompletedRun(page, detailWithCommission({
+      dimension: "commission",
+      direction: "cost",
+      significance: "cost",
+      delta_net: -21779.36,
+      delta_ci_low: -22500,
+      delta_ci_high: -21000,
+      trade_count: 17564,
+      sufficient_data: true,
+      total_commission: 21779.36,
+      flips_profitability: true,
+      variant_net: 500,
+      primary_net: -21279.36,
+    }));
+    await page.goto("/backtesting");
 
-    // Read "Before fees" net from the normal-cost card body.
-    const beforeLine = await page.getByText(/Before fees:/).innerText();
-    const bm = beforeLine.match(/Before fees:\s*(-?)\$([\d,]+\.?\d*)/);
-    expect(bm, `could not parse before-fees: "${beforeLine}"`).not.toBeNull();
-    const beforeNet = (bm![1] === '-' ? -1 : 1) * parseFloat(bm![2].replace(/,/g, ''));
-
-    test.skip(beforeNet <= 0, 'Base run is not profitable before fees — cannot flip.');
-
-    // Absurd commission guarantees primary goes negative while variant stays positive.
-    await setField(page, 'commission-input', '1000');
-    await page.getByRole('button', { name: /run backtest/i }).click();
-    await expect(page.getByText(/flipped this from a win to a loss/i))
-      .toBeVisible({ timeout: 90_000 });
+    await expect(page.getByText("What commission cost you")).toBeVisible();
+    await expect(page.getByText(/flipped this from a win to a loss/i)).toBeVisible();
   });
 
-  test('zero commission shows the no-commission nudge', async ({ page }) => {
-    await baseConfig(page, '0');
-    await runAndWaitForCommissionCard(page);
+  test("zero commission shows the no-commission nudge", async ({ page }) => {
+    await forceAdminTier(page);
+    await stubCompletedRun(page, detailWithCommission({
+      dimension: "commission",
+      direction: "neutral",
+      significance: "inconclusive",
+      delta_net: 0,
+      delta_ci_low: 0,
+      delta_ci_high: 0,
+      trade_count: 17564,
+      sufficient_data: true,
+      total_commission: 0,
+      flips_profitability: false,
+      primary_net: -49386,
+      variant_net: -49386,
+    }));
+    await page.goto("/backtesting");
+
+    await expect(page.getByText("What commission cost you")).toBeVisible();
     await expect(page.getByText(/no commission set/i)).toBeVisible();
   });
 });
