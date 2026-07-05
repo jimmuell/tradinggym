@@ -1,0 +1,10 @@
+{
+  "strategy_name": "ORB — Pure Price Action",
+  "start_date": "2024-01-01",
+  "end_date": "2024-01-31",
+  "engine_version": "25.18.1",
+  "total_trades": 81,
+  "net_pnl": 154.56,
+  "_captured_from_run_id": "c9accb3b-c7f1-49a8-bd49-e6e10615145f",
+  "_note": "Live-recompute drift reference for e2e/backtest.live.spec.ts (no-stop). Captured from a real admin run. Re-capture and bump engine_version + expected numbers when a legit engine/data/strategy change moves them (see docs/BACKTESTING_SMOKE_PLAN.md)."
+}

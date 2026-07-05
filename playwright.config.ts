@@ -8,6 +8,11 @@ dotenv.config({ path: ".env.test" });
 const BASE_URL =
   process.env.PLAYWRIGHT_BASE_URL || "https://keen-chart-clone.lovable.app";
 
+// The "live" tier runs a REAL backtest (app → engine → completed run). It is EXCLUDED from the
+// default suite two ways: the chromium project ignores *.live.spec.ts, and the `live` project is
+// only registered when RUN_LIVE_BACKTESTS=true (see `npm run test:e2e:live`).
+const RUN_LIVE = process.env.RUN_LIVE_BACKTESTS === "true";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
@@ -24,8 +29,18 @@ export default defineConfig({
     { name: "setup", testMatch: /.*\.setup\.ts/ },
     {
       name: "chromium",
-      testIgnore: /.*\.setup\.ts/,
+      testIgnore: [/.*\.setup\.ts/, /.*\.live\.spec\.ts/],
       dependencies: ["setup"],
     },
+    // On-demand live-recompute tier — only present when explicitly opted in.
+    ...(RUN_LIVE
+      ? [
+          {
+            name: "live",
+            testMatch: /.*\.live\.spec\.ts/,
+            dependencies: ["setup"],
+          },
+        ]
+      : []),
   ],
 });

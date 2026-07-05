@@ -57,6 +57,47 @@ rest.
 
 ---
 
+## Two-tier testing model
+
+Backtesting has **two** automated tiers:
+
+1. **Default (saved replay data)** — the specs above. A real run's `results_detail` is captured once
+   and replayed to verify **display**. Fast, deterministic, quota-free, no engine dependency. This is
+   what runs on `npx playwright test` / `npm run test:e2e`.
+2. **Live recompute (on-demand)** — `e2e/backtest.live.spec.ts`. Runs a **real** backtest end-to-end
+   (app → engine → completed run → teach cards) to verify what replay can't: the live **app↔engine
+   contract**, **infra reachability** (Railway/engine up), and **engine-output drift**. Excluded from
+   the default suite; run only on demand.
+
+### Running the live tier
+```bash
+npm run test:e2e:live        # RUN_LIVE_BACKTESTS=true playwright test --project=live
+```
+- **Excluded from default** two ways: the `chromium` project ignores `*.live.spec.ts`, and the `live`
+  project only registers when `RUN_LIVE_BACKTESTS=true`. A bare `npx playwright test` never runs it.
+- **Runs as ADMIN, unmetered** — admin bypasses `outOfCredits`, so it never consumes the Pro 5/month
+  cap. (Never point it at a Pro account.)
+- **What it does:** reproduces the recorded `c9accb3b` scenario — no stop, strategy
+  `ORB — Pure Price Action`, range `2024-01-01..2024-01-31` (a 1-month range that reliably yields ~81
+  trades so all six `_teaching` dims have sufficient data; the 1-week "Quick test" preset gives only
+  ~16-19, borderline). Asserts all six cards render (no fallback/placeholder ⇒ `_same_signal` + all six
+  dims), then **hard-asserts `total_trades` + `net_pnl`** against `e2e/fixtures/live-reference.json` and
+  records `engine_version` (mismatch **warns**, doesn't fail on version alone). ~15s at engine 25.18.1.
+- **Scope:** contract + infra + drift only. P&L numeric correctness stays in the `mes-orb-strategy`
+  engine test suite — not re-verified here.
+- **Failure is signal:** if the engine/Railway is down or slow, it fails loudly with a clear message —
+  that's a real outage/regression, not something to retry into green.
+
+### Live drift reference — when to refresh
+`e2e/fixtures/live-reference.json` pins `{ engine_version, strategy_name, date range, total_trades,
+net_pnl }`. If a **legit** engine/data/strategy change moves the numbers (the live test fails on
+`total_trades`/`net_pnl`, usually alongside an `engine_version` warn), re-capture: run
+`npm run test:e2e:live`, read the logged `[live] engine_version=… total_trades=… net_pnl=…`, update the
+reference (bump `engine_version` + expected numbers), and commit. Same trigger as saved-replay fixture
+maintenance below.
+
+---
+
 ## Manual smoke checklist — run on each deploy
 
 Tick these by eye. Most take seconds; only #4 uses a real run.
