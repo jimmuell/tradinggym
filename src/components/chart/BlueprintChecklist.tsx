@@ -29,6 +29,8 @@ interface BlueprintChecklistProps {
   currentPhase?: PlaybackPhase;
   showMe?: boolean;
   onShowMeChange?: (v: boolean) => void;
+  /** Guided 6-beat driver — when set, checks step i when guidedBeat > i. */
+  guidedBeat?: number;
 }
 
 export default function BlueprintChecklist({
@@ -38,6 +40,7 @@ export default function BlueprintChecklist({
   currentPhase,
   showMe = false,
   onShowMeChange,
+  guidedBeat,
 }: BlueprintChecklistProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [checked, setChecked] = useState<boolean[]>(Array(6).fill(false));
@@ -45,10 +48,16 @@ export default function BlueprintChecklist({
   const isDerived = mode === 'guided' || showMe;
 
   const derived = useMemo<boolean[]>(() => {
-    if (!isDerived || !currentPhase) return Array(6).fill(false);
+    if (!isDerived) return Array(6).fill(false);
+    // Prefer explicit guided beat when provided
+    if (guidedBeat !== undefined) {
+      return Array.from({ length: 6 }, (_, i) => guidedBeat >= i + 1);
+    }
+    if (!currentPhase) return Array(6).fill(false);
     const curIdx = PLAYBACK_PHASES.indexOf(currentPhase);
     return STEP_PHASE.map((p) => curIdx >= PLAYBACK_PHASES.indexOf(p));
-  }, [isDerived, currentPhase]);
+  }, [isDerived, currentPhase, guidedBeat]);
+
 
   const effective = isDerived ? derived : checked;
 
