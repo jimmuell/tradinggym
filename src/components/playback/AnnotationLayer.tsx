@@ -196,9 +196,127 @@ export default function AnnotationLayer({
     return true;
   });
 
+  // ----- Opening-range band (shaded behind OR candles) -----
+  const orbHighAnn = (scenario.annotations ?? []).find(
+    (a): a is PriceLineAnnotation => a.type === 'priceLine' && isOrbHigh(a),
+  );
+  const orbLowAnn = (scenario.annotations ?? []).find(
+    (a): a is PriceLineAnnotation => a.type === 'priceLine' && isOrbLow(a),
+  );
+  let orbBand: { left: number; top: number; width: number; height: number } | null = null;
+  if (orbHighAnn && orbLowAnn) {
+    const x1 = barToX(0);
+    const x2 = barToX(scenario.setup_bar_index);
+    const yTop = priceToY(orbHighAnn.price);
+    const yBot = priceToY(orbLowAnn.price);
+    if (x1 != null && x2 != null && yTop != null && yBot != null) {
+      orbBand = {
+        left: Math.min(x1, x2),
+        width: Math.abs(x2 - x1),
+        top: Math.min(yTop, yBot),
+        height: Math.abs(yBot - yTop),
+      };
+    }
+  }
+
+  // ----- Coach note (checklist description) for current phase -----
+  const COACH_NOTES: Partial<Record<PlaybackPhase, string>> = {
+    setup: 'Draw ORB High and ORB Low lines',
+    confirmation: 'Full candle body closes above the ORB High',
+    entry: 'Stop at midpoint, target at 2:1 R:R',
+    exit: 'Enter trade and record the result',
+  };
+  const coachNoteText = COACH_NOTES[currentPhase];
+  let coachNote: { left: number; top: number; text: string } | null = null;
+  if (coachNoteText) {
+    const barIdx =
+      currentPhase === 'setup'
+        ? scenario.setup_bar_index
+        : currentPhase === 'confirmation'
+        ? scenario.confirmation_bar_index
+        : currentPhase === 'entry'
+        ? scenario.entry_bar_index
+        : scenario.exit_bar_index;
+    const anchorPrice =
+      currentPhase === 'entry' || currentPhase === 'exit'
+        ? scenario.entry_price
+        : orbHighAnn?.price ?? scenario.entry_price;
+    const cx = barToX(barIdx);
+    const cy = priceToY(anchorPrice);
+    if (cx != null && cy != null) {
+      coachNote = { left: cx + 10, top: cy - 34, text: coachNoteText };
+    }
+  }
+
+  // ----- Risk / Reward badge on the position (entry phase onward) -----
+  const showRR = isPhaseReached('entry', currentPhase);
+  let rrBadge: { left: number; top: number; text: string } | null = null;
+  if (showRR) {
+    const risk = Math.abs(scenario.entry_price - scenario.stop_price);
+    const reward = Math.abs(scenario.target_price - scenario.entry_price);
+    const ratio = risk > 0 ? reward / risk : 0;
+    const cx = barToX(scenario.entry_bar_index);
+    const cy = priceToY(scenario.entry_price);
+    if (cx != null && cy != null) {
+      rrBadge = {
+        left: cx + 12,
+        top: cy - 10,
+        text: `Risk ${risk.toFixed(2)} pts · Reward ${reward.toFixed(2)} pts · ~${ratio.toFixed(1)}:1`,
+      };
+    }
+  }
+
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
+      {orbBand && (
+        <div
+          className="absolute rounded-sm animate-fade-in"
+          style={{
+            left: orbBand.left,
+            top: orbBand.top,
+            width: orbBand.width,
+            height: orbBand.height,
+            backgroundColor: 'rgba(245, 200, 66, 0.10)',
+            border: '1px dashed rgba(245, 200, 66, 0.45)',
+            mixBlendMode: 'multiply',
+          }}
+        >
+          <span
+            className="absolute -top-4 left-0 text-[10px] font-semibold px-1.5 py-0.5 rounded"
+            style={{ backgroundColor: 'rgba(245, 200, 66, 0.95)', color: '#1a1a1a' }}
+          >
+            Opening Range
+          </span>
+        </div>
+      )}
       {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { chartApi, seriesApi, barToX, priceToY }))}
+      {coachNote && (
+        <div
+          className="absolute text-[11px] font-medium px-2 py-1 rounded shadow-md animate-fade-in whitespace-nowrap max-w-[260px]"
+          style={{
+            left: coachNote.left,
+            top: coachNote.top,
+            backgroundColor: 'rgba(15, 23, 42, 0.92)',
+            color: '#fff',
+            border: '1px solid rgba(148, 163, 184, 0.4)',
+          }}
+        >
+          💡 {coachNote.text}
+        </div>
+      )}
+      {rrBadge && (
+        <div
+          className="absolute text-[11px] font-semibold px-2 py-1 rounded shadow-md animate-fade-in whitespace-nowrap"
+          style={{
+            left: rrBadge.left,
+            top: rrBadge.top,
+            backgroundColor: '#f59e0b',
+            color: '#1a1a1a',
+          }}
+        >
+          {rrBadge.text}
+        </div>
+      )}
     </div>
   );
 }

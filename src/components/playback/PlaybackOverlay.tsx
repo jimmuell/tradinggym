@@ -172,34 +172,56 @@ export default function PlaybackOverlay({
       )}
 
       {/* Completion CTA */}
-      {phase === 'complete' && !isLockedPlan && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm animate-fade-in">
-          <div className="bg-card border border-primary/40 rounded-xl p-6 max-w-sm text-center shadow-2xl">
-            <div className="h-12 w-12 rounded-full bg-[#26a69a]/15 flex items-center justify-center mx-auto mb-3">
-              <Sparkles className="h-6 w-6 text-[#26a69a]" />
+      {phase === 'complete' && !isLockedPlan && (() => {
+        const risk = Math.abs(scenario.entry_price - scenario.stop_price);
+        const rMultiple = risk > 0 ? scenario.result_points / risk : 0;
+        const isWin = scenario.result_points > 0;
+        return (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm animate-fade-in">
+            <div className="bg-card border border-primary/40 rounded-xl p-6 max-w-sm w-[92%] text-center shadow-2xl">
+              <div className="h-12 w-12 rounded-full bg-[#26a69a]/15 flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="h-6 w-6 text-[#26a69a]" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">Demo Complete</h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Trade review — record this in your journal.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 text-left text-[12px] bg-muted/40 border border-border rounded-lg p-3 mb-3">
+                <div className="text-muted-foreground">Entry</div>
+                <div className="text-right font-medium text-foreground">{scenario.entry_price.toFixed(2)}</div>
+                <div className="text-muted-foreground">Exit</div>
+                <div className="text-right font-medium text-foreground">{scenario.exit_price.toFixed(2)}</div>
+                <div className="text-muted-foreground">Result</div>
+                <div className={`text-right font-semibold ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                  {isWin ? '+' : ''}{scenario.result_points.toFixed(2)} pts
+                </div>
+                <div className="text-muted-foreground">R multiple</div>
+                <div className={`text-right font-semibold ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                  {rMultiple >= 0 ? '+' : ''}{rMultiple.toFixed(2)}R
+                </div>
+                <div className="text-muted-foreground">Outcome</div>
+                <div className={`text-right font-semibold ${isWin ? 'text-[#26a69a]' : 'text-[#ef5350]'}`}>
+                  {isWin ? 'Win' : 'Loss'}
+                </div>
+              </div>
+
+              <button
+                onClick={onTryItYourself}
+                className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
+              >
+                Try It Yourself →
+              </button>
+              <button
+                onClick={onReset}
+                className="block w-full mt-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Replay
+              </button>
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-1">Demo Complete</h3>
-            <p className="text-sm text-muted-foreground mb-1">
-              Result: <span className="text-[#26a69a] font-semibold">+{scenario.result_points} pts</span>
-            </p>
-            <p className="text-xs text-muted-foreground mb-4">
-              You've seen the setup play out. Now try executing it yourself on the same data.
-            </p>
-            <button
-              onClick={onTryItYourself}
-              className="w-full px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:bg-primary/90 transition-colors"
-            >
-              Try It Yourself →
-            </button>
-            <button
-              onClick={onReset}
-              className="block w-full mt-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              Replay
-            </button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Bottom controls */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1.5 shadow-lg">
