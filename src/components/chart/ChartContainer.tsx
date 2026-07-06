@@ -165,11 +165,36 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
     const isDark = resolveIsDark();
 
+    // Render times in the viewer's local timezone (candle times are epoch-seconds UTC).
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const toLocalDate = (time: unknown): Date => {
+      if (typeof time === 'number') return new Date(time * 1000);
+      if (time && typeof time === 'object' && 'year' in (time as object)) {
+        const bd = time as { year: number; month: number; day: number };
+        return new Date(bd.year, bd.month - 1, bd.day);
+      }
+      return new Date(String(time));
+    };
+    const localTimeFormatter = (time: unknown) => {
+      const d = toLocalDate(time);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    const localTickFormatter = (time: unknown) => {
+      const d = toLocalDate(time);
+      if (d.getHours() === 0 && d.getMinutes() === 0) {
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
         textColor: isDark ? '#d1d4dc' : '#787b86',
         fontSize: 11,
+      },
+      localization: {
+        timeFormatter: localTimeFormatter,
       },
       grid: {
         vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
@@ -185,6 +210,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         secondsVisible: false,
         barSpacing: 10,
         minBarSpacing: 2,
+        tickMarkFormatter: localTickFormatter,
       },
       crosshair: {
         mode: 0,
