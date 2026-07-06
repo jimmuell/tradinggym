@@ -1,14 +1,59 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, PlayCircle, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTier } from '@/contexts/TierContext';
 import TierLockedState from '@/components/learning/TierLockedState';
 import TierLessonList from '@/components/learning/TierLessonList';
 import GraduationGateCard from '@/components/learning/GraduationGateCard';
+import { useLessonsByModule } from '@/hooks/useLessons';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+const COMPLETED_KEY = 'completedLessons';
+
+function getCompleted(): string[] {
+  try {
+    const raw = localStorage.getItem(COMPLETED_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function useGuidedOrbScenarioId() {
+  return useQuery({
+    queryKey: ['playback_scenario', 'guided-orb'],
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from('strategy_playback_scenarios' as any)
+        .select('id, indicator_tags, is_active')
+        .eq('is_active', true)
+        .contains('indicator_tags', ['guided'])
+        .limit(1);
+      if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rows = (data ?? []) as any[];
+      return rows[0]?.id ?? null;
+    },
+  });
+}
 
 export default function Tier1Learning() {
   const { isUnlocked } = useTier();
   const navigate = useNavigate();
+  const { data: lessons } = useLessonsByModule('tier1_orb');
+  const { data: orbId } = useGuidedOrbScenarioId();
+
+  const [completed, setCompleted] = useState<string[]>([]);
+  useEffect(() => {
+    setCompleted(getCompleted());
+    const onFocus = () => setCompleted(getCompleted());
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
 
   if (!isUnlocked('tier1')) {
     return (
@@ -19,6 +64,10 @@ export default function Tier1Learning() {
       />
     );
   }
+
+  const lessonIds = (lessons ?? []).map((l) => l.id);
+  const allComplete =
+    lessonIds.length > 0 && lessonIds.every((id) => completed.includes(id));
 
   return (
     <div className="space-y-6">
@@ -40,6 +89,38 @@ export default function Tier1Learning() {
       </div>
 
       <TierLessonList module="tier1_orb" basePath="/learning/tier1" />
+
+      {orbId && (
+        <Card className={allComplete ? 'border-primary/40' : 'opacity-75'}>
+          <CardHeader>
+            <CardTitle className="text-lg">Ready to trade it?</CardTitle>
+            <CardDescription>
+              {allComplete
+                ? 'Watch the ORB blueprint play out, then try it yourself on the simulator.'
+                : 'Finish all 3 Price Action lessons to unlock the guided walkthrough.'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row gap-3">
+            <Button
+              disabled={!allComplete}
+              onClick={() => navigate(`/simulator?playback=${orbId}`)}
+              className="gap-2"
+            >
+              <PlayCircle className="h-4 w-4" />
+              Show me the ORB
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!allComplete}
+              onClick={() => navigate(`/simulator?playback=${orbId}&practice=1`)}
+              className="gap-2"
+            >
+              <Hand className="h-4 w-4" />
+              Now you try
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <GraduationGateCard
         fromTier="tier1"
