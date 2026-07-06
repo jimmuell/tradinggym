@@ -198,6 +198,29 @@ function DevTierSwitcherInner() {
   );
 }
 
+const DEV_MENU_KEY = 'dev-menu-visible';
+
+function getStoredDevMenu(): boolean {
+  try {
+    return localStorage.getItem(DEV_MENU_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export default function DevTierSwitcher() {
+  const [visible, setVisible] = useState<boolean>(getStoredDevMenu);
+
+  useEffect(() => {
+    const sync = () => setVisible(getStoredDevMenu());
+    window.addEventListener('storage', sync);
+    window.addEventListener('dev-menu-visibility-change', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('dev-menu-visibility-change', sync);
+    };
+  }, []);
+
+  if (!visible) return null;
   return <DevTierSwitcherInner />;
 }
