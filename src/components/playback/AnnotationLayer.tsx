@@ -28,12 +28,26 @@ const COLOR_MAP: Record<AnnotationColor, { stroke: string; fill: string; text: s
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
 
-function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPhase) {
-  return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
+function isOrbHigh(a: PriceLineAnnotation) {
+  return a.label.trim().toLowerCase() === 'orb high';
 }
 
-function priceLineKey(a: PriceLineAnnotation) {
-  return `${a.phase}|${a.label}|${a.price}|${a.color}`;
+function isOrbLow(a: PriceLineAnnotation) {
+  return a.label.trim().toLowerCase() === 'orb low';
+}
+
+function isOrbPriceLine(a: PriceLineAnnotation) {
+  return isOrbHigh(a) || isOrbLow(a);
+}
+
+function effectivePriceLineColor(a: PriceLineAnnotation): AnnotationColor {
+  if (isOrbHigh(a)) return 'green';
+  if (isOrbLow(a)) return 'red';
+  return a.color;
+}
+
+function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPhase) {
+  return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
 }
 
 export default function AnnotationLayer({
