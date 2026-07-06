@@ -20,6 +20,8 @@ interface Props {
   onGoToPhase: (p: PlaybackPhase) => void;
   /** Triggered when user clicks "Try It Yourself" CTA at end. */
   onTryItYourself: () => void;
+  /** When true, bypass the Starter-tier paywall for this scenario. */
+  allowFullPlayback?: boolean;
 }
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
