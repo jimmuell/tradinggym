@@ -204,6 +204,7 @@ export default function AnnotationLayer({
 }
 
 interface RenderCtx {
+  chartApi: IChartApi;
   barToX: (barIdx: number) => number | null;
   priceToY: (price: number) => number | null;
 }
