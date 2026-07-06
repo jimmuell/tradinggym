@@ -289,7 +289,7 @@ function renderAnnotation(a: Annotation, key: number, ctx: RenderCtx) {
       if (!isOrbPriceLine(a)) return null;
       const color = effectivePriceLineColor(a);
       const c = COLOR_MAP[color];
-      const priceScaleWidth = ctx.chartApi.priceScale().width();
+      const priceScaleWidth = ctx.seriesApi.priceScale().width();
       return (
         <div
           key={key}
