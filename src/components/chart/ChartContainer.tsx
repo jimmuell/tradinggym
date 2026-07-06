@@ -165,11 +165,36 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
     };
     const isDark = resolveIsDark();
 
+    // Render times in the viewer's local timezone (candle times are epoch-seconds UTC).
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const toLocalDate = (time: unknown): Date => {
+      if (typeof time === 'number') return new Date(time * 1000);
+      if (time && typeof time === 'object' && 'year' in (time as object)) {
+        const bd = time as { year: number; month: number; day: number };
+        return new Date(bd.year, bd.month - 1, bd.day);
+      }
+      return new Date(String(time));
+    };
+    const localTimeFormatter = (time: unknown) => {
+      const d = toLocalDate(time);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+    const localTickFormatter = (time: unknown) => {
+      const d = toLocalDate(time);
+      if (d.getHours() === 0 && d.getMinutes() === 0) {
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      }
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: isDark ? '#131722' : '#ffffff' },
         textColor: isDark ? '#d1d4dc' : '#787b86',
         fontSize: 11,
+      },
+      localization: {
+        timeFormatter: localTimeFormatter,
       },
       grid: {
         vertLines: { color: isDark ? '#1e222d' : '#e1ecf2' },
@@ -185,6 +210,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         secondsVisible: false,
         barSpacing: 10,
         minBarSpacing: 2,
+        tickMarkFormatter: localTickFormatter,
       },
       crosshair: {
         mode: 0,
@@ -424,7 +450,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   useEffect(() => {
     if (!playbackMode || !candleSeriesRef.current || !playbackCandles) return;
     allDataRef.current = playbackCandles;
-    const count = Math.max(1, Math.min(playbackBarCount ?? playbackCandles.length, playbackCandles.length));
+    // Inclusive: reveal the candle AT the current phase's bar index so annotations
+    // on that bar (e.g. breakout arrow, retest) land on a drawn candle.
+    const rawIdx = playbackBarCount ?? playbackCandles.length - 1;
+    const lastIdx = Math.max(0, Math.min(rawIdx, playbackCandles.length - 1));
+    const count = lastIdx + 1;
     const slice = playbackCandles.slice(0, count);
     candleSeriesRef.current.setData(slice);
     smaSeriesRef.current?.setData([]);
@@ -434,12 +464,15 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
-    // Fit a sensible window: show the slice + some leading room
-    const total = playbackCandles.length;
+    // Frame just the revealed candles (+ a few bars of forward padding) so bodies
+    // read large. Autoscale the price axis to the visible candles.
+    const forwardPad = 6;
+    const backPad = 2;
     chartRef.current?.timeScale().setVisibleLogicalRange({
-      from: Math.max(0, count - 60),
-      to: Math.min(total, count + 10),
+      from: -backPad,
+      to: count - 1 + forwardPad,
     });
+    candleSeriesRef.current.priceScale().applyOptions({ autoScale: true });
   }, [playbackMode, playbackCandles, playbackBarCount, onPriceUpdate]);
 
 
