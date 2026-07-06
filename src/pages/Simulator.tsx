@@ -55,6 +55,7 @@ export default function Simulator() {
   const [seriesApiState, setSeriesApiState] = useState<ISeriesApi<'Candlestick'> | null>(null);
   const [blueprintSteps, setBlueprintSteps] = useState<number[]>([]);
   const [blueprintResetKey, setBlueprintResetKey] = useState(0);
+  const [showMe, setShowMe] = useState(false);
   const [instrument, setInstrument] = useState<InstrumentKey>(() =>
     (localStorage.getItem('tg-selected-instrument') as InstrumentKey) || 'MES'
   );
