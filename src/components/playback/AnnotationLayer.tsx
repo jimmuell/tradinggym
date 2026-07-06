@@ -46,6 +46,10 @@ function effectivePriceLineColor(a: PriceLineAnnotation): AnnotationColor {
   return a.color;
 }
 
+function priceLineKey(a: PriceLineAnnotation) {
+  return `${a.phase}|${a.label}|${a.price}|${a.color}`;
+}
+
 function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPhase) {
   return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
 }
