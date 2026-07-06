@@ -114,3 +114,34 @@ export function phaseToBarIndex(phase: PlaybackPhase, scenario: PlaybackScenario
       return total;
   }
 }
+
+// ---- Guided 6-beat walkthrough (used only when scenario.indicator_tags includes 'guided') ----
+
+export type GuidedBeat = 1 | 2 | 3 | 4 | 5 | 6;
+export const GUIDED_BEATS: GuidedBeat[] = [1, 2, 3, 4, 5, 6];
+
+export const GUIDED_BEAT_LABELS: Record<GuidedBeat, string> = {
+  1: 'Mark Opening Range',
+  2: 'Wait for Breakout',
+  3: 'Wait for Retest',
+  4: 'Confirm the Retest',
+  5: 'Set Targets',
+  6: 'Execute & Review',
+};
+
+/** Map a guided beat to the bar index (0-based) that should be the last visible candle. */
+export function guidedBeatToBarIndex(beat: GuidedBeat, scenario: PlaybackScenario): number {
+  switch (beat) {
+    case 1: return scenario.setup_bar_index;
+    case 2: return scenario.confirmation_bar_index;
+    case 3: return Math.max(scenario.confirmation_bar_index, scenario.entry_bar_index - 1);
+    case 4: return scenario.entry_bar_index;
+    case 5: return scenario.entry_bar_index;
+    case 6: return scenario.entry_bar_index; // beat 6 advances candle-by-candle from here
+  }
+}
+
+export function isGuidedScenario(scenario: PlaybackScenario | null | undefined): boolean {
+  return !!scenario && (scenario.indicator_tags ?? []).includes('guided');
+}
+
