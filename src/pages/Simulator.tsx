@@ -286,6 +286,7 @@ export default function Simulator() {
                       scenario={scenario}
                       currentPhase={playback.phase}
                       visibleBarCount={playbackBarCount}
+                      guidedBeat={isGuided ? guided.beat : undefined}
                     />
                     <PlaybackOverlay
                       scenario={scenario}
@@ -294,15 +295,28 @@ export default function Simulator() {
                       speed={playback.speed}
                       onPlay={playback.play}
                       onPause={playback.pause}
-                      onStepBack={playback.stepBack}
-                      onStepForward={playback.stepForward}
-                      onReset={playback.reset}
+                      onStepBack={isGuided ? guided.prevBeat : playback.stepBack}
+                      onStepForward={isGuided ? guided.nextBeat : playback.stepForward}
+                      onReset={isGuided ? guided.reset : playback.reset}
                       onExit={exitPlayback}
                       onSpeedChange={playback.setSpeed}
                       onGoToPhase={playback.goToPhase}
                       onTryItYourself={handleTryItYourself}
                       allowFullPlayback={(scenario?.indicator_tags ?? []).includes('guided')}
+                      guided={
+                        isGuided
+                          ? {
+                              beat: guided.beat,
+                              started: guided.started,
+                              outcome: guided.outcome,
+                              onStart: guided.start,
+                              onGoToBeat: guided.goToBeat,
+                              onNextCandle: guided.nextCandle,
+                            }
+                          : undefined
+                      }
                     />
+
                   </>
                 ) : isPracticeWithScenario && scenario && showMe ? (
                   <AnnotationLayer
