@@ -294,16 +294,32 @@ export default function Simulator() {
                       onTryItYourself={handleTryItYourself}
                     />
                   </>
+                ) : isPracticeWithScenario && scenario && showMe ? (
+                  <AnnotationLayer
+                    chartApi={chartApiState}
+                    seriesApi={seriesApiState}
+                    scenario={scenario}
+                    currentPhase={practicePhase ?? 'context'}
+                    visibleBarCount={playbackBarCount}
+                  />
                 ) : null
               }
             />
             {!isPlaybackMode && <RightToolbar />}
-            {!isPlaybackMode && (
-              <BlueprintChecklist
-                onStepsChange={setBlueprintSteps}
-                resetKey={blueprintResetKey}
-              />
-            )}
+            <BlueprintChecklist
+              onStepsChange={setBlueprintSteps}
+              resetKey={blueprintResetKey}
+              mode={isPlaybackMode ? 'guided' : 'manual'}
+              currentPhase={
+                isPlaybackMode
+                  ? playback.phase
+                  : isPracticeWithScenario
+                  ? practicePhase
+                  : undefined
+              }
+              showMe={showMe}
+              onShowMeChange={setShowMe}
+            />
             {tradeOpen && !isPlaybackMode && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}
