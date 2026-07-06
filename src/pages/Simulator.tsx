@@ -86,18 +86,11 @@ export default function Simulator() {
   // but let the user trade. We feed all candles and let the user act on the last bar.
   const isPracticeWithScenario = !!playbackId && practiceMode && !!scenario;
 
-  // Derive an effective phase from visible bar count in practice mode (for guided "Show me").
-  const practicePhase = useMemo(() => {
+  // Derive an effective phase from the visible bar count in practice mode (for "Show me").
+  const practicePhase = useMemo<PlaybackPhase | undefined>(() => {
     if (!isPracticeWithScenario || !scenario) return undefined;
-    let cur: import('@/lib/playbackTypes').PlaybackPhase = 'context';
-    for (const p of ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'] as const) {
-      const idx = (playback as unknown as { phase: string }); void idx;
-      const target = (scenario as unknown) && (require('@/lib/playbackTypes') as never);
-      void target;
-    }
-    // Simple synchronous computation using phaseToBarIndex
-    const phases = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'] as const;
-    for (const p of phases) {
+    let cur: PlaybackPhase = 'context';
+    for (const p of PLAYBACK_PHASES) {
       const t = phaseToBarIndex(p, scenario);
       if (playbackBarCount >= t) cur = p;
     }
