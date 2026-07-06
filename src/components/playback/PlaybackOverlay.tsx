@@ -81,6 +81,7 @@ export default function PlaybackOverlay({
           const isActive = p === phase;
           const isPast = PHASE_ORDER.indexOf(p) < phaseIndex;
           const locked = isPhaseLocked(p);
+          const isNext = PHASE_ORDER.indexOf(p) === phaseIndex + 1 && !locked;
           return (
             <div key={p} className="flex items-center gap-1">
               {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
@@ -95,7 +96,7 @@ export default function PlaybackOverlay({
                     : locked
                     ? 'text-muted-foreground/40 cursor-not-allowed'
                     : 'text-muted-foreground hover:bg-muted'
-                }`}
+                } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
                 title={locked ? 'Upgrade to Pro to unlock' : PHASE_LABELS[p]}
               >
                 {i + 1}. {PHASE_LABELS[p]}
@@ -106,11 +107,18 @@ export default function PlaybackOverlay({
         })}
       </div>
 
+      {/* Helper cue under phase stepper */}
+      {phase !== 'context' && phase !== 'complete' && (
+        <div className="absolute top-[5.25rem] left-1/2 -translate-x-1/2 z-30 text-[11px] text-primary font-medium bg-card/95 backdrop-blur border border-primary/30 rounded px-2 py-0.5 shadow animate-pulse">
+          Click the next step above to continue
+        </div>
+      )}
+
       {/* Start walkthrough CTA — only at initial context phase before playing */}
       {phase === 'context' && !isPlaying && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-fade-in">
           <button
-            onClick={onPlay}
+            onClick={onStepForward}
             className="pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-2xl hover:bg-primary/90 transition-colors"
           >
             <Play className="h-4 w-4" />

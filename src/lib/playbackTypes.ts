@@ -100,8 +100,8 @@ export function phaseToBarIndex(phase: PlaybackPhase, scenario: PlaybackScenario
   const total = scenario.ohlcv_data.length;
   switch (phase) {
     case 'context':
-      // Show first ~30% of candles for context, but at least up to setup-2
-      return Math.max(Math.min(scenario.setup_bar_index - 2, Math.floor(total * 0.3)), 5);
+      // Show first ~30% of candles for context, but always fewer bars than setup
+      return Math.max(Math.min(scenario.setup_bar_index - 1, Math.floor(total * 0.3)), 1);
     case 'setup':
       return scenario.setup_bar_index;
     case 'confirmation':
