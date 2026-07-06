@@ -346,15 +346,17 @@ export default function AnnotationLayer({
   // ----- Guided small "Retest" zone at ORB High (beats 3–4) -----
   let retestZone: { left: number; top: number; width: number; height: number } | null = null;
   if (isGuided && orbHighAnn && (guidedBeat === 3 || guidedBeat === 4)) {
-    const centerBar = Math.max(scenario.confirmation_bar_index, scenario.entry_bar_index - 1);
+    const rightBar = Math.min(scenario.entry_bar_index, visibleBarCount);
+    const centerBar = Math.max(scenario.confirmation_bar_index, rightBar - 1);
     const x1 = barToX(centerBar);
-    const x2 = barToX(scenario.entry_bar_index);
+    const x2 = barToX(rightBar);
     const yMid = priceToY(orbHighAnn.price);
     if (x1 != null && x2 != null && yMid != null) {
       const w = Math.max(24, Math.abs(x2 - x1) + 12);
       retestZone = { left: Math.min(x1, x2) - 6, top: yMid - 10, width: w, height: 20 };
     }
   }
+
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
