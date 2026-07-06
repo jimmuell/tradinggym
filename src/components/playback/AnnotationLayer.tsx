@@ -64,7 +64,9 @@ export default function AnnotationLayer({
   scenario,
   currentPhase,
   visibleBarCount,
+  guidedBeat,
 }: Props) {
+
   // tick state to force re-render when chart pans/zooms or price scale changes
   const [, setTick] = useState(0);
   const rafRef = useRef<number | null>(null);
