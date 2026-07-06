@@ -343,7 +343,9 @@ export default function Simulator() {
               }
               showMe={showMe}
               onShowMeChange={setShowMe}
+              guidedBeat={isPlaybackMode && isGuided ? (guided.started ? guided.beat : 0) : undefined}
             />
+
             {tradeOpen && !isPlaybackMode && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}
