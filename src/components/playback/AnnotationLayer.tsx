@@ -3,6 +3,7 @@ import { LineStyle, type IChartApi, type IPriceLine, type ISeriesApi, type Time 
 import type {
   Annotation,
   AnnotationColor,
+  GuidedBeat,
   PlaybackPhase,
   PlaybackScenario,
   PriceLineAnnotation,
@@ -16,7 +17,10 @@ interface Props {
   currentPhase: PlaybackPhase;
   /** Bar count currently rendered on the chart. */
   visibleBarCount: number;
+  /** When set, drives guided 6-beat rendering instead of phase-based. */
+  guidedBeat?: GuidedBeat;
 }
+
 
 const COLOR_MAP: Record<AnnotationColor, { stroke: string; fill: string; text: string }> = {
   amber: { stroke: '#f59e0b', fill: 'rgba(245,158,11,0.15)', text: '#f59e0b' },
@@ -60,7 +64,9 @@ export default function AnnotationLayer({
   scenario,
   currentPhase,
   visibleBarCount,
+  guidedBeat,
 }: Props) {
+
   // tick state to force re-render when chart pans/zooms or price scale changes
   const [, setTick] = useState(0);
   const rafRef = useRef<number | null>(null);
@@ -108,44 +114,62 @@ export default function AnnotationLayer({
   // Native price lines for horizontal priceLine annotations — always track the price scale.
   useEffect(() => {
     if (!seriesApi) return;
-    const desired = new Map<string, PriceLineAnnotation>();
+    const desired = new Map<string, { price: number; color: string; label: string; showLabel: boolean }>();
+    const isGuided = guidedBeat !== undefined;
+    const suppressLabels = new Set(['entry', 'stop', 'target']);
+
     for (const a of scenario.annotations ?? []) {
       if (a.type !== 'priceLine') continue;
-      if (!isPhaseReached(a.phase, currentPhase)) continue;
-      desired.set(priceLineKey(a), a);
+      if (isGuided) {
+        // Guided mode: only surface ORB High/Low from scenario; entry/stop/target are drawn below.
+        if (!isOrbPriceLine(a)) continue;
+        if ((guidedBeat ?? 0) < 1) continue;
+      } else {
+        if (!isPhaseReached(a.phase, currentPhase)) continue;
+      }
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const isOrb = isOrbPriceLine(a);
+      desired.set(priceLineKey(a), {
+        price: a.price,
+        color: c.stroke,
+        label: a.label,
+        showLabel: !isOrb,
+      });
     }
+
+    if (isGuided && (guidedBeat ?? 0) >= 5) {
+      desired.set('guided-entry', { price: scenario.entry_price, color: '#2962ff', label: 'Entry', showLabel: true });
+      desired.set('guided-stop', { price: scenario.stop_price, color: '#ef5350', label: 'Stop', showLabel: true });
+      desired.set('guided-target', { price: scenario.target_price, color: '#26a69a', label: 'Target', showLabel: true });
+    }
+
     // Remove stale
     for (const [key, line] of priceLinesRef.current) {
       if (!desired.has(key)) {
-        try {
-          seriesApi.removePriceLine(line);
-        } catch {
-          /* ignore */
-        }
+        try { seriesApi.removePriceLine(line); } catch { /* ignore */ }
         priceLinesRef.current.delete(key);
       }
     }
     // Add new
-    for (const [key, a] of desired) {
+    for (const [key, spec] of desired) {
       if (priceLinesRef.current.has(key)) continue;
-      const color = effectivePriceLineColor(a);
-      const c = COLOR_MAP[color];
-      const isOrb = isOrbPriceLine(a);
       try {
         const line = seriesApi.createPriceLine({
-          price: a.price,
-          color: c.stroke,
+          price: spec.price,
+          color: spec.color,
           lineStyle: LineStyle.Dashed,
           lineWidth: 1,
-          axisLabelVisible: !isOrb,
-          title: isOrb ? undefined : a.label,
+          axisLabelVisible: spec.showLabel,
+          title: spec.showLabel ? spec.label : undefined,
         });
         priceLinesRef.current.set(key, line);
-      } catch {
-        /* series may be gone */
-      }
+      } catch { /* series may be gone */ }
     }
-  }, [seriesApi, scenario, currentPhase]);
+    // Avoid unused var warning
+    void suppressLabels;
+  }, [seriesApi, scenario, currentPhase, guidedBeat]);
+
 
   // Clean up native price lines on unmount / scenario change
   useEffect(() => {
@@ -188,9 +212,16 @@ export default function AnnotationLayer({
     return y == null ? null : y;
   };
 
+  const isGuided = guidedBeat !== undefined;
+
   // priceLine annotations are drawn natively by the chart; render ORB High/Low
   // labels ourselves so we can place them 50px away from the price axis.
   const visibleAnnotations = (scenario.annotations ?? []).filter((a) => {
+    if (isGuided) {
+      // Guided mode: suppress scenario boxes/arrows/labels/tooltips; keep ORB priceLines only.
+      if (a.type === 'priceLine') return isOrbPriceLine(a) && (guidedBeat ?? 0) >= 1;
+      return false;
+    }
     if (!isPhaseReached(a.phase, currentPhase)) return false;
     if (a.type === 'priceLine') return isOrbPriceLine(a);
     return true;
@@ -203,8 +234,9 @@ export default function AnnotationLayer({
   const orbLowAnn = (scenario.annotations ?? []).find(
     (a): a is PriceLineAnnotation => a.type === 'priceLine' && isOrbLow(a),
   );
+  const showOrbBand = isGuided ? (guidedBeat ?? 0) >= 1 : true;
   let orbBand: { left: number; top: number; width: number; height: number } | null = null;
-  if (orbHighAnn && orbLowAnn) {
+  if (showOrbBand && orbHighAnn && orbLowAnn) {
     const x1 = barToX(0);
     const x2 = barToX(scenario.setup_bar_index);
     const yTop = priceToY(orbHighAnn.price);
@@ -219,28 +251,46 @@ export default function AnnotationLayer({
     }
   }
 
-  // ----- Coach note (checklist description) for current phase -----
-  const COACH_NOTES: Partial<Record<PlaybackPhase, string>> = {
+  // ----- Coach note (checklist description) for current phase/beat -----
+  const PHASE_COACH_NOTES: Partial<Record<PlaybackPhase, string>> = {
     setup: 'Draw ORB High and ORB Low lines',
     confirmation: 'Full candle body closes above the ORB High',
     entry: 'Stop at midpoint, target at 2:1 R:R',
     exit: 'Enter trade and record the result',
   };
-  const coachNoteText = COACH_NOTES[currentPhase];
+  const GUIDED_COACH_NOTES: Record<number, string> = {
+    1: 'Draw ORB High and ORB Low lines',
+    2: 'Full candle body closes above the ORB High',
+    3: 'Price returns toward the ORB High — wait for the retest',
+    4: 'Candle touches the ORB High and closes back above — confirmed',
+    5: 'Stop at midpoint, target at 2:1 R:R',
+    6: 'Step candles forward to reach target or stop',
+  };
+  const coachNoteText = isGuided
+    ? GUIDED_COACH_NOTES[guidedBeat ?? 0]
+    : PHASE_COACH_NOTES[currentPhase];
   let coachNote: { left: number; top: number; text: string } | null = null;
   if (coachNoteText) {
-    const barIdx =
-      currentPhase === 'setup'
+    const barIdx = isGuided
+      ? (guidedBeat === 1
+        ? scenario.setup_bar_index
+        : guidedBeat === 2
+        ? scenario.confirmation_bar_index
+        : guidedBeat === 3
+        ? Math.max(scenario.confirmation_bar_index, scenario.entry_bar_index - 1)
+        : scenario.entry_bar_index)
+      : (currentPhase === 'setup'
         ? scenario.setup_bar_index
         : currentPhase === 'confirmation'
         ? scenario.confirmation_bar_index
         : currentPhase === 'entry'
         ? scenario.entry_bar_index
-        : scenario.exit_bar_index;
-    const anchorPrice =
-      currentPhase === 'entry' || currentPhase === 'exit'
+        : scenario.exit_bar_index);
+    const anchorPrice = isGuided
+      ? ((guidedBeat ?? 0) >= 5 ? scenario.entry_price : orbHighAnn?.price ?? scenario.entry_price)
+      : (currentPhase === 'entry' || currentPhase === 'exit'
         ? scenario.entry_price
-        : orbHighAnn?.price ?? scenario.entry_price;
+        : orbHighAnn?.price ?? scenario.entry_price);
     const cx = barToX(barIdx);
     const cy = priceToY(anchorPrice);
     if (cx != null && cy != null) {
@@ -249,7 +299,7 @@ export default function AnnotationLayer({
   }
 
   // ----- Risk / Reward badge on the position (entry phase onward) -----
-  const showRR = isPhaseReached('entry', currentPhase);
+  const showRR = isGuided ? (guidedBeat ?? 0) >= 5 : isPhaseReached('entry', currentPhase);
   let rrBadge: { left: number; top: number; text: string } | null = null;
   if (showRR) {
     const risk = Math.abs(scenario.entry_price - scenario.stop_price);
@@ -265,6 +315,48 @@ export default function AnnotationLayer({
       };
     }
   }
+
+  // ----- Guided trade zones (green profit, red risk) from entry bar → last visible bar -----
+  const showTrade = isGuided && (guidedBeat ?? 0) >= 5;
+  let profitZone: { left: number; top: number; width: number; height: number } | null = null;
+  let riskZone: { left: number; top: number; width: number; height: number } | null = null;
+  if (showTrade) {
+    const x1 = barToX(scenario.entry_bar_index);
+    const x2 = barToX(Math.max(scenario.entry_bar_index, visibleBarCount));
+    const yEntry = priceToY(scenario.entry_price);
+    const yTarget = priceToY(scenario.target_price);
+    const yStop = priceToY(scenario.stop_price);
+    if (x1 != null && x2 != null && yEntry != null && yTarget != null && yStop != null) {
+      const width = Math.max(2, Math.abs(x2 - x1));
+      profitZone = {
+        left: Math.min(x1, x2),
+        top: Math.min(yEntry, yTarget),
+        width,
+        height: Math.abs(yEntry - yTarget),
+      };
+      riskZone = {
+        left: Math.min(x1, x2),
+        top: Math.min(yEntry, yStop),
+        width,
+        height: Math.abs(yEntry - yStop),
+      };
+    }
+  }
+
+  // ----- Guided small "Retest" zone at ORB High (beats 3–4) -----
+  let retestZone: { left: number; top: number; width: number; height: number } | null = null;
+  if (isGuided && orbHighAnn && (guidedBeat === 3 || guidedBeat === 4)) {
+    const rightBar = Math.min(scenario.entry_bar_index, visibleBarCount);
+    const centerBar = Math.max(scenario.confirmation_bar_index, rightBar - 1);
+    const x1 = barToX(centerBar);
+    const x2 = barToX(rightBar);
+    const yMid = priceToY(orbHighAnn.price);
+    if (x1 != null && x2 != null && yMid != null) {
+      const w = Math.max(24, Math.abs(x2 - x1) + 12);
+      retestZone = { left: Math.min(x1, x2) - 6, top: yMid - 10, width: w, height: 20 };
+    }
+  }
+
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
@@ -286,6 +378,52 @@ export default function AnnotationLayer({
             style={{ backgroundColor: 'rgba(245, 200, 66, 0.95)', color: '#1a1a1a' }}
           >
             Opening Range
+          </span>
+        </div>
+      )}
+      {profitZone && (
+        <div
+          className="absolute animate-fade-in"
+          style={{
+            left: profitZone.left,
+            top: profitZone.top,
+            width: profitZone.width,
+            height: profitZone.height,
+            backgroundColor: 'rgba(38, 166, 154, 0.18)',
+            border: '1px solid rgba(38, 166, 154, 0.55)',
+          }}
+        />
+      )}
+      {riskZone && (
+        <div
+          className="absolute animate-fade-in"
+          style={{
+            left: riskZone.left,
+            top: riskZone.top,
+            width: riskZone.width,
+            height: riskZone.height,
+            backgroundColor: 'rgba(239, 83, 80, 0.18)',
+            border: '1px solid rgba(239, 83, 80, 0.55)',
+          }}
+        />
+      )}
+      {retestZone && (
+        <div
+          className="absolute rounded-sm animate-fade-in"
+          style={{
+            left: retestZone.left,
+            top: retestZone.top,
+            width: retestZone.width,
+            height: retestZone.height,
+            backgroundColor: 'rgba(41, 98, 255, 0.14)',
+            border: '1px dashed rgba(41, 98, 255, 0.7)',
+          }}
+        >
+          <span
+            className="absolute -top-4 left-0 text-[10px] font-semibold px-1.5 py-0.5 rounded"
+            style={{ backgroundColor: '#2962ff', color: '#fff' }}
+          >
+            Retest
           </span>
         </div>
       )}
@@ -319,6 +457,7 @@ export default function AnnotationLayer({
       )}
     </div>
   );
+
 }
 
 interface RenderCtx {

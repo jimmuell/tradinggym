@@ -22,9 +22,11 @@ import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
 
 import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
+import { useGuidedPlayback } from '@/hooks/useGuidedPlayback';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
 import AnnotationLayer from '@/components/playback/AnnotationLayer';
-import { PLAYBACK_PHASES, phaseToBarIndex, type PlaybackPhase } from '@/lib/playbackTypes';
+import { PLAYBACK_PHASES, phaseToBarIndex, isGuidedScenario, type PlaybackPhase } from '@/lib/playbackTypes';
+
 import { Sparkles, BookOpen, Lock } from 'lucide-react';
 import { useTier } from '@/contexts/TierContext';
 import { Link } from 'react-router-dom';
@@ -81,6 +83,13 @@ export default function Simulator() {
     scenario,
     onBarIndexChange: setPlaybackBarCount,
   });
+
+  const isGuided = isGuidedScenario(scenario);
+  const guided = useGuidedPlayback({
+    scenario: isGuided ? scenario : undefined,
+    onBarIndexChange: setPlaybackBarCount,
+  });
+
 
   // Practice mode bootstrap: when ?practice=1 with the same scenario, render the candles
   // but let the user trade. We feed all candles and let the user act on the last bar.
@@ -277,6 +286,7 @@ export default function Simulator() {
                       scenario={scenario}
                       currentPhase={playback.phase}
                       visibleBarCount={playbackBarCount}
+                      guidedBeat={isGuided ? guided.beat : undefined}
                     />
                     <PlaybackOverlay
                       scenario={scenario}
@@ -285,15 +295,28 @@ export default function Simulator() {
                       speed={playback.speed}
                       onPlay={playback.play}
                       onPause={playback.pause}
-                      onStepBack={playback.stepBack}
-                      onStepForward={playback.stepForward}
-                      onReset={playback.reset}
+                      onStepBack={isGuided ? guided.prevBeat : playback.stepBack}
+                      onStepForward={isGuided ? guided.nextBeat : playback.stepForward}
+                      onReset={isGuided ? guided.reset : playback.reset}
                       onExit={exitPlayback}
                       onSpeedChange={playback.setSpeed}
                       onGoToPhase={playback.goToPhase}
                       onTryItYourself={handleTryItYourself}
                       allowFullPlayback={(scenario?.indicator_tags ?? []).includes('guided')}
+                      guided={
+                        isGuided
+                          ? {
+                              beat: guided.beat,
+                              started: guided.started,
+                              outcome: guided.outcome,
+                              onStart: guided.start,
+                              onGoToBeat: guided.goToBeat,
+                              onNextCandle: guided.nextCandle,
+                            }
+                          : undefined
+                      }
                     />
+
                   </>
                 ) : isPracticeWithScenario && scenario && showMe ? (
                   <AnnotationLayer
@@ -320,7 +343,9 @@ export default function Simulator() {
               }
               showMe={showMe}
               onShowMeChange={setShowMe}
+              guidedBeat={isPlaybackMode && isGuided ? (guided.started ? guided.beat : 0) : undefined}
             />
+
             {tradeOpen && !isPlaybackMode && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}

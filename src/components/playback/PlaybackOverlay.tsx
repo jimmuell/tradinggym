@@ -1,8 +1,9 @@
 import { Play, Pause, SkipBack, SkipForward, RotateCcw, X, ChevronRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { PlaybackScenario, PlaybackPhase, TooltipAnnotation } from '@/lib/playbackTypes';
-import { PHASE_LABELS, PLAYBACK_PHASES } from '@/lib/playbackTypes';
+import type { PlaybackScenario, PlaybackPhase, TooltipAnnotation, GuidedBeat } from '@/lib/playbackTypes';
+import { PHASE_LABELS, PLAYBACK_PHASES, GUIDED_BEATS, GUIDED_BEAT_LABELS } from '@/lib/playbackTypes';
 import type { PlaybackSpeed } from '@/hooks/usePlaybackMode';
+import type { GuidedOutcome } from '@/hooks/useGuidedPlayback';
 import { useTier } from '@/contexts/TierContext';
 
 interface Props {
@@ -22,9 +23,19 @@ interface Props {
   onTryItYourself: () => void;
   /** When true, bypass the Starter-tier paywall for this scenario. */
   allowFullPlayback?: boolean;
+  // ---- Guided 6-beat mode (drives stepper + Next candle + outcome) ----
+  guided?: {
+    beat: GuidedBeat;
+    started: boolean;
+    outcome: GuidedOutcome;
+    onStart: () => void;
+    onGoToBeat: (b: GuidedBeat) => void;
+    onNextCandle: () => void;
+  };
 }
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
+
 
 export default function PlaybackOverlay({
   scenario,
@@ -41,7 +52,9 @@ export default function PlaybackOverlay({
   onGoToPhase,
   onTryItYourself,
   allowFullPlayback = false,
+  guided,
 }: Props) {
+
   const navigate = useNavigate();
   const { planState, isAdmin } = useTier();
   const isLockedPlan = !allowFullPlayback && !isAdmin && planState === 'starter';
@@ -75,47 +88,83 @@ export default function PlaybackOverlay({
         </button>
       </div>
 
-      {/* Phase stepper */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1 shadow-lg">
-        {PLAYBACK_PHASES.filter((p) => p !== 'complete').map((p, i) => {
-          const isActive = p === phase;
-          const isPast = PHASE_ORDER.indexOf(p) < phaseIndex;
-          const locked = isPhaseLocked(p);
-          const isNext = PHASE_ORDER.indexOf(p) === phaseIndex + 1 && !locked;
-          return (
-            <div key={p} className="flex items-center gap-1">
-              {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-              <button
-                onClick={() => !locked && onGoToPhase(p)}
-                disabled={locked}
-                className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : isPast
-                    ? 'text-foreground hover:bg-muted'
-                    : locked
-                    ? 'text-muted-foreground/40 cursor-not-allowed'
-                    : 'text-muted-foreground hover:bg-muted'
-                } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
-                title={locked ? 'Upgrade to Pro to unlock' : PHASE_LABELS[p]}
-              >
-                {i + 1}. {PHASE_LABELS[p]}
-                {locked && ' 🔒'}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      {/* Phase stepper — hidden in guided mode; replaced by 6-beat stepper below */}
+      {!guided && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1 shadow-lg">
+          {PLAYBACK_PHASES.filter((p) => p !== 'complete').map((p, i) => {
+            const isActive = p === phase;
+            const isPast = PHASE_ORDER.indexOf(p) < phaseIndex;
+            const locked = isPhaseLocked(p);
+            const isNext = PHASE_ORDER.indexOf(p) === phaseIndex + 1 && !locked;
+            return (
+              <div key={p} className="flex items-center gap-1">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                <button
+                  onClick={() => !locked && onGoToPhase(p)}
+                  disabled={locked}
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : isPast
+                      ? 'text-foreground hover:bg-muted'
+                      : locked
+                      ? 'text-muted-foreground/40 cursor-not-allowed'
+                      : 'text-muted-foreground hover:bg-muted'
+                  } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
+                  title={locked ? 'Upgrade to Pro to unlock' : PHASE_LABELS[p]}
+                >
+                  {i + 1}. {PHASE_LABELS[p]}
+                  {locked && ' 🔒'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Guided 6-beat stepper */}
+      {guided && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1 shadow-lg max-w-[95%] flex-wrap justify-center">
+          {GUIDED_BEATS.map((b, i) => {
+            const isActive = guided.started && b === guided.beat;
+            const isPast = guided.started && b < guided.beat;
+            const isNext = guided.started && b === (guided.beat + 1);
+            return (
+              <div key={b} className="flex items-center gap-1">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                <button
+                  onClick={() => guided.onGoToBeat(b)}
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : isPast
+                      ? 'text-foreground hover:bg-muted'
+                      : 'text-muted-foreground hover:bg-muted'
+                  } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
+                  title={GUIDED_BEAT_LABELS[b]}
+                >
+                  {b}. {GUIDED_BEAT_LABELS[b]}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Helper cue under phase stepper */}
-      {phase !== 'context' && phase !== 'complete' && (
+      {!guided && phase !== 'context' && phase !== 'complete' && (
+        <div className="absolute top-[5.25rem] left-1/2 -translate-x-1/2 z-30 text-[11px] text-primary font-medium bg-card/95 backdrop-blur border border-primary/30 rounded px-2 py-0.5 shadow animate-pulse">
+          Click the next step above to continue
+        </div>
+      )}
+      {guided && guided.started && guided.beat < 6 && (
         <div className="absolute top-[5.25rem] left-1/2 -translate-x-1/2 z-30 text-[11px] text-primary font-medium bg-card/95 backdrop-blur border border-primary/30 rounded px-2 py-0.5 shadow animate-pulse">
           Click the next step above to continue
         </div>
       )}
 
-      {/* Start walkthrough CTA — only at initial context phase before playing */}
-      {phase === 'context' && !isPlaying && (
+      {/* Start walkthrough CTA — initial view before any beat */}
+      {!guided && phase === 'context' && !isPlaying && (
         <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-fade-in">
           <button
             onClick={onStepForward}
@@ -126,6 +175,62 @@ export default function PlaybackOverlay({
           </button>
         </div>
       )}
+      {guided && !guided.started && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-fade-in">
+          <button
+            onClick={guided.onStart}
+            className="pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-2xl hover:bg-primary/90 transition-colors"
+          >
+            <Play className="h-4 w-4" />
+            Start walkthrough
+          </button>
+        </div>
+      )}
+
+      {/* Beat 6 — Next candle button + outcome banner */}
+      {guided && guided.started && guided.beat === 6 && guided.outcome === 'pending' && (
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30">
+          <button
+            onClick={guided.onNextCandle}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-2xl hover:bg-primary/90 transition-colors"
+          >
+            <SkipForward className="h-4 w-4" />
+            Next candle
+          </button>
+        </div>
+      )}
+      {guided && guided.outcome !== 'pending' && (() => {
+        const isWin = guided.outcome === 'win';
+        const pts = isWin
+          ? scenario.target_price - scenario.entry_price
+          : -(scenario.entry_price - scenario.stop_price);
+        return (
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 bg-card border border-primary/40 rounded-lg shadow-xl px-4 py-3 text-center animate-fade-in">
+            <div
+              className="text-[13px] font-semibold"
+              style={{ color: isWin ? '#26a69a' : '#ef5350' }}
+            >
+              {isWin ? `Target hit +${pts.toFixed(2)} pts` : `Stopped out ${pts.toFixed(2)} pts`}
+            </div>
+            <div className="mt-2 flex gap-2 justify-center">
+              <button
+                onClick={onTryItYourself}
+                className="px-3 py-1.5 rounded bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90"
+              >
+                Try It Yourself →
+              </button>
+              <button
+                onClick={onReset}
+                className="px-3 py-1.5 rounded border border-border text-xs text-muted-foreground hover:text-foreground"
+              >
+                Replay
+              </button>
+            </div>
+          </div>
+        );
+      })()}
+
+
 
       {/* Tooltip card */}
       {currentTooltip && !isPhaseLocked(currentTooltip.phase) && (
@@ -172,7 +277,7 @@ export default function PlaybackOverlay({
       )}
 
       {/* Completion CTA */}
-      {phase === 'complete' && !isLockedPlan && (() => {
+      {!guided && phase === 'complete' && !isLockedPlan && (() => {
         const risk = Math.abs(scenario.entry_price - scenario.stop_price);
         const rMultiple = risk > 0 ? scenario.result_points / risk : 0;
         const isWin = scenario.result_points > 0;
