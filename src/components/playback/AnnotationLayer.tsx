@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
+import { LineStyle, type IChartApi, type IPriceLine, type ISeriesApi, type Time } from 'lightweight-charts';
 import type {
   Annotation,
   AnnotationColor,
   PlaybackPhase,
   PlaybackScenario,
+  PriceLineAnnotation,
 } from '@/lib/playbackTypes';
 
 interface Props {
@@ -31,6 +32,10 @@ function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPh
   return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
 }
 
+function priceLineKey(a: PriceLineAnnotation) {
+  return `${a.phase}|${a.label}|${a.price}|${a.color}`;
+}
+
 export default function AnnotationLayer({
   chartApi,
   seriesApi,
@@ -38,9 +43,27 @@ export default function AnnotationLayer({
   currentPhase,
   visibleBarCount,
 }: Props) {
-  // tick state to force re-render when chart pans/zooms
+  // tick state to force re-render when chart pans/zooms or price scale changes
   const [, setTick] = useState(0);
   const rafRef = useRef<number | null>(null);
+  const priceLinesRef = useRef<Map<string, IPriceLine>>(new Map());
+
+  // Continuous rAF tick so overlays recompute price->coordinate every frame,
+  // keeping box/arrow/label annotations aligned during price-axis drag/zoom.
+  useEffect(() => {
+    let mounted = true;
+    let raf = 0;
+    const loop = () => {
+      if (!mounted) return;
+      setTick((t) => (t + 1) % 1000);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => {
+      mounted = false;
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   useEffect(() => {
     if (!chartApi) return;
@@ -63,6 +86,61 @@ export default function AnnotationLayer({
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, [chartApi]);
+
+  // Native price lines for horizontal priceLine annotations — always track the price scale.
+  useEffect(() => {
+    if (!seriesApi) return;
+    const desired = new Map<string, PriceLineAnnotation>();
+    for (const a of scenario.annotations ?? []) {
+      if (a.type !== 'priceLine') continue;
+      if (!isPhaseReached(a.phase, currentPhase)) continue;
+      desired.set(priceLineKey(a), a);
+    }
+    // Remove stale
+    for (const [key, line] of priceLinesRef.current) {
+      if (!desired.has(key)) {
+        try {
+          seriesApi.removePriceLine(line);
+        } catch {
+          /* ignore */
+        }
+        priceLinesRef.current.delete(key);
+      }
+    }
+    // Add new
+    for (const [key, a] of desired) {
+      if (priceLinesRef.current.has(key)) continue;
+      const c = COLOR_MAP[a.color];
+      try {
+        const line = seriesApi.createPriceLine({
+          price: a.price,
+          color: c.stroke,
+          lineStyle: LineStyle.Dashed,
+          lineWidth: 1,
+          axisLabelVisible: true,
+          title: a.label,
+        });
+        priceLinesRef.current.set(key, line);
+      } catch {
+        /* series may be gone */
+      }
+    }
+  }, [seriesApi, scenario, currentPhase]);
+
+  // Clean up native price lines on unmount / scenario change
+  useEffect(() => {
+    return () => {
+      if (!seriesApi) return;
+      for (const line of priceLinesRef.current.values()) {
+        try {
+          seriesApi.removePriceLine(line);
+        } catch {
+          /* ignore */
+        }
+      }
+      priceLinesRef.current.clear();
+    };
+  }, [seriesApi, scenario]);
 
   // Force re-render when bar count or phase changes
   useEffect(() => {
@@ -90,8 +168,9 @@ export default function AnnotationLayer({
     return y == null ? null : y;
   };
 
-  const visibleAnnotations = (scenario.annotations ?? []).filter((a) =>
-    isPhaseReached(a.phase, currentPhase),
+  // priceLine annotations are drawn natively by the chart; skip them here.
+  const visibleAnnotations = (scenario.annotations ?? []).filter(
+    (a) => a.type !== 'priceLine' && isPhaseReached(a.phase, currentPhase),
   );
 
   return (
