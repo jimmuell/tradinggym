@@ -114,44 +114,62 @@ export default function AnnotationLayer({
   // Native price lines for horizontal priceLine annotations — always track the price scale.
   useEffect(() => {
     if (!seriesApi) return;
-    const desired = new Map<string, PriceLineAnnotation>();
+    const desired = new Map<string, { price: number; color: string; label: string; showLabel: boolean }>();
+    const isGuided = guidedBeat !== undefined;
+    const suppressLabels = new Set(['entry', 'stop', 'target']);
+
     for (const a of scenario.annotations ?? []) {
       if (a.type !== 'priceLine') continue;
-      if (!isPhaseReached(a.phase, currentPhase)) continue;
-      desired.set(priceLineKey(a), a);
+      if (isGuided) {
+        // Guided mode: only surface ORB High/Low from scenario; entry/stop/target are drawn below.
+        if (!isOrbPriceLine(a)) continue;
+        if ((guidedBeat ?? 0) < 1) continue;
+      } else {
+        if (!isPhaseReached(a.phase, currentPhase)) continue;
+      }
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const isOrb = isOrbPriceLine(a);
+      desired.set(priceLineKey(a), {
+        price: a.price,
+        color: c.stroke,
+        label: a.label,
+        showLabel: !isOrb,
+      });
     }
+
+    if (isGuided && (guidedBeat ?? 0) >= 5) {
+      desired.set('guided-entry', { price: scenario.entry_price, color: '#2962ff', label: 'Entry', showLabel: true });
+      desired.set('guided-stop', { price: scenario.stop_price, color: '#ef5350', label: 'Stop', showLabel: true });
+      desired.set('guided-target', { price: scenario.target_price, color: '#26a69a', label: 'Target', showLabel: true });
+    }
+
     // Remove stale
     for (const [key, line] of priceLinesRef.current) {
       if (!desired.has(key)) {
-        try {
-          seriesApi.removePriceLine(line);
-        } catch {
-          /* ignore */
-        }
+        try { seriesApi.removePriceLine(line); } catch { /* ignore */ }
         priceLinesRef.current.delete(key);
       }
     }
     // Add new
-    for (const [key, a] of desired) {
+    for (const [key, spec] of desired) {
       if (priceLinesRef.current.has(key)) continue;
-      const color = effectivePriceLineColor(a);
-      const c = COLOR_MAP[color];
-      const isOrb = isOrbPriceLine(a);
       try {
         const line = seriesApi.createPriceLine({
-          price: a.price,
-          color: c.stroke,
+          price: spec.price,
+          color: spec.color,
           lineStyle: LineStyle.Dashed,
           lineWidth: 1,
-          axisLabelVisible: !isOrb,
-          title: isOrb ? undefined : a.label,
+          axisLabelVisible: spec.showLabel,
+          title: spec.showLabel ? spec.label : undefined,
         });
         priceLinesRef.current.set(key, line);
-      } catch {
-        /* series may be gone */
-      }
+      } catch { /* series may be gone */ }
     }
-  }, [seriesApi, scenario, currentPhase]);
+    // Avoid unused var warning
+    void suppressLabels;
+  }, [seriesApi, scenario, currentPhase, guidedBeat]);
+
 
   // Clean up native price lines on unmount / scenario change
   useEffect(() => {
