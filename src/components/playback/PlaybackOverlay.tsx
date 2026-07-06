@@ -1,8 +1,9 @@
 import { Play, Pause, SkipBack, SkipForward, RotateCcw, X, ChevronRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { PlaybackScenario, PlaybackPhase, TooltipAnnotation } from '@/lib/playbackTypes';
-import { PHASE_LABELS, PLAYBACK_PHASES } from '@/lib/playbackTypes';
+import type { PlaybackScenario, PlaybackPhase, TooltipAnnotation, GuidedBeat } from '@/lib/playbackTypes';
+import { PHASE_LABELS, PLAYBACK_PHASES, GUIDED_BEATS, GUIDED_BEAT_LABELS } from '@/lib/playbackTypes';
 import type { PlaybackSpeed } from '@/hooks/usePlaybackMode';
+import type { GuidedOutcome } from '@/hooks/useGuidedPlayback';
 import { useTier } from '@/contexts/TierContext';
 
 interface Props {
@@ -22,9 +23,19 @@ interface Props {
   onTryItYourself: () => void;
   /** When true, bypass the Starter-tier paywall for this scenario. */
   allowFullPlayback?: boolean;
+  // ---- Guided 6-beat mode (drives stepper + Next candle + outcome) ----
+  guided?: {
+    beat: GuidedBeat;
+    started: boolean;
+    outcome: GuidedOutcome;
+    onStart: () => void;
+    onGoToBeat: (b: GuidedBeat) => void;
+    onNextCandle: () => void;
+  };
 }
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
+
 
 export default function PlaybackOverlay({
   scenario,
