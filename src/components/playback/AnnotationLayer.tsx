@@ -3,6 +3,7 @@ import { LineStyle, type IChartApi, type IPriceLine, type ISeriesApi, type Time 
 import type {
   Annotation,
   AnnotationColor,
+  GuidedBeat,
   PlaybackPhase,
   PlaybackScenario,
   PriceLineAnnotation,
@@ -16,7 +17,10 @@ interface Props {
   currentPhase: PlaybackPhase;
   /** Bar count currently rendered on the chart. */
   visibleBarCount: number;
+  /** When set, drives guided 6-beat rendering instead of phase-based. */
+  guidedBeat?: GuidedBeat;
 }
+
 
 const COLOR_MAP: Record<AnnotationColor, { stroke: string; fill: string; text: string }> = {
   amber: { stroke: '#f59e0b', fill: 'rgba(245,158,11,0.15)', text: '#f59e0b' },
