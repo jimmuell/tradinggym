@@ -205,6 +205,7 @@ export default function AnnotationLayer({
 
 interface RenderCtx {
   chartApi: IChartApi;
+  seriesApi: ISeriesApi<'Candlestick'>;
   barToX: (barIdx: number) => number | null;
   priceToY: (price: number) => number | null;
 }
