@@ -52,7 +52,9 @@ export default function PlaybackOverlay({
   onGoToPhase,
   onTryItYourself,
   allowFullPlayback = false,
+  guided,
 }: Props) {
+
   const navigate = useNavigate();
   const { planState, isAdmin } = useTier();
   const isLockedPlan = !allowFullPlayback && !isAdmin && planState === 'starter';
