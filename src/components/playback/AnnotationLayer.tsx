@@ -28,12 +28,30 @@ const COLOR_MAP: Record<AnnotationColor, { stroke: string; fill: string; text: s
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
 
-function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPhase) {
-  return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
+function isOrbHigh(a: PriceLineAnnotation) {
+  return a.label.trim().toLowerCase() === 'orb high';
+}
+
+function isOrbLow(a: PriceLineAnnotation) {
+  return a.label.trim().toLowerCase() === 'orb low';
+}
+
+function isOrbPriceLine(a: PriceLineAnnotation) {
+  return isOrbHigh(a) || isOrbLow(a);
+}
+
+function effectivePriceLineColor(a: PriceLineAnnotation): AnnotationColor {
+  if (isOrbHigh(a)) return 'green';
+  if (isOrbLow(a)) return 'red';
+  return a.color;
 }
 
 function priceLineKey(a: PriceLineAnnotation) {
   return `${a.phase}|${a.label}|${a.price}|${a.color}`;
+}
+
+function isPhaseReached(annotationPhase: PlaybackPhase, currentPhase: PlaybackPhase) {
+  return PHASE_ORDER.indexOf(annotationPhase) <= PHASE_ORDER.indexOf(currentPhase);
 }
 
 export default function AnnotationLayer({
@@ -110,15 +128,17 @@ export default function AnnotationLayer({
     // Add new
     for (const [key, a] of desired) {
       if (priceLinesRef.current.has(key)) continue;
-      const c = COLOR_MAP[a.color];
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const isOrb = isOrbPriceLine(a);
       try {
         const line = seriesApi.createPriceLine({
           price: a.price,
           color: c.stroke,
           lineStyle: LineStyle.Dashed,
           lineWidth: 1,
-          axisLabelVisible: true,
-          title: a.label,
+          axisLabelVisible: !isOrb,
+          title: isOrb ? undefined : a.label,
         });
         priceLinesRef.current.set(key, line);
       } catch {
@@ -168,19 +188,24 @@ export default function AnnotationLayer({
     return y == null ? null : y;
   };
 
-  // priceLine annotations are drawn natively by the chart; skip them here.
-  const visibleAnnotations = (scenario.annotations ?? []).filter(
-    (a) => a.type !== 'priceLine' && isPhaseReached(a.phase, currentPhase),
-  );
+  // priceLine annotations are drawn natively by the chart; render ORB High/Low
+  // labels ourselves so we can place them 50px away from the price axis.
+  const visibleAnnotations = (scenario.annotations ?? []).filter((a) => {
+    if (!isPhaseReached(a.phase, currentPhase)) return false;
+    if (a.type === 'priceLine') return isOrbPriceLine(a);
+    return true;
+  });
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
-      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { barToX, priceToY }))}
+      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { chartApi, seriesApi, barToX, priceToY }))}
     </div>
   );
 }
 
 interface RenderCtx {
+  chartApi: IChartApi;
+  seriesApi: ISeriesApi<'Candlestick'>;
   barToX: (barIdx: number) => number | null;
   priceToY: (price: number) => number | null;
 }
@@ -260,19 +285,25 @@ function renderAnnotation(a: Annotation, key: number, ctx: RenderCtx) {
     case 'priceLine': {
       const y = ctx.priceToY(a.price);
       if (y == null) return null;
-      const c = COLOR_MAP[a.color];
+      // Only ORB High/Low get custom labels; other price lines use native labels.
+      if (!isOrbPriceLine(a)) return null;
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const priceScaleWidth = ctx.seriesApi.priceScale().width();
       return (
         <div
           key={key}
-          className="absolute left-0 right-0 animate-fade-in"
-          style={{ top: y, height: 0, borderTop: `1px dashed ${c.stroke}` }}
+          className="absolute flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold animate-fade-in whitespace-nowrap"
+          style={{
+            right: priceScaleWidth + 50,
+            top: y,
+            transform: 'translateY(-50%)',
+            backgroundColor: c.stroke,
+            color: '#fff',
+          }}
         >
-          <span
-            className="absolute right-16 -top-2.5 text-[10px] font-semibold px-1.5 py-0.5 rounded"
-            style={{ backgroundColor: c.stroke, color: '#fff' }}
-          >
-            {a.label}
-          </span>
+          <span>{a.label}</span>
+          <span>{a.price.toFixed(2)}</span>
         </div>
       );
     }
