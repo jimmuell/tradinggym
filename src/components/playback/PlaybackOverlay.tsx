@@ -106,6 +106,19 @@ export default function PlaybackOverlay({
         })}
       </div>
 
+      {/* Start walkthrough CTA — only at initial context phase before playing */}
+      {phase === 'context' && !isPlaying && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-fade-in">
+          <button
+            onClick={onPlay}
+            className="pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-2xl hover:bg-primary/90 transition-colors"
+          >
+            <Play className="h-4 w-4" />
+            Start walkthrough
+          </button>
+        </div>
+      )}
+
       {/* Tooltip card */}
       {currentTooltip && !isPhaseLocked(currentTooltip.phase) && (
         <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 bg-card border border-primary/40 rounded-lg shadow-xl px-4 py-3 max-w-md animate-fade-in">
