@@ -99,6 +99,7 @@ function DevTierSwitcherInner() {
     const onMouseMove = (e: MouseEvent) => {
       const s = dragStateRef.current;
       if (!s) return;
+      s.moved = true;
       setPos(clampToViewport(e.clientX - s.offsetX, e.clientY - s.offsetY));
     };
     const onMouseUp = () => {
@@ -109,6 +110,7 @@ function DevTierSwitcherInner() {
       const s = dragStateRef.current;
       if (!s || e.touches.length === 0) return;
       e.preventDefault();
+      s.moved = true;
       const t = e.touches[0];
       setPos(clampToViewport(t.clientX - s.offsetX, t.clientY - s.offsetY));
     };
