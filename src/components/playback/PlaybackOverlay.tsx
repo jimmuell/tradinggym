@@ -20,6 +20,8 @@ interface Props {
   onGoToPhase: (p: PlaybackPhase) => void;
   /** Triggered when user clicks "Try It Yourself" CTA at end. */
   onTryItYourself: () => void;
+  /** When true, bypass the Starter-tier paywall for this scenario. */
+  allowFullPlayback?: boolean;
 }
 
 const PHASE_ORDER: PlaybackPhase[] = ['context', 'setup', 'confirmation', 'entry', 'exit', 'complete'];
@@ -38,10 +40,11 @@ export default function PlaybackOverlay({
   onSpeedChange,
   onGoToPhase,
   onTryItYourself,
+  allowFullPlayback = false,
 }: Props) {
   const navigate = useNavigate();
   const { planState, isAdmin } = useTier();
-  const isLockedPlan = !isAdmin && planState === 'starter';
+  const isLockedPlan = !allowFullPlayback && !isAdmin && planState === 'starter';
   const lockedAfter: PlaybackPhase = 'context'; // Starter sees only Context
 
   const tooltips = (scenario.annotations ?? []).filter(
@@ -102,6 +105,19 @@ export default function PlaybackOverlay({
           );
         })}
       </div>
+
+      {/* Start walkthrough CTA — only at initial context phase before playing */}
+      {phase === 'context' && !isPlaying && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none animate-fade-in">
+          <button
+            onClick={onPlay}
+            className="pointer-events-auto flex items-center gap-2 px-5 py-3 rounded-full bg-primary text-primary-foreground font-semibold text-sm shadow-2xl hover:bg-primary/90 transition-colors"
+          >
+            <Play className="h-4 w-4" />
+            Start walkthrough
+          </button>
+        </div>
+      )}
 
       {/* Tooltip card */}
       {currentTooltip && !isPhaseLocked(currentTooltip.phase) && (

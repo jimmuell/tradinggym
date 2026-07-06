@@ -292,6 +292,7 @@ export default function Simulator() {
                       onSpeedChange={playback.setSpeed}
                       onGoToPhase={playback.goToPhase}
                       onTryItYourself={handleTryItYourself}
+                      allowFullPlayback={(scenario?.indicator_tags ?? []).includes('guided')}
                     />
                   </>
                 ) : isPracticeWithScenario && scenario && showMe ? (
