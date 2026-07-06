@@ -198,7 +198,7 @@ export default function AnnotationLayer({
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
-      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { chartApi, barToX, priceToY }))}
+      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { chartApi, seriesApi, barToX, priceToY }))}
     </div>
   );
 }
