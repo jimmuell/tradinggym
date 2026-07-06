@@ -122,46 +122,49 @@ export default function PlaybackOverlay({
         </div>
       )}
 
-      {/* Guided 6-beat stepper */}
+      {/* Guided 6-beat stepper (with cue as second row so it never overlaps chips) */}
       {guided && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1 shadow-lg max-w-[95%] flex-wrap justify-center">
-          {GUIDED_BEATS.map((b, i) => {
-            const isActive = guided.started && b === guided.beat;
-            const isPast = guided.started && b < guided.beat;
-            const isNext = guided.started && b === (guided.beat + 1);
-            return (
-              <div key={b} className="flex items-center gap-1">
-                {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
-                <button
-                  onClick={() => guided.onGoToBeat(b)}
-                  className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : isPast
-                      ? 'text-foreground hover:bg-muted'
-                      : 'text-muted-foreground hover:bg-muted'
-                  } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
-                  title={GUIDED_BEAT_LABELS[b]}
-                >
-                  {b}. {GUIDED_BEAT_LABELS[b]}
-                </button>
-              </div>
-            );
-          })}
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 bg-card/95 backdrop-blur border border-border rounded-lg px-2 py-1 shadow-lg max-w-[95%] flex flex-col items-center">
+          <div className="flex items-center gap-1 flex-wrap justify-center">
+            {GUIDED_BEATS.map((b, i) => {
+              const isActive = guided.started && b === guided.beat;
+              const isPast = guided.started && b < guided.beat;
+              const isNext = guided.started && b === (guided.beat + 1);
+              return (
+                <div key={b} className="flex items-center gap-1">
+                  {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+                  <button
+                    onClick={() => guided.onGoToBeat(b)}
+                    className={`text-[11px] font-medium px-2 py-0.5 rounded transition-colors ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : isPast
+                        ? 'text-foreground hover:bg-muted'
+                        : 'text-muted-foreground hover:bg-muted'
+                    } ${isNext ? 'ring-2 ring-primary animate-pulse' : ''}`}
+                    title={GUIDED_BEAT_LABELS[b]}
+                  >
+                    {b}. {GUIDED_BEAT_LABELS[b]}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          {guided.started && guided.beat < 6 && (
+            <div className="mt-1 text-[11px] text-primary font-medium animate-pulse">
+              Click the next step above to continue
+            </div>
+          )}
         </div>
       )}
 
-      {/* Helper cue under phase stepper */}
+      {/* Helper cue under phase stepper (non-guided only) */}
       {!guided && phase !== 'context' && phase !== 'complete' && (
         <div className="absolute top-[5.25rem] left-1/2 -translate-x-1/2 z-30 text-[11px] text-primary font-medium bg-card/95 backdrop-blur border border-primary/30 rounded px-2 py-0.5 shadow animate-pulse">
           Click the next step above to continue
         </div>
       )}
-      {guided && guided.started && guided.beat < 6 && (
-        <div className="absolute top-[5.25rem] left-1/2 -translate-x-1/2 z-30 text-[11px] text-primary font-medium bg-card/95 backdrop-blur border border-primary/30 rounded px-2 py-0.5 shadow animate-pulse">
-          Click the next step above to continue
-        </div>
-      )}
+
 
       {/* Start walkthrough CTA — initial view before any beat */}
       {!guided && phase === 'context' && !isPlaying && (
