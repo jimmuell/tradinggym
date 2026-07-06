@@ -21,6 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     try {
       localStorage.setItem(DEV_MENU_KEY, String(devMenuVisible));
+      window.dispatchEvent(new Event('dev-menu-visibility-change'));
     } catch {
       /* ignore */
     }
