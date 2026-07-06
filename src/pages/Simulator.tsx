@@ -24,6 +24,7 @@ import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
 import AnnotationLayer from '@/components/playback/AnnotationLayer';
+import { PLAYBACK_PHASES, phaseToBarIndex, type PlaybackPhase } from '@/lib/playbackTypes';
 import { Sparkles, BookOpen, Lock } from 'lucide-react';
 import { useTier } from '@/contexts/TierContext';
 import { Link } from 'react-router-dom';
@@ -55,6 +56,7 @@ export default function Simulator() {
   const [seriesApiState, setSeriesApiState] = useState<ISeriesApi<'Candlestick'> | null>(null);
   const [blueprintSteps, setBlueprintSteps] = useState<number[]>([]);
   const [blueprintResetKey, setBlueprintResetKey] = useState(0);
+  const [showMe, setShowMe] = useState(false);
   const [instrument, setInstrument] = useState<InstrumentKey>(() =>
     (localStorage.getItem('tg-selected-instrument') as InstrumentKey) || 'MES'
   );
@@ -83,6 +85,17 @@ export default function Simulator() {
   // Practice mode bootstrap: when ?practice=1 with the same scenario, render the candles
   // but let the user trade. We feed all candles and let the user act on the last bar.
   const isPracticeWithScenario = !!playbackId && practiceMode && !!scenario;
+
+  // Derive an effective phase from the visible bar count in practice mode (for "Show me").
+  const practicePhase = useMemo<PlaybackPhase | undefined>(() => {
+    if (!isPracticeWithScenario || !scenario) return undefined;
+    let cur: PlaybackPhase = 'context';
+    for (const p of PLAYBACK_PHASES) {
+      const t = phaseToBarIndex(p, scenario);
+      if (playbackBarCount >= t) cur = p;
+    }
+    return cur;
+  }, [isPracticeWithScenario, scenario, playbackBarCount]);
 
   const handleTryItYourself = () => {
     setSearchParams({ playback: playbackId!, practice: '1' });
@@ -281,16 +294,32 @@ export default function Simulator() {
                       onTryItYourself={handleTryItYourself}
                     />
                   </>
+                ) : isPracticeWithScenario && scenario && showMe ? (
+                  <AnnotationLayer
+                    chartApi={chartApiState}
+                    seriesApi={seriesApiState}
+                    scenario={scenario}
+                    currentPhase={practicePhase ?? 'context'}
+                    visibleBarCount={playbackBarCount}
+                  />
                 ) : null
               }
             />
             {!isPlaybackMode && <RightToolbar />}
-            {!isPlaybackMode && (
-              <BlueprintChecklist
-                onStepsChange={setBlueprintSteps}
-                resetKey={blueprintResetKey}
-              />
-            )}
+            <BlueprintChecklist
+              onStepsChange={setBlueprintSteps}
+              resetKey={blueprintResetKey}
+              mode={isPlaybackMode ? 'guided' : 'manual'}
+              currentPhase={
+                isPlaybackMode
+                  ? playback.phase
+                  : isPracticeWithScenario
+                  ? practicePhase
+                  : undefined
+              }
+              showMe={showMe}
+              onShowMeChange={setShowMe}
+            />
             {tradeOpen && !isPlaybackMode && (
               <TradeOrderPanel
                 onClose={() => setTradeOpen(false)}
