@@ -344,6 +344,8 @@ export default function Simulator() {
               showMe={showMe}
               onShowMeChange={setShowMe}
               guidedBeat={isPlaybackMode && isGuided ? (guided.started ? guided.beat : 0) : undefined}
+              guidedOutcomeResolved={isPlaybackMode && isGuided ? guided.outcome !== 'pending' : false}
+
             />
 
             {tradeOpen && !isPlaybackMode && (
