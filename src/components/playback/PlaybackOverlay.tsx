@@ -277,7 +277,7 @@ export default function PlaybackOverlay({
       )}
 
       {/* Completion CTA */}
-      {phase === 'complete' && !isLockedPlan && (() => {
+      {!guided && phase === 'complete' && !isLockedPlan && (() => {
         const risk = Math.abs(scenario.entry_price - scenario.stop_price);
         const rMultiple = risk > 0 ? scenario.result_points / risk : 0;
         const isWin = scenario.result_points > 0;
