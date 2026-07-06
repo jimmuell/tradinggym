@@ -18,12 +18,17 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+const COLLAPSED_KEY = 'dev-tier-switcher-collapsed';
+
 function DevTierSwitcherInner() {
   const { currentTier, setTierState } = useTier();
   const panelRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  const dragStateRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try { return localStorage.getItem(COLLAPSED_KEY) === 'true'; } catch { return false; }
+  });
+  const dragStateRef = useRef<{ offsetX: number; offsetY: number; moved: boolean } | null>(null);
 
   // Restore from localStorage on mount; otherwise default to bottom-center.
   useEffect(() => {
