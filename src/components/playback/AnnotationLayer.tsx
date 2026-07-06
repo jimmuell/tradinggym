@@ -284,19 +284,25 @@ function renderAnnotation(a: Annotation, key: number, ctx: RenderCtx) {
     case 'priceLine': {
       const y = ctx.priceToY(a.price);
       if (y == null) return null;
-      const c = COLOR_MAP[a.color];
+      // Only ORB High/Low get custom labels; other price lines use native labels.
+      if (!isOrbPriceLine(a)) return null;
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const priceScaleWidth = ctx.chartApi.priceScale().width();
       return (
         <div
           key={key}
-          className="absolute left-0 right-0 animate-fade-in"
-          style={{ top: y, height: 0, borderTop: `1px dashed ${c.stroke}` }}
+          className="absolute flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold animate-fade-in whitespace-nowrap"
+          style={{
+            right: priceScaleWidth + 50,
+            top: y,
+            transform: 'translateY(-50%)',
+            backgroundColor: c.stroke,
+            color: '#fff',
+          }}
         >
-          <span
-            className="absolute right-16 -top-2.5 text-[10px] font-semibold px-1.5 py-0.5 rounded"
-            style={{ backgroundColor: c.stroke, color: '#fff' }}
-          >
-            {a.label}
-          </span>
+          <span>{a.label}</span>
+          <span>{a.price.toFixed(2)}</span>
         </div>
       );
     }
