@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle, RotateCcw } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { PlaybackPhase, PLAYBACK_PHASES } from '@/lib/playbackTypes';
 
 const STEPS = [
   { name: 'Mark Opening Range', desc: 'Draw ORB High and ORB Low lines' },
@@ -12,39 +13,74 @@ const STEPS = [
   { name: 'Execute & Review', desc: 'Enter trade and record the result' },
 ];
 
+const STEP_PHASE: PlaybackPhase[] = [
+  'setup',
+  'confirmation',
+  'confirmation',
+  'confirmation',
+  'entry',
+  'exit',
+];
+
 interface BlueprintChecklistProps {
   onStepsChange?: (checked: number[]) => void;
   resetKey?: number;
+  mode?: 'manual' | 'guided';
+  currentPhase?: PlaybackPhase;
+  showMe?: boolean;
+  onShowMeChange?: (v: boolean) => void;
 }
 
-export default function BlueprintChecklist({ onStepsChange, resetKey }: BlueprintChecklistProps) {
+export default function BlueprintChecklist({
+  onStepsChange,
+  resetKey,
+  mode = 'manual',
+  currentPhase,
+  showMe = false,
+  onShowMeChange,
+}: BlueprintChecklistProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [checked, setChecked] = useState<boolean[]>(Array(6).fill(false));
+
+  const isDerived = mode === 'guided' || showMe;
+
+  const derived = useMemo<boolean[]>(() => {
+    if (!isDerived || !currentPhase) return Array(6).fill(false);
+    const curIdx = PLAYBACK_PHASES.indexOf(currentPhase);
+    return STEP_PHASE.map((p) => curIdx >= PLAYBACK_PHASES.indexOf(p));
+  }, [isDerived, currentPhase]);
+
+  const effective = isDerived ? derived : checked;
 
   useEffect(() => {
     setChecked(Array(6).fill(false));
   }, [resetKey]);
 
-  const updateChecked = useCallback((newChecked: boolean[]) => {
-    setChecked(newChecked);
-    const nums = newChecked.map((v, i) => v ? i + 1 : 0).filter(Boolean);
+  // Emit steps to parent for both branches
+  useEffect(() => {
+    const nums = effective.map((v, i) => (v ? i + 1 : 0)).filter(Boolean);
     onStepsChange?.(nums);
-  }, [onStepsChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effective.join(',')]);
 
   const handleCheck = (index: number, value: boolean) => {
+    if (isDerived) return;
     const next = [...checked];
     if (value) {
       next[index] = true;
     } else {
-      // Uncheck this and all subsequent
       for (let i = index; i < 6; i++) next[i] = false;
     }
-    updateChecked(next);
+    setChecked(next);
   };
 
-  const reset = () => updateChecked(Array(6).fill(false));
+  const reset = () => {
+    setChecked(Array(6).fill(false));
+    onShowMeChange?.(false);
+  };
 
-  const allComplete = checked.every(Boolean);
+  const allComplete = effective.every(Boolean);
+  const showToggle = currentPhase !== undefined && mode !== 'guided';
 
   return (
     <div className={`flex flex-col border-l border-border bg-card shrink-0 transition-all ${collapsed ? 'w-[32px]' : 'w-[220px]'}`}>
@@ -65,21 +101,38 @@ export default function BlueprintChecklist({ onStepsChange, resetKey }: Blueprin
       {!collapsed && (
         <div className="flex flex-col flex-1 px-3 pb-3 overflow-y-auto">
           <p className="text-sm font-medium text-foreground mt-2">ORB Blueprint</p>
-          <p className="text-xs text-muted-foreground mb-3">6-step execution checklist</p>
+          <p className="text-xs text-muted-foreground mb-2">6-step execution checklist</p>
+
+          {showToggle && (
+            <label className="flex items-center gap-2 mb-3 px-2 py-1.5 rounded bg-accent/40 cursor-pointer">
+              <Checkbox
+                checked={showMe}
+                onCheckedChange={(v) => onShowMeChange?.(!!v)}
+              />
+              <span className="text-xs text-foreground">Show me</span>
+            </label>
+          )}
+
+          {mode === 'guided' && (
+            <div className="mb-3 px-2 py-1.5 rounded bg-primary/10 text-[11px] text-primary">
+              Guided playback — steps auto-check
+            </div>
+          )}
 
           <div className="flex flex-col gap-2.5">
             {STEPS.map((step, i) => {
-              const locked = i > 0 && !checked[i - 1];
+              const locked = i > 0 && !effective[i - 1];
+              const disabled = isDerived || locked;
               return (
                 <label
                   key={i}
-                  className={`flex gap-2 items-start ${locked ? 'opacity-40 pointer-events-none' : ''}`}
+                  className={`flex gap-2 items-start ${locked ? 'opacity-40' : ''} ${disabled ? 'pointer-events-none' : ''}`}
                 >
                   <Checkbox
-                    checked={checked[i]}
-                    disabled={locked}
+                    checked={effective[i]}
+                    disabled={disabled}
                     onCheckedChange={(v) => handleCheck(i, !!v)}
-                    className={checked[i] ? 'border-green-500 bg-green-500 text-white data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500' : ''}
+                    className={effective[i] ? 'border-green-500 bg-green-500 text-white data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500' : ''}
                   />
                   <div className="min-w-0">
                     <span className="text-sm font-medium text-foreground leading-tight">
@@ -102,12 +155,14 @@ export default function BlueprintChecklist({ onStepsChange, resetKey }: Blueprin
             </div>
           )}
 
-          <button
-            onClick={reset}
-            className="mt-auto pt-3 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-          >
-            <RotateCcw size={12} /> Reset
-          </button>
+          {!isDerived && (
+            <button
+              onClick={reset}
+              className="mt-auto pt-3 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+            >
+              <RotateCcw size={12} /> Reset
+            </button>
+          )}
         </div>
       )}
     </div>
