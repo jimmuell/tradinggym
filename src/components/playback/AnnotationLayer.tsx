@@ -128,15 +128,17 @@ export default function AnnotationLayer({
     // Add new
     for (const [key, a] of desired) {
       if (priceLinesRef.current.has(key)) continue;
-      const c = COLOR_MAP[a.color];
+      const color = effectivePriceLineColor(a);
+      const c = COLOR_MAP[color];
+      const isOrb = isOrbPriceLine(a);
       try {
         const line = seriesApi.createPriceLine({
           price: a.price,
           color: c.stroke,
           lineStyle: LineStyle.Dashed,
           lineWidth: 1,
-          axisLabelVisible: true,
-          title: a.label,
+          axisLabelVisible: !isOrb,
+          title: isOrb ? undefined : a.label,
         });
         priceLinesRef.current.set(key, line);
       } catch {
