@@ -1,12 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/dashboard/AppSidebar';
 import DevTierSwitcher from '@/components/dev/DevTierSwitcher';
 import { Button } from '@/components/ui/button';
 import { Bug } from 'lucide-react';
 
+const DEV_MENU_KEY = 'dev-menu-visible';
+
+function getStoredDevMenu(): boolean {
+  try {
+    return localStorage.getItem(DEV_MENU_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [devMenuVisible, setDevMenuVisible] = useState(false);
+  const [devMenuVisible, setDevMenuVisible] = useState(getStoredDevMenu);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DEV_MENU_KEY, String(devMenuVisible));
+    } catch {
+      /* ignore */
+    }
+  }, [devMenuVisible]);
+
 
   return (
     <SidebarProvider>
