@@ -1,7 +1,7 @@
 import { useTier, TierState } from '@/contexts/TierContext';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { GripHorizontal } from 'lucide-react';
+import { GripHorizontal, ChevronsRightLeft } from 'lucide-react';
 import { getTierDisplayName } from '@/lib/tierUtils';
 
 const TIERS: { value: TierState }[] = [
