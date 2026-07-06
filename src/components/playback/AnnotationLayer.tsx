@@ -188,14 +188,17 @@ export default function AnnotationLayer({
     return y == null ? null : y;
   };
 
-  // priceLine annotations are drawn natively by the chart; skip them here.
-  const visibleAnnotations = (scenario.annotations ?? []).filter(
-    (a) => a.type !== 'priceLine' && isPhaseReached(a.phase, currentPhase),
-  );
+  // priceLine annotations are drawn natively by the chart; render ORB High/Low
+  // labels ourselves so we can place them 50px away from the price axis.
+  const visibleAnnotations = (scenario.annotations ?? []).filter((a) => {
+    if (!isPhaseReached(a.phase, currentPhase)) return false;
+    if (a.type === 'priceLine') return isOrbPriceLine(a);
+    return true;
+  });
 
   return (
     <div className="absolute inset-0 pointer-events-none z-20">
-      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { barToX, priceToY }))}
+      {visibleAnnotations.map((a, i) => renderAnnotation(a, i, { chartApi, barToX, priceToY }))}
     </div>
   );
 }
