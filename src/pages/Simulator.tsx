@@ -84,6 +84,13 @@ export default function Simulator() {
     onBarIndexChange: setPlaybackBarCount,
   });
 
+  const isGuided = isGuidedScenario(scenario);
+  const guided = useGuidedPlayback({
+    scenario: isGuided ? scenario : undefined,
+    onBarIndexChange: setPlaybackBarCount,
+  });
+
+
   // Practice mode bootstrap: when ?practice=1 with the same scenario, render the candles
   // but let the user trade. We feed all candles and let the user act on the last bar.
   const isPracticeWithScenario = !!playbackId && practiceMode && !!scenario;
