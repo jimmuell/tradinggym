@@ -273,8 +273,8 @@ function renderAnnotation(a: Annotation, key: number, ctx: RenderCtx) {
           />
           {a.label && (
             <div
-              className="text-[10px] font-semibold mt-0.5 text-center whitespace-nowrap px-1 rounded"
-              style={{ color: c.text }}
+              className="text-[10px] font-semibold mt-0.5 text-center whitespace-nowrap px-1.5 py-0.5 rounded shadow"
+              style={{ color: '#fff', backgroundColor: c.stroke }}
             >
               {a.label}
             </div>
