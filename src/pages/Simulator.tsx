@@ -276,7 +276,7 @@ export default function Simulator() {
               instrument={instrument}
               playbackMode={isPlaybackMode}
               playbackCandles={isPlaybackMode ? playbackCandles : undefined}
-              playbackBarCount={isPlaybackMode ? playbackBarCount : undefined}
+              playbackBarCount={isPlaybackMode ? (isGuided && !guided.started ? 0 : playbackBarCount) : undefined}
               playbackChildren={
                 isPlaybackMode && scenario ? (
                   <>
@@ -344,6 +344,8 @@ export default function Simulator() {
               showMe={showMe}
               onShowMeChange={setShowMe}
               guidedBeat={isPlaybackMode && isGuided ? (guided.started ? guided.beat : 0) : undefined}
+              guidedOutcomeResolved={isPlaybackMode && isGuided ? guided.outcome !== 'pending' : false}
+
             />
 
             {tradeOpen && !isPlaybackMode && (
