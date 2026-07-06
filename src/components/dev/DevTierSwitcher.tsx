@@ -87,6 +87,7 @@ function DevTierSwitcherInner() {
     dragStateRef.current = {
       offsetX: clientX - pos.x,
       offsetY: clientY - pos.y,
+      moved: false,
     };
     setDragging(true);
   }, [pos]);
