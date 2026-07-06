@@ -22,9 +22,11 @@ import BlueprintChecklist from '@/components/chart/BlueprintChecklist';
 
 import { usePlaybackScenario } from '@/hooks/usePlaybackScenario';
 import { usePlaybackMode } from '@/hooks/usePlaybackMode';
+import { useGuidedPlayback } from '@/hooks/useGuidedPlayback';
 import PlaybackOverlay from '@/components/playback/PlaybackOverlay';
 import AnnotationLayer from '@/components/playback/AnnotationLayer';
-import { PLAYBACK_PHASES, phaseToBarIndex, type PlaybackPhase } from '@/lib/playbackTypes';
+import { PLAYBACK_PHASES, phaseToBarIndex, isGuidedScenario, type PlaybackPhase } from '@/lib/playbackTypes';
+
 import { Sparkles, BookOpen, Lock } from 'lucide-react';
 import { useTier } from '@/contexts/TierContext';
 import { Link } from 'react-router-dom';
