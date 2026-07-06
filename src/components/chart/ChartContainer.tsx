@@ -450,7 +450,11 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
   useEffect(() => {
     if (!playbackMode || !candleSeriesRef.current || !playbackCandles) return;
     allDataRef.current = playbackCandles;
-    const count = Math.max(1, Math.min(playbackBarCount ?? playbackCandles.length, playbackCandles.length));
+    // Inclusive: reveal the candle AT the current phase's bar index so annotations
+    // on that bar (e.g. breakout arrow, retest) land on a drawn candle.
+    const rawIdx = playbackBarCount ?? playbackCandles.length - 1;
+    const lastIdx = Math.max(0, Math.min(rawIdx, playbackCandles.length - 1));
+    const count = lastIdx + 1;
     const slice = playbackCandles.slice(0, count);
     candleSeriesRef.current.setData(slice);
     smaSeriesRef.current?.setData([]);
@@ -460,12 +464,15 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
       setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, volume: '—' });
       onPriceUpdate(last.close);
     }
-    // Fit a sensible window: show the slice + some leading room
-    const total = playbackCandles.length;
+    // Frame just the revealed candles (+ a few bars of forward padding) so bodies
+    // read large. Autoscale the price axis to the visible candles.
+    const forwardPad = 6;
+    const backPad = 2;
     chartRef.current?.timeScale().setVisibleLogicalRange({
-      from: Math.max(0, count - 60),
-      to: Math.min(total, count + 10),
+      from: -backPad,
+      to: count - 1 + forwardPad,
     });
+    candleSeriesRef.current.priceScale().applyOptions({ autoScale: true });
   }, [playbackMode, playbackCandles, playbackBarCount, onPriceUpdate]);
 
 
