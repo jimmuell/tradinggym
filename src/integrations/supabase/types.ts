@@ -930,6 +930,32 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_progress: {
+        Row: {
+          completed_at: string
+          lesson_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          lesson_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          lesson_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           author_id: string | null
@@ -1983,6 +2009,7 @@ export type Database = {
         }[]
       }
       get_user_role: { Args: never; Returns: string }
+      graduate_foundation: { Args: never; Returns: Json }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       promote_tier: { Args: { target_tier: string }; Returns: Json }
