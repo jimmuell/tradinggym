@@ -90,6 +90,17 @@ export default function Simulator() {
     onBarIndexChange: setPlaybackBarCount,
   });
 
+  const guidedPreStart = isPlaybackMode && isGuided && !guided.started;
+  const effectivePlaybackCandles = useMemo(() => {
+    if (!playbackCandles) return undefined;
+    return guidedPreStart ? playbackCandles.slice(0, 1) : playbackCandles;
+  }, [playbackCandles, guidedPreStart]);
+  const effectivePlaybackBarCount = isPlaybackMode
+    ? guidedPreStart
+      ? 0
+      : playbackBarCount
+    : undefined;
+
 
   // Practice mode bootstrap: when ?practice=1 with the same scenario, render the candles
   // but let the user trade. We feed all candles and let the user act on the last bar.
@@ -275,19 +286,21 @@ export default function Simulator() {
               }}
               instrument={instrument}
               playbackMode={isPlaybackMode}
-              playbackCandles={isPlaybackMode ? playbackCandles : undefined}
-              playbackBarCount={isPlaybackMode ? (isGuided && !guided.started ? 0 : playbackBarCount) : undefined}
+              playbackCandles={isPlaybackMode ? effectivePlaybackCandles : undefined}
+              playbackBarCount={effectivePlaybackBarCount}
               playbackChildren={
                 isPlaybackMode && scenario ? (
                   <>
-                    <AnnotationLayer
-                      chartApi={chartApiState}
-                      seriesApi={seriesApiState}
-                      scenario={scenario}
-                      currentPhase={playback.phase}
-                      visibleBarCount={playbackBarCount}
-                      guidedBeat={isGuided ? guided.beat : undefined}
-                    />
+                    {!guidedPreStart && (
+                      <AnnotationLayer
+                        chartApi={chartApiState}
+                        seriesApi={seriesApiState}
+                        scenario={scenario}
+                        currentPhase={playback.phase}
+                        visibleBarCount={effectivePlaybackBarCount ?? playbackBarCount}
+                        guidedBeat={isGuided ? guided.beat : undefined}
+                      />
+                    )}
                     <PlaybackOverlay
                       scenario={scenario}
                       phase={playback.phase}
