@@ -8,26 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFoundationLessons, useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
-import { usePromoteTier } from '@/hooks/usePromoteTier';
+import { useGraduateFoundation } from '@/hooks/useGraduateFoundation';
+import { useMarkLessonComplete } from '@/hooks/useLessonProgress';
 import { useTier } from '@/contexts/TierContext';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
 import RiskAcknowledgmentModal from '@/components/learning/RiskAcknowledgmentModal';
-
-const STORAGE_KEY = 'completedLessons';
-
-function markComplete(lessonId: string) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const arr: string[] = raw ? JSON.parse(raw) : [];
-    if (!arr.includes(lessonId)) {
-      arr.push(lessonId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-  } catch {
-    // ignore
-  }
-}
 
 function QuizView() {
   const navigate = useNavigate();

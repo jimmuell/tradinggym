@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,17 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, BookOpen, CheckCircle2, Clock } from 'lucide-react';
 import { useLessonsByModule } from '@/hooks/useLessons';
-
-const STORAGE_KEY = 'completedLessons';
-
-function getCompleted(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+import { useCompletedLessonIds } from '@/hooks/useLessonProgress';
 
 interface TierLessonListProps {
   module: string;
@@ -27,14 +16,7 @@ interface TierLessonListProps {
 export default function TierLessonList({ module, basePath }: TierLessonListProps) {
   const navigate = useNavigate();
   const { data: lessons, isLoading } = useLessonsByModule(module);
-  const [completed, setCompleted] = useState<string[]>([]);
-
-  useEffect(() => {
-    setCompleted(getCompleted());
-    const onFocus = () => setCompleted(getCompleted());
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  const { data: completed = [] } = useCompletedLessonIds();
 
   const completedCount = lessons?.filter((l) => completed.includes(l.id)).length ?? 0;
   const totalCount = lessons?.length ?? 0;
