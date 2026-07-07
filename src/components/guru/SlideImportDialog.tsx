@@ -21,7 +21,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-const BUCKET = 'lesson-assets';
+const PUBLIC_BUCKET = 'lesson-assets';
+const PRIVATE_BUCKET = 'lesson-assets-private';
 const MAX_PDF_SIZE = 20 * 1024 * 1024;
 const MAX_IMG_SIZE = 5 * 1024 * 1024;
 const MAX_IMG_COUNT = 50;
@@ -38,6 +39,13 @@ interface SlideImportDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Stable folder id used as the storage subfolder under {user_id}/. */
   lessonFolderId: string;
+  /**
+   * When true, uploads go to the private bucket and slide.image_url stores a
+   * `private://<path>` marker that must be resolved via signed URL at render
+   * time. When false (default), uploads go to the public bucket and slide
+   * image_url stores a full public URL — backwards compatible.
+   */
+  isPrivate?: boolean;
   onImported: (slides: LessonSlide[]) => void;
 }
 
@@ -70,6 +78,7 @@ export default function SlideImportDialog({
   open,
   onOpenChange,
   lessonFolderId,
+  isPrivate = false,
   onImported,
 }: SlideImportDialogProps) {
   const { user } = useAuth();
@@ -177,22 +186,28 @@ export default function SlideImportDialog({
     const uploadedSlides: LessonSlide[] = [];
     try {
       let done = 0;
+      const bucket = isPrivate ? PRIVATE_BUCKET : PUBLIC_BUCKET;
       for (const p of selected) {
         const ext = p.blob.type === 'image/jpeg' ? 'jpg' : 'png';
         const filename = `slide-${Date.now()}-${p.index}.${ext}`;
         const path = `${user.id}/${lessonFolderId}/${filename}`;
         const { error } = await supabase.storage
-          .from(BUCKET)
+          .from(bucket)
           .upload(path, p.blob, { contentType: p.blob.type, upsert: false });
         if (error) throw error;
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        // For private uploads, store a stable "private://<path>" marker so the
+        // renderer knows to swap in a short-lived signed URL. For public
+        // uploads, keep the full CDN URL (backwards compatible).
+        const image_url = isPrivate
+          ? `private://${path}`
+          : supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
         uploadedSlides.push({
           id: crypto.randomUUID(),
           title: `Slide ${uploadedSlides.length + 1}`,
           body: '',
           bullet_points: [],
           tip: '',
-          image_url: pub.publicUrl,
+          image_url,
           type: 'imported',
         });
         done++;
