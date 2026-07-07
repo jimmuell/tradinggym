@@ -709,6 +709,7 @@ export default function GuruLessonFormPage() {
         open={importOpen}
         onOpenChange={setImportOpen}
         lessonFolderId={lessonFolderId}
+        isPrivate
         onImported={(imported) =>
           setSlides((prev) => {
             // If the only slide is the default empty placeholder, replace it.
