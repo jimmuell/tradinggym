@@ -478,6 +478,12 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
 
   // Handle replay mode toggle
   useEffect(() => {
+    // In playback (guided/scenario) mode the playback effect owns the chart data. This replay
+    // toggle must NOT redraw allDataRef (the full scenario candles) + SMA/EMA here — depending on
+    // mount/effect ordering (e.g. when tier-loading delays the chart until the scenario is already
+    // cached) it fires after the playback slice and clobbers the single-candle pre-Start view with
+    // the whole scenario + indicators (the "spoiler" bug). Playback and replay are exclusive modes.
+    if (playbackMode) return;
     const data = allDataRef.current;
     if (!data.length || !candleSeriesRef.current) return;
 
@@ -503,7 +509,7 @@ export default function ChartContainer({ timeframe, replayMode, onExitReplay, on
         onPriceUpdate(last.close);
       }
     }
-  }, [replayMode]);
+  }, [replayMode, playbackMode]);
 
   // Check if any position's SL or TP was hit by the bar's high/low
   const checkSLTPHits = useCallback((barHigh: number, barLow: number) => {
