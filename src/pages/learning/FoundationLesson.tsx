@@ -122,6 +122,7 @@ function QuizView() {
 function LessonView({ lessonId }: { lessonId: string }) {
   const navigate = useNavigate();
   const { data: lesson, isLoading, isError } = useLesson(lessonId);
+  const markComplete = useMarkLessonComplete();
 
   useEffect(() => {
     if (!isLoading && (isError || !lesson)) {
@@ -156,8 +157,9 @@ function LessonView({ lessonId }: { lessonId: string }) {
       <LessonRenderer
         lesson={lesson}
         onComplete={() => {
-          markComplete(lesson.id);
-          navigate('/learning/foundation');
+          markComplete.mutate(lesson.id, {
+            onSettled: () => navigate('/learning/foundation'),
+          });
         }}
       />
     </div>
