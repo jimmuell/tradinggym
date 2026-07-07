@@ -28,20 +28,44 @@ function renderInline(text: string): string {
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 }
 
-function SlideView({ slide }: { slide: LessonSlide }) {
+function resolveImageSrc(
+  raw: string | undefined | null,
+  signed: SignedGuruAssetMap,
+): string | undefined {
+  if (!raw) return undefined;
+  if (raw.startsWith(PRIVATE_PREFIX)) {
+    return signed[raw.slice(PRIVATE_PREFIX.length)];
+  }
+  return raw;
+}
+
+function SlideView({
+  slide,
+  signed,
+}: {
+  slide: LessonSlide;
+  signed: SignedGuruAssetMap;
+}) {
   const paragraphs = slide.body ? slide.body.split(/\n\n+/) : [];
+  const imgSrc = resolveImageSrc(slide.image_url, signed);
+  const isPrivatePending = slide.image_url?.startsWith(PRIVATE_PREFIX) && !imgSrc;
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-foreground">{slide.title}</h2>
 
-      {slide.image_url ? (
+      {imgSrc ? (
         <div className="w-full rounded-lg border border-border bg-muted/30 overflow-hidden flex items-center justify-center">
           <img
-            src={slide.image_url}
+            src={imgSrc}
             alt={slide.title || 'Imported slide'}
             className="w-full h-auto max-h-[70vh] object-contain"
             loading="lazy"
           />
+        </div>
+      ) : isPrivatePending ? (
+        <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center">
+          <Skeleton className="h-full w-full" />
         </div>
       ) : slide.image_key ? (
         <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center text-muted-foreground text-sm">
