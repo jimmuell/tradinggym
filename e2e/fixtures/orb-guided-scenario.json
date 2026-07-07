@@ -1,0 +1,372 @@
+{
+  "id": "db83bd35-4bdf-4dc4-a93b-4894e33ee537",
+  "name": "ORB — Pure Price Action (Guided)",
+  "description": "Step through a textbook Opening Range Breakout: mark the range, wait for the breakout close, the retest, confirm, set 2:1 targets, execute.",
+  "instrument": "MES",
+  "timeframe": "5m",
+  "direction": "long",
+  "indicator_tags": [
+    "orb",
+    "price_action",
+    "guided"
+  ],
+  "ohlcv_data": [
+    {
+      "low": 4780.25,
+      "high": 4785.5,
+      "open": 4782,
+      "time": 1702909800,
+      "close": 4783.75
+    },
+    {
+      "low": 4783,
+      "high": 4786.75,
+      "open": 4784,
+      "time": 1702910100,
+      "close": 4785.5
+    },
+    {
+      "low": 4782.25,
+      "high": 4786.5,
+      "open": 4785.75,
+      "time": 1702910400,
+      "close": 4784.25
+    },
+    {
+      "low": 4783.75,
+      "high": 4786.75,
+      "open": 4784.25,
+      "time": 1702910700,
+      "close": 4784.5
+    },
+    {
+      "low": 4783,
+      "high": 4785.75,
+      "open": 4784.75,
+      "time": 1702911000,
+      "close": 4783.75
+    },
+    {
+      "low": 4782.5,
+      "high": 4786.25,
+      "open": 4783.75,
+      "time": 1702911300,
+      "close": 4786
+    },
+    {
+      "low": 4786,
+      "high": 4790.25,
+      "open": 4786,
+      "time": 1702911600,
+      "close": 4789
+    },
+    {
+      "low": 4788.25,
+      "high": 4790.75,
+      "open": 4789,
+      "time": 1702911900,
+      "close": 4789.25
+    },
+    {
+      "low": 4785.5,
+      "high": 4790.75,
+      "open": 4789.5,
+      "time": 1702912200,
+      "close": 4787
+    },
+    {
+      "low": 4786,
+      "high": 4790.5,
+      "open": 4787,
+      "time": 1702912500,
+      "close": 4790.25
+    },
+    {
+      "low": 4786.25,
+      "high": 4790.5,
+      "open": 4790.25,
+      "time": 1702912800,
+      "close": 4790.25
+    },
+    {
+      "low": 4788.25,
+      "high": 4791.5,
+      "open": 4790.5,
+      "time": 1702913100,
+      "close": 4790.25
+    },
+    {
+      "low": 4788.5,
+      "high": 4791.25,
+      "open": 4790.5,
+      "time": 1702913400,
+      "close": 4790.25
+    },
+    {
+      "low": 4786.5,
+      "high": 4790.75,
+      "open": 4790,
+      "time": 1702913700,
+      "close": 4787
+    },
+    {
+      "low": 4786.25,
+      "high": 4788.25,
+      "open": 4786.75,
+      "time": 1702914000,
+      "close": 4786.75
+    },
+    {
+      "low": 4783.5,
+      "high": 4787.25,
+      "open": 4786.75,
+      "time": 1702914300,
+      "close": 4786
+    },
+    {
+      "low": 4783.75,
+      "high": 4786.25,
+      "open": 4786,
+      "time": 1702914600,
+      "close": 4784
+    },
+    {
+      "low": 4783,
+      "high": 4785.75,
+      "open": 4784,
+      "time": 1702914900,
+      "close": 4785
+    },
+    {
+      "low": 4783.25,
+      "high": 4785.25,
+      "open": 4785,
+      "time": 1702915200,
+      "close": 4784
+    },
+    {
+      "low": 4783.25,
+      "high": 4786.25,
+      "open": 4784,
+      "time": 1702915500,
+      "close": 4786.25
+    },
+    {
+      "low": 4785.75,
+      "high": 4789.25,
+      "open": 4786.25,
+      "time": 1702915800,
+      "close": 4788.75
+    },
+    {
+      "low": 4788.75,
+      "high": 4793.25,
+      "open": 4789,
+      "time": 1702916100,
+      "close": 4793
+    },
+    {
+      "low": 4790.25,
+      "high": 4793.5,
+      "open": 4793,
+      "time": 1702916400,
+      "close": 4791.25
+    },
+    {
+      "low": 4791,
+      "high": 4793,
+      "open": 4791.5,
+      "time": 1702916700,
+      "close": 4792.25
+    },
+    {
+      "low": 4792,
+      "high": 4794.25,
+      "open": 4792.25,
+      "time": 1702917000,
+      "close": 4793.25
+    },
+    {
+      "low": 4791.5,
+      "high": 4793.75,
+      "open": 4793.25,
+      "time": 1702917300,
+      "close": 4792.25
+    },
+    {
+      "low": 4791.75,
+      "high": 4793.25,
+      "open": 4792.25,
+      "time": 1702917600,
+      "close": 4793
+    },
+    {
+      "low": 4791.75,
+      "high": 4793.25,
+      "open": 4793,
+      "time": 1702917900,
+      "close": 4792.5
+    },
+    {
+      "low": 4791.5,
+      "high": 4793.75,
+      "open": 4792.5,
+      "time": 1702918200,
+      "close": 4792.25
+    },
+    {
+      "low": 4791.5,
+      "high": 4793.5,
+      "open": 4792.5,
+      "time": 1702918500,
+      "close": 4792.25
+    },
+    {
+      "low": 4792.25,
+      "high": 4795,
+      "open": 4792.5,
+      "time": 1702918800,
+      "close": 4794
+    },
+    {
+      "low": 4793.75,
+      "high": 4795.5,
+      "open": 4794.25,
+      "time": 1702919100,
+      "close": 4795.25
+    },
+    {
+      "low": 4795.25,
+      "high": 4797,
+      "open": 4795.5,
+      "time": 1702919400,
+      "close": 4796.75
+    },
+    {
+      "low": 4796.5,
+      "high": 4799.25,
+      "open": 4796.75,
+      "time": 1702919700,
+      "close": 4799
+    },
+    {
+      "low": 4796.75,
+      "high": 4799.25,
+      "open": 4799,
+      "time": 1702920000,
+      "close": 4797
+    },
+    {
+      "low": 4796.25,
+      "high": 4797.75,
+      "open": 4796.75,
+      "time": 1702920300,
+      "close": 4797.5
+    },
+    {
+      "low": 4796.75,
+      "high": 4798,
+      "open": 4797.5,
+      "time": 1702920600,
+      "close": 4797.25
+    },
+    {
+      "low": 4795.5,
+      "high": 4797.5,
+      "open": 4797.25,
+      "time": 1702920900,
+      "close": 4796
+    },
+    {
+      "low": 4794.75,
+      "high": 4796.5,
+      "open": 4796,
+      "time": 1702921200,
+      "close": 4796
+    },
+    {
+      "low": 4795.25,
+      "high": 4796.25,
+      "open": 4796,
+      "time": 1702921500,
+      "close": 4795.5
+    }
+  ],
+  "setup_bar_index": 2,
+  "confirmation_bar_index": 5,
+  "entry_bar_index": 8,
+  "entry_price": 4785.5,
+  "stop_price": 4782.875,
+  "target_price": 4790.75,
+  "exit_bar_index": 11,
+  "exit_price": 4790.75,
+  "result_points": 5.25,
+  "annotations": [
+    {
+      "type": "priceLine",
+      "color": "amber",
+      "label": "ORB High",
+      "phase": "setup",
+      "price": 4785.5
+    },
+    {
+      "type": "priceLine",
+      "color": "amber",
+      "label": "ORB Low",
+      "phase": "setup",
+      "price": 4780.25
+    },
+    {
+      "bar": 5,
+      "type": "arrow",
+      "color": "green",
+      "label": "Breakout",
+      "phase": "confirmation",
+      "price": 4786,
+      "direction": "up"
+    },
+    {
+      "type": "box",
+      "color": "blue",
+      "label": "Retest",
+      "phase": "confirmation",
+      "toBar": 8,
+      "fromBar": 7,
+      "toPrice": 4785.5,
+      "fromPrice": 4790.75
+    },
+    {
+      "bar": 8,
+      "type": "arrow",
+      "color": "green",
+      "label": "Entry",
+      "phase": "entry",
+      "price": 4785.5,
+      "direction": "up"
+    },
+    {
+      "type": "priceLine",
+      "color": "red",
+      "label": "Stop",
+      "phase": "entry",
+      "price": 4782.875
+    },
+    {
+      "type": "priceLine",
+      "color": "green",
+      "label": "Target",
+      "phase": "entry",
+      "price": 4790.75
+    },
+    {
+      "bar": 11,
+      "text": "Target hit +5.25 pts",
+      "type": "label",
+      "color": "green",
+      "phase": "exit",
+      "price": 4790.75
+    }
+  ],
+  "is_active": true,
+  "created_at": "2026-07-06T14:06:12.319669+00:00"
+}
