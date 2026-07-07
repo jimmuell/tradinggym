@@ -186,22 +186,28 @@ export default function SlideImportDialog({
     const uploadedSlides: LessonSlide[] = [];
     try {
       let done = 0;
+      const bucket = isPrivate ? PRIVATE_BUCKET : PUBLIC_BUCKET;
       for (const p of selected) {
         const ext = p.blob.type === 'image/jpeg' ? 'jpg' : 'png';
         const filename = `slide-${Date.now()}-${p.index}.${ext}`;
         const path = `${user.id}/${lessonFolderId}/${filename}`;
         const { error } = await supabase.storage
-          .from(BUCKET)
+          .from(bucket)
           .upload(path, p.blob, { contentType: p.blob.type, upsert: false });
         if (error) throw error;
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        // For private uploads, store a stable "private://<path>" marker so the
+        // renderer knows to swap in a short-lived signed URL. For public
+        // uploads, keep the full CDN URL (backwards compatible).
+        const image_url = isPrivate
+          ? `private://${path}`
+          : supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl;
         uploadedSlides.push({
           id: crypto.randomUUID(),
           title: `Slide ${uploadedSlides.length + 1}`,
           body: '',
           bullet_points: [],
           tip: '',
-          image_url: pub.publicUrl,
+          image_url,
           type: 'imported',
         });
         done++;
