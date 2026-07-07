@@ -8,33 +8,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFoundationLessons, useLesson } from '@/hooks/useLessons';
 import { useQuizByModule } from '@/hooks/useQuizzes';
-import { usePromoteTier } from '@/hooks/usePromoteTier';
+import { useGraduateFoundation } from '@/hooks/useGraduateFoundation';
+import { useMarkLessonComplete } from '@/hooks/useLessonProgress';
 import { useTier } from '@/contexts/TierContext';
 import LessonRenderer from '@/components/learning/LessonRenderer';
 import QuizRunner from '@/components/learning/QuizRunner';
 import RiskAcknowledgmentModal from '@/components/learning/RiskAcknowledgmentModal';
-
-const STORAGE_KEY = 'completedLessons';
-
-function markComplete(lessonId: string) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const arr: string[] = raw ? JSON.parse(raw) : [];
-    if (!arr.includes(lessonId)) {
-      arr.push(lessonId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-  } catch {
-    // ignore
-  }
-}
 
 function QuizView() {
   const navigate = useNavigate();
   const { data: quiz, isLoading } = useQuizByModule('foundation');
   const { data: lessons } = useFoundationLessons();
   const { user } = useAuth();
-  const promote = usePromoteTier();
+  const graduate = useGraduateFoundation();
   const { currentTier } = useTier();
   const [promotionMessage, setPromotionMessage] = useState<string | null>(null);
   const [showRiskModal, setShowRiskModal] = useState(false);
@@ -62,9 +48,11 @@ function QuizView() {
   }, [lessons]);
 
   function doPromote() {
-    promote.mutate('tier1', {
-      onSuccess: () => {
-        setPromotionMessage("Welcome to Price Action — the Simulator is now unlocked!");
+    graduate.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.success) {
+          setPromotionMessage("Welcome to Price Action — the Simulator is now unlocked!");
+        }
       },
     });
   }
@@ -134,6 +122,7 @@ function QuizView() {
 function LessonView({ lessonId }: { lessonId: string }) {
   const navigate = useNavigate();
   const { data: lesson, isLoading, isError } = useLesson(lessonId);
+  const markComplete = useMarkLessonComplete();
 
   useEffect(() => {
     if (!isLoading && (isError || !lesson)) {
@@ -168,8 +157,9 @@ function LessonView({ lessonId }: { lessonId: string }) {
       <LessonRenderer
         lesson={lesson}
         onComplete={() => {
-          markComplete(lesson.id);
-          navigate('/learning/foundation');
+          markComplete.mutate(lesson.id, {
+            onSettled: () => navigate('/learning/foundation'),
+          });
         }}
       />
     </div>

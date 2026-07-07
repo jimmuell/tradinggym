@@ -1,166 +1,73 @@
-## Split-bucket hardening for lesson media (v5 — final, Zod fix)
+## Context
 
-Only **guru class media** goes private/signed. Platform Tier 1/2/3 lessons stay on the public bucket (progression-gated funnel). SQL-side `LIKE … ESCAPE '\'` is the authoritative defense against wildcard metacharacters in paths; the edge validator rejects only characters that are never valid in a storage path.
+Confirmed: this is TradingGYM Web. The bug is real and reproducible in the codebase:
 
-**Preflight confirmed:** `lesson-assets` has **0 objects** and **0 lesson rows** reference it. A final re-check is a **hard gate** immediately before the migration executes.
+- `src/pages/learning/FoundationLesson.tsx`, `src/components/learning/TierLessonList.tsx`, and `src/components/dashboard/LearningProgressCard.tsx` all read/write a single global `localStorage["completedLessons"]` array — not scoped per user.
+- `src/hooks/usePromoteTier.ts` (called from `FoundationLesson.tsx` after the quiz) drives graduation from the client. Even though a server RPC `promote_tier` exists, `profiles` currently allows self-updates of `tier_state` (see `update_own_profile` and the profile RLS), so the client can also just PATCH `tier_state` directly.
+- `starter@gmail.com` (`ee1dbf66-…`) sits at `tier_state='tier1'` with zero `quiz_attempts` — matches the leak.
 
----
+## Plan
 
-## What changes
+### 1. Server-side per-user lesson progress
 
-### 1. Buckets
-- **`lesson-assets`** — stays **public**. All platform lessons (Foundation + Tier 1/2/3), marketing. Scanner may re-flag it as public — expected and documented in security memory.
-- **`lesson-assets-private`** — **new**, **private**. Guru class media only. Paid gate = `class_enrollments.status = 'active'`.
+Migration:
+- `create table public.lesson_progress (user_id uuid references auth.users on delete cascade, lesson_id uuid references public.lessons(id) on delete cascade, completed_at timestamptz not null default now(), primary key (user_id, lesson_id))`
+- `GRANT SELECT, INSERT, DELETE ON public.lesson_progress TO authenticated; GRANT ALL ON public.lesson_progress TO service_role;`
+- Enable RLS. Policies:
+  - `select` where `user_id = auth.uid()`
+  - `insert` with check `user_id = auth.uid()`
+  - (no update; delete self only — needed for "reset progress")
 
-### 2. Storage RLS on `lesson-assets-private`
-- **Write:** owner-only — `(storage.foldername(name))[1] = auth.uid()::text`. Matches SlideImportDialog's `{user_id}/{lessonFolderId}/…` layout.
-- **Read:** denied to `anon` and `authenticated`. Reads happen only via signed URLs from the edge function.
-- `service_role`: full access for edge functions and cleanup.
+### 2. `graduate_foundation()` (SECURITY DEFINER)
 
-### 3. Slides JSON marker format — **stable contract**
-Every private slide reference is stored as a JSON **string value** exactly matching:
+- Verifies for `auth.uid()`:
+  - a `quiz_attempts` row exists with `passed=true` for the quiz whose `module='foundation'`
+  - every published Foundation lesson (`lessons where tier_required='foundation' and content_type='platform' and is_published=true`) has a matching `lesson_progress` row
+- On success: `update profiles set tier_state='tier1' where user_id=auth.uid() and tier_state='foundation'`; returns `jsonb {success:true}`.
+- On failure: returns `{success:false, error, missing_lessons?, quiz_passed?}` — no exception, so UI can show reason.
+- `GRANT EXECUTE ... TO authenticated`.
 
-```
-"private://<user_id>/<lesson_folder_id>/<filename>"
-```
+### 3. Lock down `profiles.tier_state`
 
-- Always `private://` scheme; byte-for-byte equal to the storage path passed to `.upload()`.
-- Public slides continue to store a full `https://…lesson-assets/…` URL. Anything not starting with `private://` is treated as public and passed through unchanged.
-- The follow-up normalized `lesson_assets(path, lesson_id, class_id)` table (see §7) MUST derive `path` from this marker (minus the `private://` scheme) — no reformatting.
+- Drop/replace the profiles `UPDATE` policy so `tier_state` (and `plan_state`, `role`) cannot be changed by the user directly. Simplest: keep the existing `update_own_profile` RPC as the only client path for `display_name` / `avatar_url` / `risk_acknowledged_at`, and change the UPDATE policy on `profiles` to allow the user to update their row only when `tier_state`, `plan_state`, and `role` are unchanged (`OLD.tier_state IS NOT DISTINCT FROM NEW.tier_state AND ...`).
+- Also harden existing `promote_tier()` — keep it, but Foundation → Tier1 path will only be reachable via `graduate_foundation()` from the UI. Leave tier2/tier3 promotion logic as-is (already server-verified against trades/win rate).
 
-### 4. Entitlement gate
+### 4. Frontend changes (all UI-only, no business-logic drift)
 
-```sql
-CREATE OR REPLACE FUNCTION public.can_access_guru_asset(
-  _user_id uuid,
-  _path    text
-) RETURNS boolean
-LANGUAGE plpgsql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_class_id uuid;
-  v_escaped  text;
-BEGIN
-  IF _user_id IS NULL OR _path IS NULL OR _path = '' THEN
-    RETURN false;
-  END IF;
+- New hook `src/hooks/useLessonProgress.ts`:
+  - `useCompletedLessonIds()` — React Query, `select lesson_id from lesson_progress where user_id = auth.uid()`.
+  - `useMarkLessonComplete()` — inserts `{user_id, lesson_id}` (upsert on conflict do nothing), invalidates the query.
+- Replace the three localStorage read/write sites:
+  - `FoundationLesson.tsx` — `markComplete` → `useMarkLessonComplete().mutate(lesson.id)`.
+  - `TierLessonList.tsx` — read from `useCompletedLessonIds()` instead of localStorage.
+  - `LearningProgressCard.tsx` — same.
+- `FoundationLesson.tsx` `doPromote()` currently calls `promote.mutate('tier1', ...)` (which hits `promote_tier`). Change the Foundation → Tier1 path to call new `useGraduateFoundation()` hook that invokes `graduate_foundation()` RPC. Show returned error message via toast if unmet.
+- `AuthContext`: on `SIGNED_IN` / `SIGNED_OUT`, purge any legacy `completedLessons` key and invalidate the lesson-progress query so no cross-account bleed.
+- One-time client migration: on first mount with a session, if the legacy `localStorage.completedLessons` exists, drop it (do NOT import — server is now source of truth; users just re-complete or an admin can backfill).
 
-  -- (a) Owner of the folder wins (guru editing own material).
-  IF (string_to_array(_path, '/'))[1] = _user_id::text THEN
-    RETURN true;
-  END IF;
+### 5. Data cleanup (in the same migration)
 
-  -- (b) Authoritative check: locate the guru lesson whose slides JSON
-  -- references this exact path via the "private://<path>" marker.
-  -- Escape LIKE metacharacters so filenames containing %/_ still match literally
-  -- and a crafted path cannot wildcard the pattern.
-  v_escaped := replace(replace(replace(_path, '\', '\\'), '%', '\%'), '_', '\_');
+- `update profiles set tier_state='foundation' where user_id='ee1dbf66-8981-4ad1-ac33-2a253ede224d';`
+- Also reset any profile with `tier_state <> 'foundation'` where no passing `quiz_attempts` exists (broader audit fix — matches the prompt's audit query).
 
-  SELECT l.class_id
-  INTO v_class_id
-  FROM public.lessons l
-  WHERE l.content_type = 'guru'
-    AND l.is_published = true
-    AND l.slides::text LIKE '%"private://' || v_escaped || '"%' ESCAPE '\'
-  LIMIT 1;
+### 6. Publish + verify on Published tab
 
-  IF v_class_id IS NULL THEN
-    RETURN false;
-  END IF;
+Playwright script from the sandbox against the published URL:
+- (a) Sign in as account A that just graduated → sign out → sign in as fresh account B in same browser context → confirm Foundation shows 0/N and `/simulator` route is gated.
+- (b) In DevTools console via Playwright, `localStorage.setItem('completedLessons', JSON.stringify([...]))` and attempt a direct `supabase.from('profiles').update({tier_state:'tier1'})` — confirm both fail to unlock (RLS rejects the update; UI still shows locked).
+- (c) Complete lessons + pass quiz on account B → `graduate_foundation()` succeeds → Simulator unlocks.
 
-  -- (c) Active enrollment in the owning class.
-  RETURN EXISTS (
-    SELECT 1 FROM public.class_enrollments ce
-    WHERE ce.class_id = v_class_id
-      AND ce.student_id = _user_id
-      AND ce.status = 'active'
-  );
-END;
-$$;
+## Technical details
 
-REVOKE ALL ON FUNCTION public.can_access_guru_asset(uuid, text) FROM public;
-GRANT EXECUTE ON FUNCTION public.can_access_guru_asset(uuid, text) TO service_role;
-```
+**Files touched:**
+- New migration (table + RLS + `graduate_foundation` fn + profiles UPDATE policy tightening + data cleanup)
+- New: `src/hooks/useLessonProgress.ts`, `src/hooks/useGraduateFoundation.ts`
+- Edited: `src/pages/learning/FoundationLesson.tsx`, `src/components/learning/TierLessonList.tsx`, `src/components/dashboard/LearningProgressCard.tsx`, `src/contexts/AuthContext.tsx`
 
-All must-fixes folded: takes `_user_id` explicitly (no `auth.uid()` in service-role context), resolves a real lesson row that references the exact path (no path-parsing to authority), `SET search_path = public`. `getClaims(jwt)` in `@supabase/supabase-js` v2 cryptographically verifies the JWT signature against the project JWKS.
+**Not touched:** tier2/tier3 promotion logic, simulator/strategies/analytics gating (already reads `tier_state` from server via `TierContext`), quiz flow itself.
 
-### 5. Signed-URL edge function
+**Risk:** existing users who legitimately completed Foundation via localStorage will lose visible progress until they re-complete lessons (server has no record). Acceptable — same fix the prompt specifies, and `starter@gmail.com`-class accounts are the target. Existing users already at `tier_state='tier1'+` with passing quiz attempts are unaffected (only the illegitimate ones get reset by the audit query).
 
-`supabase/functions/sign-guru-asset/index.ts`:
-- CORS via `npm:@supabase/supabase-js@2/cors`.
-- JWT verification via `supabase.auth.getClaims(token)`; `userId = claims.sub`.
-- Input validation — **rejects only characters that are never valid in a storage path**; `%` and `_` are allowed because they're common in filenames and the SQL `ESCAPE '\'` neutralizes them:
+## Report format
 
-  ```ts
-  const PathSchema = z.string()
-    .min(1).max(512)
-    .refine(p => !p.includes('..'),       'path traversal not allowed')
-    .refine(p => !p.startsWith('/'),      'leading slash not allowed')
-    .refine(p => !/[\s\x00-\x1f]/.test(p), 'whitespace or control character not allowed')
-    .refine(p => !p.includes('\\'),        'backslash not allowed');
-
-  const BodySchema = z.object({ paths: z.array(PathSchema).min(1).max(50) });
-  ```
-
-  SQL-side `ESCAPE '\'` in §4 is the authoritative defense against LIKE metacharacters — the edge validator is not repeating that job.
-- For each path: `can_access_guru_asset(userId, path)` via service-role client, then `createSignedUrl(path, 300)` for allowed paths.
-- Response: `{ signed: Record<path, { url, expiresAt }>, denied: string[] }`.
-
-**TTL 300s (5 min).**
-
-### 6. Client changes
-- **`SlideImportDialog.tsx`** — new prop `isPrivate: boolean`. When `true`: upload to `lesson-assets-private`, store `image_url = 'private://' + storagePath` (byte-for-byte the path passed to `.upload()`).
-- **`GuruLessonFormPage.tsx`** — passes `isPrivate={true}`.
-- **`useGuruLessons.ts`** — cleanup lists/removes under `{user_id}/{lessonId}/` from **both** buckets.
-- **`useSignedGuruAssets(paths[])`** — React Query hook. `staleTime: 3 * 60 * 1000`, `refetchInterval: 3.5 * 60 * 1000` so URLs rotate ~90s before the 5-min TTL expires. Key `['guru-signed-urls', lessonId, userId]`.
-- **`LessonRenderer.tsx` / `StudentLessonPage.tsx`** — collect all `private://…` paths from current lesson slides in one call. Render `<img src={resolved[path] ?? previousResolved.current[path]}>` and update `previousResolved` after each successful refetch — seamless mid-view URL swap.
-
-### 7. Follow-up filed (not a blocker)
-`docs/FOLLOWUP_lesson_assets_index.md` — normalized `lesson_assets(path, lesson_id, class_id)` with index on `path`, populated in `useSaveGuruLesson`. Preserves the `private://<path>` marker as source of truth. Swap `can_access_guru_asset` to indexed lookup once table exists.
-
-### 8. Security finding + memory
-- Mark `lesson_assets_bucket_open_read` as **fixed** — sensitive (enrollment-gated) media relocated; `lesson-assets` intentionally public for platform/marketing.
-- Update `mem://security-memory`: two-bucket model, platform tier funnel is progression-gated (not paywalled), future re-flags on `lesson-assets` are expected, `private://<path>` marker is a stable contract.
-
-### 9. Publish
-Build green → `preview_ui--publish` → multi-reload check on published URL.
-
----
-
-## Execution ordering
-
-1. **Empty-bucket re-check as hard gate** — two SELECTs. Nonzero → stop and re-scope.
-2. `supabase--storage_create_bucket lesson-assets-private public=false`.
-3. `supabase--migration` (function + storage RLS) → **you review and approve**.
-4. Edge function.
-5. Client code.
-6. Mark finding fixed; update security memory.
-7. Publish.
-
-## Files touched
-
-```text
-NEW  supabase/functions/sign-guru-asset/index.ts
-NEW  src/hooks/useSignedGuruAssets.ts
-NEW  docs/FOLLOWUP_lesson_assets_index.md
-EDIT src/components/guru/SlideImportDialog.tsx    (isPrivate prop, marker storage)
-EDIT src/pages/guru/GuruLessonFormPage.tsx       (isPrivate=true)
-EDIT src/hooks/useGuruLessons.ts                  (dual-bucket cleanup)
-EDIT src/components/learning/LessonRenderer.tsx   (private:// resolution + no-flicker swap)
-EDIT src/pages/StudentLessonPage.tsx              (wire useSignedGuruAssets)
-DB   migration (user-approved): can_access_guru_asset + storage.objects RLS on lesson-assets-private
-TOOL supabase--storage_create_bucket lesson-assets-private (public=false)
-TOOL security--manage_security_finding: mark_as_fixed
-TOOL security--update_memory
-TOOL preview_ui--publish
-```
-
-## Out of scope
-- Platform Tier 1/2/3 slides — public bucket.
-- Foundation, marketing, avatars — unchanged.
-- `investor-docs` — unchanged.
-- Normalized `lesson_assets` index — follow-up doc.
-- No data migration — bucket confirmed empty; hard-gated re-check before step 2.
+Will end with the exact `foundation-gate-fix — Completed` line and the three-item report.

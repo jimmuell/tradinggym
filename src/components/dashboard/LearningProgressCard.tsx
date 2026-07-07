@@ -5,12 +5,10 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowRight, Lock, Check, Circle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { TierState } from '@/contexts/TierContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { getTierDisplayName } from '@/lib/tierUtils';
 import { useFoundationLessons } from '@/hooks/useLessons';
+import { useCompletedLessonIds } from '@/hooks/useLessonProgress';
 import { toast } from 'sonner';
 
 const FOUNDATION_MODULES = [
@@ -73,24 +71,10 @@ const tierIndex = (t: TierState) => TIER_ORDER.indexOf(t);
 
 export default function LearningProgressCard({ currentTier, planState }: LearningProgressCardProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const showBadges = planState !== 'starter' && currentTier !== 'coach';
 
   const { data: foundationLessons } = useFoundationLessons();
-
-  const { data: completedLessonIds = [] } = useQuery({
-    queryKey: ['completed-lessons-local'],
-    queryFn: () => {
-      try {
-        const raw = localStorage.getItem('completedLessons');
-        return raw ? (JSON.parse(raw) as string[]) : [];
-      } catch {
-        return [];
-      }
-    },
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: completedLessonIds = [] } = useCompletedLessonIds();
 
   const foundationCompletedCount =
     foundationLessons?.filter((l) => completedLessonIds.includes(l.id)).length ?? 0;
