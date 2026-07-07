@@ -106,6 +106,20 @@ export default function LessonRenderer({ lesson, isLoading, onComplete }: Lesson
   const isLast = index === total - 1;
   const isFirst = index === 0;
 
+  // Collect all `private://` paths in this lesson so we sign them in one
+  // batched call. Public URLs pass through unchanged.
+  const privatePaths = useMemo(() => {
+    const paths: string[] = [];
+    for (const s of slides) {
+      if (s.image_url?.startsWith(PRIVATE_PREFIX)) {
+        paths.push(s.image_url.slice(PRIVATE_PREFIX.length));
+      }
+    }
+    return paths;
+  }, [slides]);
+
+  const { resolved: signed } = useSignedGuruAssets(lesson?.id, privatePaths);
+
   // Apply ?slide=N once per loaded lesson so internal Next/Prev navigation isn't overridden by the URL.
   const appliedForLessonRef = useRef<string | null>(null);
   useEffect(() => {
