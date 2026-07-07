@@ -1852,6 +1852,10 @@ export type Database = {
         Args: { _application_id: string }
         Returns: undefined
       }
+      can_access_guru_asset: {
+        Args: { _path: string; _user_id: string }
+        Returns: boolean
+      }
       fail_stale_backtests: { Args: never; Returns: number }
       get_admin_detailed_stats: { Args: never; Returns: Json }
       get_admin_guru_applications: {
