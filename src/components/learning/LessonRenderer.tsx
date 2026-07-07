@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,9 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Lightbulb, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import type { Lesson, LessonSlide } from '@/hooks/useLessons';
+import { useSignedGuruAssets, type SignedGuruAssetMap } from '@/hooks/useSignedGuruAssets';
+
+const PRIVATE_PREFIX = 'private://';
 
 interface LessonRendererProps {
   lesson: Lesson | null | undefined;
