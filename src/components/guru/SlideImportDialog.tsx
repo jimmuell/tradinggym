@@ -78,6 +78,7 @@ export default function SlideImportDialog({
   open,
   onOpenChange,
   lessonFolderId,
+  isPrivate = false,
   onImported,
 }: SlideImportDialogProps) {
   const { user } = useAuth();
