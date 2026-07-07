@@ -148,26 +148,30 @@ export function useDeleteGuruLesson() {
         .eq('author_id', user.id);
       if (error) throw error;
 
-      // Best-effort cleanup of any imported slide assets in storage.
+      // Best-effort cleanup of imported slide assets in both buckets.
       // Failures are logged but never block the lesson deletion.
-      try {
-        const folder = `${user.id}/${lessonId}`;
-        const { data: files, error: listError } = await supabase.storage
-          .from('lesson-assets')
-          .list(folder, { limit: 1000 });
-        if (listError) {
-          console.warn('lesson-assets list failed:', listError);
-        } else if (files && files.length > 0) {
-          const paths = files.map((f) => `${folder}/${f.name}`);
-          const { error: removeError } = await supabase.storage
-            .from('lesson-assets')
-            .remove(paths);
-          if (removeError) {
-            console.warn('lesson-assets cleanup failed:', removeError);
+      const folder = `${user.id}/${lessonId}`;
+      for (const bucket of ['lesson-assets', 'lesson-assets-private'] as const) {
+        try {
+          const { data: files, error: listError } = await supabase.storage
+            .from(bucket)
+            .list(folder, { limit: 1000 });
+          if (listError) {
+            console.warn(`${bucket} list failed:`, listError);
+            continue;
           }
+          if (files && files.length > 0) {
+            const paths = files.map((f) => `${folder}/${f.name}`);
+            const { error: removeError } = await supabase.storage
+              .from(bucket)
+              .remove(paths);
+            if (removeError) {
+              console.warn(`${bucket} cleanup failed:`, removeError);
+            }
+          }
+        } catch (e) {
+          console.warn(`${bucket} cleanup threw:`, e);
         }
-      } catch (e) {
-        console.warn('lesson-assets cleanup threw:', e);
       }
     },
     onSuccess: () => {
