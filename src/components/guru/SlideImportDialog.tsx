@@ -39,6 +39,13 @@ interface SlideImportDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Stable folder id used as the storage subfolder under {user_id}/. */
   lessonFolderId: string;
+  /**
+   * When true, uploads go to the private bucket and slide.image_url stores a
+   * `private://<path>` marker that must be resolved via signed URL at render
+   * time. When false (default), uploads go to the public bucket and slide
+   * image_url stores a full public URL — backwards compatible.
+   */
+  isPrivate?: boolean;
   onImported: (slides: LessonSlide[]) => void;
 }
 
