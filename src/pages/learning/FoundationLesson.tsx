@@ -20,7 +20,7 @@ function QuizView() {
   const { data: quiz, isLoading } = useQuizByModule('foundation');
   const { data: lessons } = useFoundationLessons();
   const { user } = useAuth();
-  const promote = usePromoteTier();
+  const graduate = useGraduateFoundation();
   const { currentTier } = useTier();
   const [promotionMessage, setPromotionMessage] = useState<string | null>(null);
   const [showRiskModal, setShowRiskModal] = useState(false);
@@ -48,9 +48,11 @@ function QuizView() {
   }, [lessons]);
 
   function doPromote() {
-    promote.mutate('tier1', {
-      onSuccess: () => {
-        setPromotionMessage("Welcome to Price Action — the Simulator is now unlocked!");
+    graduate.mutate(undefined, {
+      onSuccess: (result) => {
+        if (result.success) {
+          setPromotionMessage("Welcome to Price Action — the Simulator is now unlocked!");
+        }
       },
     });
   }
