@@ -188,7 +188,7 @@ export default function LessonRenderer({ lesson, isLoading, onComplete }: Lesson
 
       <Card>
         <CardContent className="pt-6 pb-6">
-          <SlideView slide={slide} />
+          <SlideView slide={slide} signed={signed} />
         </CardContent>
       </Card>
 
