@@ -21,7 +21,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-const BUCKET = 'lesson-assets';
+const PUBLIC_BUCKET = 'lesson-assets';
+const PRIVATE_BUCKET = 'lesson-assets-private';
 const MAX_PDF_SIZE = 20 * 1024 * 1024;
 const MAX_IMG_SIZE = 5 * 1024 * 1024;
 const MAX_IMG_COUNT = 50;
