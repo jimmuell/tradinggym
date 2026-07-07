@@ -1,67 +1,46 @@
-## Make ORB Blueprint checklist phase-aware and visible during playback
+## Goal
+E2E verify the guided ORB walkthrough on the published URL (https://keen-chart-clone.lovable.app) as a Starter user. Test-only — no code changes.
 
-Frontend-only. No schema, no trade-save changes, no ChartContainer changes.
+## Approach
+Drive the live published app with Playwright (headless Chromium) from the sandbox. Capture a screenshot at each of the 5 checkpoints and assert the required UI state, then report pass/fail per checkpoint.
 
-### 1. `src/components/chart/BlueprintChecklist.tsx` — rework component
+## Steps
 
-Keep existing `onStepsChange` and `resetKey` props (Simulator's `blueprintResetKey` still drives reset). Add new optional props:
+1. **Setup script** at `/tmp/browser/promptM/run.py`:
+   - Launch Chromium headless, viewport 1280x1800.
+   - Navigate to `https://keen-chart-clone.lovable.app/auth`.
+   - Click the DEV auto-login "Starter" button.
+   - Wait for redirect to a dashboard/simulator route.
+   - Navigate to `/simulator?playback=db83bd35-4bdf-4dc4-a93b-4894e33ee537`.
 
-```ts
-mode?: 'manual' | 'guided';           // default 'manual'
-currentPhase?: PlaybackPhase;
-showMe?: boolean;
-onShowMeChange?: (v: boolean) => void;
-```
+2. **Checkpoint 1 — Pre-Start**
+   - Screenshot `01_prestart.png`.
+   - Assert: "Start walkthrough" button visible; top stepper shows 6 beat labels (Mark Opening Range … Execute & Review); all 6 checklist items unchecked; only first candle visible (no EMA/SMA overlay line, chart framed to bar 0).
 
-Import from `@/lib/playbackTypes`: `PlaybackPhase`, `PLAYBACK_PHASES`, `phaseToBarIndex`.
+3. **Checkpoint 2 — Beat 1**
+   - Click "Start walkthrough". Screenshot `02_beat1.png`.
+   - Assert: step 1 checked, steps 2–6 unchecked; chart shows ~3 opening-range candles; ORB High 4785.50 and ORB Low 4780.25 price lines visible; opening-range band rendered; coach note text present.
 
-Add step→phase map:
-```ts
-const STEP_PHASE: PlaybackPhase[] =
-  ['setup','confirmation','confirmation','confirmation','entry','exit'];
-```
+4. **Checkpoint 3 — Beats 2→4**
+   - Click stepper beat 2 → screenshot `03_beat2.png`; assert exactly steps 1–2 checked; breakout label visible.
+   - Click beat 3 → screenshot `03_beat3.png`; assert steps 1–3 checked; retest zone at ORB High visible.
+   - Click beat 4 → screenshot `03_beat4.png`; assert steps 1–4 checked.
 
-Derived-checked logic:
-- When `mode === 'guided'` OR `showMe === true`, compute `derived[i] = PLAYBACK_PHASES.indexOf(currentPhase) >= PLAYBACK_PHASES.indexOf(STEP_PHASE[i])`. Render checkboxes disabled (read-only) using `derived` instead of local `checked`. Sequential visual lock still applies.
-- When `mode === 'manual'` AND `!showMe`, keep the current click-to-check behavior untouched.
-- Fire `onStepsChange` for both branches so `blueprintSteps` stays accurate for the trade save.
+5. **Checkpoint 4 — Beat 5**
+   - Click beat 5. Screenshot `04_beat5.png`.
+   - Assert: step 5 checked; Entry 4785.50, Stop 4783.00, Target 4790.75 labels; green profit + red risk zones; R/R badge showing ~2:1.
 
-Header additions:
-- Render a small "Show me" `<Checkbox>` + label in the panel header ONLY when `currentPhase !== undefined`. Calls `onShowMeChange`.
-- Keep existing Reset button and "Blueprint Complete" state (based on whichever source is active).
+6. **Checkpoint 5 — Beat 6**
+   - Click beat 6. Screenshot `05_beat6_start.png`.
+   - Click "Next candle" in a loop until outcome banner appears (or ~20 max). Screenshot `05_beat6_resolved.png`.
+   - Assert: "Target hit +5.25 pts" text; step 6 checked; Blueprint Complete banner with "Try It Yourself" and "Replay" buttons.
 
-### 2. `src/pages/Simulator.tsx` — wire it up
+7. **Report**
+   - View each screenshot via `code--view` for visual confirmation.
+   - Emit pass/fail + screenshot path per checkpoint 1–5, list discrepancies, flag issues, end with `Prompt M — Completed`.
 
-- Add `const [showMe, setShowMe] = useState(false);`
-- Remove the `{!isPlaybackMode && ...}` gate around `<BlueprintChecklist>` so it renders in playback too. Pass:
-  ```tsx
-  <BlueprintChecklist
-    onStepsChange={setBlueprintSteps}
-    resetKey={blueprintResetKey}
-    mode={isPlaybackMode ? 'guided' : 'manual'}
-    currentPhase={isPlaybackMode || isPracticeWithScenario ? playback.phase : undefined}
-    showMe={showMe}
-    onShowMeChange={setShowMe}
-  />
-  ```
-- Practice mode (`isPracticeWithScenario`, already defined) with `showMe` on: derive the effective phase from the current visible bar count using `phaseToBarIndex(phase, scenario)` — walk `PLAYBACK_PHASES` and pick the highest phase whose target index ≤ `playbackBarCount` (fallback to `'context'`). Pass that computed phase as `currentPhase` instead of `playback.phase` in the practice branch.
-- When `isPracticeWithScenario && showMe`, also mount `<AnnotationLayer>` inside `playbackChildren` (mirroring the playback branch's pattern) so on-chart hints appear. Do NOT mount `PlaybackOverlay` in practice mode.
-
-### Files touched
-
-```text
-src/components/chart/BlueprintChecklist.tsx   props + guided/showMe logic + header toggle
-src/pages/Simulator.tsx                        render in all modes; showMe state; practice AnnotationLayer
-```
-
-### Out of scope (do not touch)
-
-Trade save mutation, `steps_completed`, DB schema, `TradeOrderPanel`, `ChartContainer` internals, `src/components/checklist/*` template system, `AnnotationLayer` / `PlaybackOverlay` internals.
-
-### Verify on published URL (https://keen-chart-clone.lovable.app)
-
-- `/simulator?playback=db83bd35-4bdf-4dc4-a93b-4894e33ee537` — checklist visible; steps auto-check as phases advance (setup→1, confirmation→2-4, entry→5, exit→6). Checkboxes read-only.
-- `/simulator?playback=db83bd35-4bdf-4dc4-a93b-4894e33ee537&practice=1` — checklist starts empty and clickable. Toggling "Show me" on reveals annotations and lights steps as bars advance past each phase index. Toggling off returns to manual.
-- `/simulator` (no scenario) — unchanged: manual checklist, no "Show me" toggle, no annotations.
-
-Publish → Update after edit.
+## Technical notes
+- Use `page.get_by_role`, `page.get_by_text` with regex for stable selectors.
+- Since Playwright runs against the published URL (not localhost), no Supabase session injection is needed — DEV auto-login button handles auth in-app.
+- Redirect one Playwright shell run per turn; patch script with `sed -i` if a selector misses rather than rewriting.
+- Screenshots saved under `/tmp/browser/promptM/screenshots/`. No project files touched.
