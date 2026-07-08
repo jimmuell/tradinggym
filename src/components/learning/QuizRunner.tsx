@@ -134,7 +134,9 @@ export default function QuizRunner({
     setSelected(null);
     setFinished(false);
     setSavedOnce(false);
+    setServerVerdict(null);
   }
+
 
   function scrollToReview() {
     const el = document.getElementById('quiz-review-section');
