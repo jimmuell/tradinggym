@@ -14,6 +14,7 @@ import { useTier, TierState } from '@/contexts/TierContext';
 import { useScenarioMatch } from '@/hooks/useScenarioMatch';
 import HelpSheet from '@/components/HelpSheet';
 import { PineExportModal } from '@/components/strategies/PineExportModal';
+import FeatureLockedScreen from '@/components/FeatureLockedScreen';
 
 interface Strategy {
   id: string;
@@ -187,10 +188,12 @@ function StrategyCard({
 export default function Strategies() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isUnlocked, currentTier } = useTier();
+  const { isUnlocked, currentTier, canAccess, loading: tierLoading } = useTier();
   const { toast } = useToast();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [exportStrategy, setExportStrategy] = useState<Strategy | null>(null);
+
+  const allowed = canAccess('strategies');
 
   const { data: systemStrategies, isLoading: loadingSystem } = useQuery({
     queryKey: ['strategies', 'system'],
@@ -264,6 +267,9 @@ export default function Strategies() {
     // simple first-match fallback (the hook scoring is fine for the badge state)
     navigate(`/simulator?playback=${scenarios[0].id}`);
   };
+
+  if (tierLoading) return null;
+  if (!allowed) return <FeatureLockedScreen featureName="Strategies" />;
 
   return (
     <div className="space-y-8">
