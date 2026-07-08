@@ -142,6 +142,7 @@ export default function Auth() {
 
   const DEV_ACCOUNTS: Array<{ label: string; email: string }> = [
     { label: 'Starter', email: 'starter@gmail.com' },
+    { label: 'S-grad', email: 'jamesloganmueller+sgrad@gmail.com' },
     { label: 'Pro', email: 'pro@gmail.com' },
     { label: 'Expert', email: 'expert@gmail.com' },
     { label: 'Guru', email: 'guru@gmail.com' },
@@ -362,7 +363,7 @@ export default function Auth() {
             <div className="text-[10px] font-mono uppercase tracking-wider text-yellow-500 mb-2">
               DEV ONLY · admin-toggled
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
               {DEV_ACCOUNTS.map((acct) => (
                 <Button
                   key={acct.email}
