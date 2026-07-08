@@ -142,6 +142,7 @@ export default function Auth() {
 
   const DEV_ACCOUNTS: Array<{ label: string; email: string }> = [
     { label: 'Starter', email: 'starter@gmail.com' },
+    { label: 'S-grad', email: 'jamesloganmueller+sgrad@gmail.com' },
     { label: 'Pro', email: 'pro@gmail.com' },
     { label: 'Expert', email: 'expert@gmail.com' },
     { label: 'Guru', email: 'guru@gmail.com' },
