@@ -24,6 +24,8 @@ import { EquityCurveChart } from '@/components/analytics/EquityCurveChart';
 import { DailyPnlChart } from '@/components/analytics/DailyPnlChart';
 import { WinLossStats } from '@/components/analytics/WinLossStats';
 import LiveTradingSection from '@/components/analytics/LiveTradingSection';
+import FeatureLockedScreen from '@/components/FeatureLockedScreen';
+import { useTier } from '@/contexts/TierContext';
 
 const fmtCurrency = (v: number) =>
   `${v < 0 ? '-' : ''}$${Math.abs(v).toFixed(2)}`;
@@ -71,6 +73,8 @@ function startOfWeekMon(d: Date): Date {
 }
 
 export default function Analytics() {
+  const { canAccess, loading: tierLoading } = useTier();
+  const allowed = canAccess('analytics');
   const [filter, setFilter] = useState<AnalyticsFilter>('all-time');
   const a = useAnalytics(filter);
   const [liveFilter, setLiveFilter] = useState<SessionAnalyticsFilter>('30d');
@@ -108,6 +112,9 @@ export default function Analytics() {
           }, 0) / completedSessions.length,
         )
       : 0;
+
+  if (tierLoading) return null;
+  if (!allowed) return <FeatureLockedScreen featureName="Analytics" />;
 
   return (
     <>
