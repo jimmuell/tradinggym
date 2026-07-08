@@ -46,6 +46,7 @@ export default function QuizRunner({
   const [selected, setSelected] = useState<number | null>(null);
   const [finished, setFinished] = useState(false);
   const [savedOnce, setSavedOnce] = useState(false);
+  const [serverVerdict, setServerVerdict] = useState<{ score: number; total: number; passed: boolean } | null>(null);
 
   const saveAttempt = useSaveQuizAttempt();
   const questions = quiz.questions;
@@ -53,9 +54,11 @@ export default function QuizRunner({
   const current = questions[index];
   const isLast = index === total - 1;
 
-  const score = answers.filter((a) => a.correct).length;
-  const percent = total > 0 ? Math.round((score / total) * 100) : 0;
-  const passed = percent >= quiz.pass_threshold;
+  const localScore = answers.filter((a) => a.correct).length;
+  const score = serverVerdict?.score ?? localScore;
+  const displayTotal = serverVerdict?.total ?? total;
+  const percent = displayTotal > 0 ? Math.round((score / displayTotal) * 100) : 0;
+  const passed = serverVerdict ? serverVerdict.passed : percent >= quiz.pass_threshold;
 
   const responses: QuizResponse[] = useMemo(() => {
     return answers.map((a) => {
@@ -82,27 +85,26 @@ export default function QuizRunner({
     if (!finished || savedOnce) return;
     setSavedOnce(true);
     if (previewMode) {
-      onComplete?.(score, total, passed);
-      if (passed) onPassed?.();
+      onComplete?.(localScore, total, percent >= quiz.pass_threshold);
+      if (percent >= quiz.pass_threshold) onPassed?.();
       return;
     }
     saveAttempt.mutate(
       {
         quiz_id: quiz.id,
-        score,
-        total_questions: total,
-        passed,
         answers,
         responses,
       },
       {
-        onSuccess: () => {
-          onComplete?.(score, total, passed);
-          if (passed) onPassed?.();
+        onSuccess: (result) => {
+          setServerVerdict({ score: result.score, total: result.total_questions, passed: result.passed });
+          onComplete?.(result.score, result.total_questions, result.passed);
+          if (result.passed) onPassed?.();
         },
       }
     );
-  }, [finished, savedOnce, saveAttempt, quiz.id, score, total, passed, answers, responses, onComplete, onPassed, previewMode]);
+  }, [finished, savedOnce, saveAttempt, quiz.id, quiz.pass_threshold, localScore, percent, total, answers, responses, onComplete, onPassed, previewMode]);
+
 
   function handleSelect(optIndex: number) {
     if (selected !== null) return;
@@ -132,7 +134,9 @@ export default function QuizRunner({
     setSelected(null);
     setFinished(false);
     setSavedOnce(false);
+    setServerVerdict(null);
   }
+
 
   function scrollToReview() {
     const el = document.getElementById('quiz-review-section');

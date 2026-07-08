@@ -2021,6 +2021,10 @@ export type Database = {
         Args: { _class_id: string }
         Returns: boolean
       }
+      submit_quiz_attempt: {
+        Args: { _answers: Json; _quiz_id: string }
+        Returns: Json
+      }
       sync_plan_state: {
         Args: {
           p_plan_state: string
