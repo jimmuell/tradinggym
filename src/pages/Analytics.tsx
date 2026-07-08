@@ -113,6 +113,9 @@ export default function Analytics() {
         )
       : 0;
 
+  if (tierLoading) return null;
+  if (!allowed) return <FeatureLockedScreen featureName="Analytics" />;
+
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
