@@ -1809,6 +1809,30 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          performance_reports: boolean
+          session_reminders: boolean
+          trade_alerts: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          performance_reports?: boolean
+          session_reminders?: boolean
+          trade_alerts?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          performance_reports?: boolean
+          session_reminders?: boolean
+          trade_alerts?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       guru_profiles_public: {
