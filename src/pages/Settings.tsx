@@ -60,7 +60,7 @@ export default function Settings() {
     const { error } = await supabase
       .from('user_settings')
       .upsert(
-        { user_id: user.id, [key]: value, updated_at: new Date().toISOString() },
+        [{ user_id: user.id, [key]: value, updated_at: new Date().toISOString() }],
         { onConflict: 'user_id' },
       );
     if (error) {
