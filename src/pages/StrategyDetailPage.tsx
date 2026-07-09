@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTier } from '@/contexts/TierContext';
+import { isFreePlan } from '@/lib/tierUtils';
 import { cn } from '@/lib/utils';
 
 // ---------- Constants & defaults ----------
@@ -321,6 +322,34 @@ export default function StrategyDetailPage() {
   const queryClient = useQueryClient();
 
   const isStarter = !isAdmin && planState === 'starter';
+  const userIsFree = !isAdmin && isFreePlan(planState);
+
+  // Preempt: Free users at their 1-strategy cap can't reach the blank form.
+  const { data: freeCapReached } = useQuery({
+    queryKey: ['strategies', 'user-count', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { count, error } = await supabase
+        .from('strategies')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_system', false);
+      if (error) throw error;
+      return (count ?? 0) >= 1;
+    },
+    enabled: isNew && userIsFree && !!user,
+  });
+
+  useEffect(() => {
+    if (isNew && userIsFree && freeCapReached) {
+      toast({
+        title: 'Upgrade to Pro',
+        description: 'Free plan is limited to 1 custom strategy. Upgrade to Pro to create more.',
+      });
+      navigate('/pricing', { replace: true });
+    }
+  }, [isNew, userIsFree, freeCapReached, navigate, toast]);
+
 
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -42,7 +42,7 @@ const tierBadgeColors: Record<string, string> = {
   tier3: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
 };
 
-import { TIER_DISPLAY_NAMES, getTierDisplayName } from '@/lib/tierUtils';
+import { TIER_DISPLAY_NAMES, getTierDisplayName, isFreePlan } from '@/lib/tierUtils';
 
 const tierLabels: Record<string, string> = TIER_DISPLAY_NAMES;
 
@@ -224,8 +224,19 @@ export default function Strategies() {
     enabled: !!user,
   });
 
-  const isFreePlan = !['pro', 'expert', 'guru', 'admin'].includes(planState);
-  const atCap = isFreePlan && (userStrategies?.length ?? 0) >= 1;
+  const atCap = isFreePlan(planState) && (userStrategies?.length ?? 0) >= 1;
+
+  const handleNewStrategyClick = () => {
+    if (atCap) {
+      toast({
+        title: 'Upgrade to Pro',
+        description: 'Free plan is limited to 1 custom strategy. Upgrade to Pro to create more.',
+      });
+      navigate('/pricing');
+      return;
+    }
+    navigate('/strategies/new');
+  };
 
   const filteredUserStrategies = (userStrategies ?? []).filter((s) => {
     if (sourceFilter === 'all') return true;
@@ -294,24 +305,10 @@ export default function Strategies() {
             <Sparkles className="h-4 w-4" />
             Extract from Transcript
           </Button>
-          {atCap ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button disabled className="gap-2 cursor-not-allowed">
-                    <Plus className="h-4 w-4" />
-                    New Strategy
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Upgrade to Pro to create unlimited strategies</TooltipContent>
-            </Tooltip>
-          ) : (
-            <Button className="gap-2" onClick={() => navigate('/strategies/new')}>
-              <Plus className="h-4 w-4" />
-              New Strategy
-            </Button>
-          )}
+          <Button className="gap-2" onClick={handleNewStrategyClick}>
+            <Plus className="h-4 w-4" />
+            {atCap ? 'Upgrade to Pro' : 'New Strategy'}
+          </Button>
         </div>
       </div>
 
@@ -396,12 +393,10 @@ export default function Strategies() {
                   ? 'Create your first strategy to document your trading rules.'
                   : 'Try a different filter or create a new strategy.'}
               </p>
-              {!atCap && (
-                <Button className="gap-2" onClick={() => navigate('/strategies/new')}>
-                  <Plus className="h-4 w-4" />
-                  Create Strategy
-                </Button>
-              )}
+              <Button className="gap-2" onClick={handleNewStrategyClick}>
+                <Plus className="h-4 w-4" />
+                {atCap ? 'Upgrade to Pro' : 'Create Strategy'}
+              </Button>
             </CardContent>
           </Card>
         )}
