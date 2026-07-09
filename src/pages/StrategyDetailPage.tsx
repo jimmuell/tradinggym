@@ -469,6 +469,15 @@ export default function StrategyDetailPage() {
       if (isNew && newId) navigate(`/strategies/${newId}`, { replace: true });
     },
     onError: (err: Error) => {
+      if (err.message?.includes('FREE_STRATEGY_LIMIT')) {
+        toast({
+          title: 'Upgrade to Pro',
+          description: 'Free plan is limited to 1 custom strategy. Upgrade to Pro to create more.',
+          variant: 'destructive',
+        });
+        navigate('/strategies');
+        return;
+      }
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     },
   });
