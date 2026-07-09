@@ -188,7 +188,7 @@ function StrategyCard({
 export default function Strategies() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isUnlocked, currentTier, canAccess, loading: tierLoading } = useTier();
+  const { isUnlocked, currentTier, canAccess, loading: tierLoading, planState } = useTier();
   const { toast } = useToast();
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [exportStrategy, setExportStrategy] = useState<Strategy | null>(null);
@@ -224,8 +224,8 @@ export default function Strategies() {
     enabled: !!user,
   });
 
-  const isFoundation = currentTier === 'foundation';
-  const atCap = isFoundation && (userStrategies?.length ?? 0) >= 1;
+  const isFreePlan = !['pro', 'expert', 'guru', 'admin'].includes(planState);
+  const atCap = isFreePlan && (userStrategies?.length ?? 0) >= 1;
 
   const filteredUserStrategies = (userStrategies ?? []).filter((s) => {
     if (sourceFilter === 'all') return true;
