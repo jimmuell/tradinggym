@@ -12,6 +12,17 @@ export function getTierDisplayName(tierState: string): string {
 
 export const TIER_ORDER = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
 
+export const PAID_PLANS = ['pro', 'expert', 'guru', 'admin'] as const;
+export type PaidPlan = typeof PAID_PLANS[number];
+
+/**
+ * Returns true for the Free plan. Stored plan_state for Free is 'starter'
+ * (not 'free') — plus any unknown value is treated as Free.
+ */
+export function isFreePlan(planState: string | null | undefined): boolean {
+  return !PAID_PLANS.includes(planState as PaidPlan);
+}
+
 export function getPlanName(planState: string): string {
   switch (planState) {
     case 'starter': return 'Free';
