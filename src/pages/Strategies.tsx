@@ -224,8 +224,9 @@ export default function Strategies() {
     enabled: !!user,
   });
 
-  const isFoundation = currentTier === 'foundation';
-  const atCap = isFoundation && (userStrategies?.length ?? 0) >= 1;
+  const { planState } = useTier();
+  const isFreePlan = !['pro', 'expert', 'guru', 'admin'].includes(planState);
+  const atCap = isFreePlan && (userStrategies?.length ?? 0) >= 1;
 
   const filteredUserStrategies = (userStrategies ?? []).filter((s) => {
     if (sourceFilter === 'all') return true;
