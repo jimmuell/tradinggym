@@ -57,12 +57,16 @@ export default function Settings() {
     if (!user) return;
     const prev = notif[key];
     setNotif((s) => ({ ...s, [key]: value }));
+    const row = {
+      user_id: user.id,
+      trade_alerts: key === 'trade_alerts' ? value : notif.trade_alerts,
+      session_reminders: key === 'session_reminders' ? value : notif.session_reminders,
+      performance_reports: key === 'performance_reports' ? value : notif.performance_reports,
+      updated_at: new Date().toISOString(),
+    };
     const { error } = await supabase
       .from('user_settings')
-      .upsert(
-        [{ user_id: user.id, [key]: value, updated_at: new Date().toISOString() }],
-        { onConflict: 'user_id' },
-      );
+      .upsert(row, { onConflict: 'user_id' });
     if (error) {
       setNotif((s) => ({ ...s, [key]: prev }));
       toast.error('Failed to save preference');
