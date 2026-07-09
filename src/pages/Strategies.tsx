@@ -224,7 +224,6 @@ export default function Strategies() {
     enabled: !!user,
   });
 
-  const { planState } = useTier();
   const isFreePlan = !['pro', 'expert', 'guru', 'admin'].includes(planState);
   const atCap = isFreePlan && (userStrategies?.length ?? 0) >= 1;
 
