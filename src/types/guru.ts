@@ -8,9 +8,11 @@ export interface GuruProfile {
   user_id: string;
   bio: string | null;
   slug: string | null;
-  stripe_account_id: string | null;
-  stripe_connect_status: 'not_started' | 'pending' | 'active' | 'restricted';
-  stripe_onboarding_complete: boolean;
+  // Sensitive Stripe columns are not exposed via the Data API to authenticated users;
+  // they are only readable by service-role edge functions. Kept optional for server code.
+  stripe_account_id?: string | null;
+  stripe_connect_status?: 'not_started' | 'pending' | 'active' | 'restricted';
+  stripe_onboarding_complete?: boolean;
   status: GuruStatus;
   trial_ends_at: string | null;
   trial_dismissed_count: number;

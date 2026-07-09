@@ -11,7 +11,9 @@ export function useGuruProfile() {
       if (!user) return null;
       const { data, error } = await supabase
         .from('guru_profiles')
-        .select('*')
+        .select(
+          'id, user_id, bio, slug, status, trial_ends_at, trial_dismissed_count, created_at, updated_at, tagline, primary_instrument, primary_strategy, is_public, referral_code, referral_discount_pct',
+        )
         .eq('user_id', user.id)
         .maybeSingle();
       if (error) throw error;
