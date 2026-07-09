@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Bell, Monitor, Lock, Trash2, CreditCard, ExternalLink, Loader2, PanelRightOpen, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -7,14 +9,65 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSettings, type AppTheme } from '@/contexts/SettingsContext';
 import { useTier } from '@/contexts/TierContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { getPlanDisplayName } from '@/lib/tierUtils';
+import { supabase } from '@/integrations/supabase/client';
 
+type NotifKey = 'trade_alerts' | 'session_reminders' | 'performance_reports';
+
+const NOTIF_ITEMS: { key: NotifKey; label: string; desc: string }[] = [
+  { key: 'trade_alerts', label: 'Trade Alerts', desc: 'Get notified on simulated trade results' },
+  { key: 'session_reminders', label: 'Session Reminders', desc: 'Daily practice reminders' },
+  { key: 'performance_reports', label: 'Performance Reports', desc: 'Weekly performance summaries' },
+];
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
   const { planState, isAdmin } = useTier();
+  const { user } = useAuth();
   const portal = useCustomerPortal();
+
+  const [notif, setNotif] = useState<Record<NotifKey, boolean>>({
+    trade_alerts: false,
+    session_reminders: false,
+    performance_reports: false,
+  });
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase
+      .from('user_settings')
+      .select('trade_alerts, session_reminders, performance_reports')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        setNotif({
+          trade_alerts: !!data.trade_alerts,
+          session_reminders: !!data.session_reminders,
+          performance_reports: !!data.performance_reports,
+        });
+      });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  const handleNotifToggle = async (key: NotifKey, value: boolean) => {
+    if (!user) return;
+    const prev = notif[key];
+    setNotif((s) => ({ ...s, [key]: value }));
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert(
+        { user_id: user.id, [key]: value, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' },
+      );
+    if (error) {
+      setNotif((s) => ({ ...s, [key]: prev }));
+      toast.error('Failed to save preference');
+    }
+  };
 
   return (
     <>
@@ -146,17 +199,17 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[
-              { label: 'Trade Alerts', desc: 'Get notified on simulated trade results' },
-              { label: 'Session Reminders', desc: 'Daily practice reminders' },
-              { label: 'Performance Reports', desc: 'Weekly performance summaries' },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between">
+            {NOTIF_ITEMS.map((item) => (
+              <div key={item.key} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-foreground">{item.label}</p>
                   <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </div>
-                <Switch />
+                <Switch
+                  checked={notif[item.key]}
+                  onCheckedChange={(v) => handleNotifToggle(item.key, v)}
+                  disabled={!user}
+                />
               </div>
             ))}
           </CardContent>
