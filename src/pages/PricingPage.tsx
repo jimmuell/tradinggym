@@ -10,9 +10,9 @@ import { useCreateCheckout } from '@/hooks/useCreateCheckout';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 
 const PLAN_PRICE_MAP: Record<string, string> = {
-  pro: 'price_1TNtx3LMQSLv70CqmRJaPHCu',
-  expert: 'price_1THXB1LMQSLv70CqYTehlVba',
-  guru: 'price_1TNuSfLMQSLv70CqAGpPSnnU',
+  pro: 'price_1TrlygQ1O0rn4aqCUYcaX4OG',
+  expert: 'price_1Trlz6Q1O0rn4aqCAaR7EEmY',
+  guru: 'price_1TrlzYQ1O0rn4aqCwJDCf36L',
 };
 
 

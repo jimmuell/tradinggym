@@ -22,7 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { YEARS_EXPERIENCE_OPTIONS, type YearsExperience } from '@/types/guru';
 
-const GURU_PRICE_ID = 'price_1TNuSfLMQSLv70CqAGpPSnnU';
+const GURU_PRICE_ID = 'price_1TrlzYQ1O0rn4aqCwJDCf36L';
 
 const formSchema = z.object({
   full_name: z.string().trim().min(2, 'Full name must be at least 2 characters').max(100),
