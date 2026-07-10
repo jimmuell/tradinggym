@@ -38,6 +38,19 @@ export function useCustomerPortal() {
         return;
       }
 
+      // Stripe's billing portal sends X-Frame-Options: DENY, so navigating the
+      // current window fails ("refused to connect") when the app is running
+      // inside an iframe (e.g. Lovable preview). Break out to the top window,
+      // falling back to a new tab if the top frame is cross-origin.
+      try {
+        if (window.top && window.top !== window.self) {
+          window.top.location.href = data.url;
+          return;
+        }
+      } catch {
+        window.open(data.url, '_blank', 'noopener,noreferrer');
+        return;
+      }
       window.location.href = data.url;
     },
     onError: (err: Error) => {
