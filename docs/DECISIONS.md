@@ -208,13 +208,21 @@ Rationale for dropping: a SECURITY DEFINER that schedules arbitrary text as pg_c
 privilege-escalation surface (same shape as the Jul-9 SEC-privesc fix). Rotations are rare
 enough that a permanent surface is a bad trade.
 
-**Next rotation:**
+**Next rotation runbook:**
 
 1. `generate_secret` a fresh `RECONCILE_SHARED_SECRET`, then `deploy_edge_functions ["reconcile-subscriptions"]`.
-2. Re-create the helper in a migration, grant execute **only to `service_role`** (never to
-   `sandbox_exec`, `authenticated`, or `anon`), call it with the new secret from a shredded
-   file over psql, then `DROP FUNCTION public._reschedule_reconcile_cron(text);` in the same
-   session.
+2. Re-create the helper via a migration. Grant `EXECUTE` to the exec role (`sandbox_exec`) — the
+   psql session runs as `sandbox_exec`, not `service_role`, so a `service_role`-only grant will
+   fail. Call the helper with the new secret loaded from a shredded temp file, then
+   `DROP FUNCTION public._reschedule_reconcile_cron(text);` **in the same session**. Never leave
+   it in the schema between rotations — permanence is the risk, not the grant. If the session
+   dies mid-way, drop the function first thing on reconnect.
 3. Prove: `POST` without header → 401; with old header → 401; with new header → 200.
+
+**Better:** move `RECONCILE_SHARED_SECRET` into Supabase Vault when it becomes available on
+Lovable Cloud. The cron command can then read the value via `vault.secrets` at execution time,
+which removes the plaintext from `cron.job.command` and makes this helper unnecessary
+altogether.
+
 
 
