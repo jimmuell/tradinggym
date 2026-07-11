@@ -23,6 +23,8 @@ interface TierContextType {
   isAdmin: boolean;
   cancelAtPeriodEnd: boolean;
   subscriptionEndsAt: string | null;
+  paymentPastDue: boolean;
+  pastDueSince: string | null;
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
@@ -37,6 +39,8 @@ const TierContext = createContext<TierContextType>({
   isAdmin: false,
   cancelAtPeriodEnd: false,
   subscriptionEndsAt: null,
+  paymentPastDue: false,
+  pastDueSince: null,
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
@@ -54,6 +58,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEndsAt, setSubscriptionEndsAt] = useState<string | null>(null);
+  const [paymentPastDue, setPaymentPastDue] = useState(false);
+  const [pastDueSince, setPastDueSince] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTier = useCallback(async () => {
@@ -61,7 +67,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from('profiles')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('tier_state, plan_state, role, subscription_cancel_at_period_end, subscription_ends_at' as any)
+      .select('tier_state, plan_state, role, subscription_cancel_at_period_end, subscription_ends_at, payment_past_due, past_due_since' as any)
       .eq('user_id', user.id)
       .maybeSingle();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -74,6 +80,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
     setRole(userRole);
     setCancelAtPeriodEnd(!!row?.subscription_cancel_at_period_end);
     setSubscriptionEndsAt((row?.subscription_ends_at as string) || null);
+    setPaymentPastDue(!!row?.payment_past_due);
+    setPastDueSince((row?.past_due_since as string) || null);
     setLoading(false);
   }, [user]);
 
@@ -106,7 +114,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TierContext.Provider value={{ currentTier, planState, role, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, role, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt, paymentPastDue, pastDueSince, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
       {children}
     </TierContext.Provider>
   );
