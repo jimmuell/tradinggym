@@ -78,7 +78,7 @@ export default function FoundationLearning() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(lessons ?? []).map((lesson, idx) => {
-            const isComplete = completed.includes(lesson.id);
+            const isComplete = (completedIds ?? []).includes(lesson.id);
             return (
               <Card
                 key={lesson.id}
