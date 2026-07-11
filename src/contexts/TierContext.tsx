@@ -21,6 +21,8 @@ interface TierContextType {
   planState: PlanState;
   role: string | null;
   isAdmin: boolean;
+  cancelAtPeriodEnd: boolean;
+  subscriptionEndsAt: string | null;
   isUnlocked: (tier: TierState) => boolean;
   canAccess: (feature: string) => boolean;
   setTierState: (tier: TierState) => Promise<void>;
@@ -33,6 +35,8 @@ const TierContext = createContext<TierContextType>({
   planState: 'starter',
   role: null,
   isAdmin: false,
+  cancelAtPeriodEnd: false,
+  subscriptionEndsAt: null,
   isUnlocked: () => false,
   canAccess: () => false,
   setTierState: async () => {},
