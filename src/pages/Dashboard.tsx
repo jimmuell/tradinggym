@@ -127,11 +127,17 @@ export default function Dashboard() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                {isAdmin ? 'Admin' : getPlanName(planState)}
+                {isAdmin
+                  ? 'Admin'
+                  : cancelAtPeriodEnd && subscriptionEndsAt && ['pro', 'expert', 'guru'].includes(planState)
+                  ? `${getPlanName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                  : getPlanName(planState)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {isAdmin
                   ? "Admin account — no subscription required."
+                  : cancelAtPeriodEnd && ['pro', 'expert', 'guru'].includes(planState)
+                  ? `You'll keep ${getPlanName(planState)} access until then.`
                   : !['pro', 'expert', 'guru'].includes(planState)
                   ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
                   : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
@@ -157,7 +163,7 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <ExternalLink className="h-4 w-4" />
-                    Manage
+                    {cancelAtPeriodEnd ? 'Resume' : 'Manage'}
                   </>
                 )}
               </Button>
