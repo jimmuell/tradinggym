@@ -37,28 +37,36 @@ test.describe("STR-03 — AI Extract → strategy → backtest (live, metered, r
     await page.locator("textarea").first().fill(TRANSCRIPT);
     await page.getByRole("button", { name: /extract|generate|analy[sz]e/i }).first().click();
 
-    // 2) A structured strategy renders (entry / exit / risk) — this is the metered Claude call
-    await expect(page.getByText(/entry|breakout|long/i).first()).toBeVisible({ timeout: 120_000 });
-    await expect(page.getByText(/stop|risk/i).first()).toBeVisible();
-    await expect(page.getByText(/target|take profit|2:1|2x/i).first()).toBeVisible();
+    // 2) The extractor's structured output renders — assert the REAL section headings the page emits
+    //    (StrategyExtractPage renders "Entry Rules" / "Exit Rules"; the schema is entry_rules[] +
+    //    exit_rules[] — risk lives inside the exit rules, there is no separate "risk" section) plus
+    //    the confidence banner. Not incidental words. This is the metered Claude call.
+    await expect(page.getByText("Entry Rules")).toBeVisible({ timeout: 120_000 });
+    await expect(page.getByText("Exit Rules")).toBeVisible();
+    await expect(page.getByText(/confidence/i)).toBeVisible(); // ConfidenceBanner (high/medium/low)
 
-    // 3) Save it
+    // 3) Save it — no swallowed errors; a missing name field must fail loudly.
     const saveName = `QA AI Extract ${Date.now()}`;
-    await page.getByPlaceholder(/name|title/i).first().fill(saveName).catch(() => {});
+    await page.getByPlaceholder(/name|title/i).first().fill(saveName);
     await page.getByRole("button", { name: /save/i }).first().click();
     await page.goto("/strategies");
     await expect(page.getByText(saveName)).toBeVisible({ timeout: 20_000 }); // persisted
 
-    // 4) Backtest it — SHORT range (ADR-043: seconds), NO-STOP path is thinner coverage, but the
-    //    extracted strategy defines a stop, so run as extracted. One real run (Pro cap applies).
+    // 4) Backtest it — SHORT range (ADR-043: seconds). The extracted strategy defines a stop, so run
+    //    as extracted. One real run (Pro cap applies).
     await page.goto("/backtesting");
     await expect(page.getByText(/Configure backtest/i)).toBeVisible();
     await pickStrategyByName(page, new RegExp(saveName.slice(0, 12), "i"));
-    await page.getByPlaceholder("YYYY-MM-DD").first().fill("2024-01-01").catch(() => {});
-    await page.getByPlaceholder("YYYY-MM-DD").nth(1).fill("2024-01-31").catch(() => {});
+    // No .catch() — a missing date field must fail the test, never silently run default (18-year) dates.
+    await page.getByPlaceholder("YYYY-MM-DD").first().fill("2024-01-01");
+    await page.getByPlaceholder("YYYY-MM-DD").nth(1).fill("2024-01-31");
+    // METERED FOOTGUN GUARD: confirm the short range is actually set before clicking Run.
+    await expect(page.getByPlaceholder("YYYY-MM-DD").first()).toHaveValue("2024-01-01");
+    await expect(page.getByPlaceholder("YYYY-MM-DD").nth(1)).toHaveValue("2024-01-31");
     await page.getByRole("button", { name: /run backtest/i }).click();
 
-    // 5) Results render (completed run)
-    await expect(page.getByText(/Net Profit|Net P&L|Total Trades|Engine v/i).first()).toBeVisible({ timeout: 300_000 });
+    // 5) Completed run → the real KPI cards + engine version (BacktestKpiCards label + "Engine v")
+    await expect(page.getByText("Total Trades")).toBeVisible({ timeout: 300_000 });
+    await expect(page.getByText(/Engine v/i)).toBeVisible();
   });
 });

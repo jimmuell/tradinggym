@@ -27,7 +27,10 @@ test.describe("X-03 — error states / ErrorBoundary (quota-free)", () => {
     await page.getByRole("button", { name: /run backtest/i }).click();
 
     // a clear error is surfaced (not silent)
-    await expect(page.getByText(/error|failed|went wrong|try again|did not/i).first()).toBeVisible({ timeout: 30_000 });
+    // the ACTUAL failure toast (Backtesting.tsx:79 → `Failed to start backtest: …`) — a specific
+    // rendered string, not incidental page copy. Proven to have teeth: a 200 mock makes this go red
+    // (see lane-b results).
+    await expect(page.getByText(/Failed to start backtest/i)).toBeVisible({ timeout: 30_000 });
     // app stays usable — config panel intact, run button back, screen not blank
     await expect(page.getByText(/Configure backtest/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /^run backtest/i })).toBeVisible();
