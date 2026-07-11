@@ -22,6 +22,7 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
   const tierUnlocked = isUnlocked(tier as TierState);
 
   const { data: lesson, isLoading, isError } = useLesson(lessonId);
+  const markComplete = useMarkLessonComplete();
 
   useEffect(() => {
     if (!tierUnlocked) {
