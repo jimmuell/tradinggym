@@ -1918,6 +1918,10 @@ export type Database = {
       }
     }
     Functions: {
+      _reschedule_reconcile_cron: {
+        Args: { p_secret: string }
+        Returns: number
+      }
       accept_terms: {
         Args: { p_age_verified?: boolean; p_tos_accepted?: boolean }
         Returns: undefined
