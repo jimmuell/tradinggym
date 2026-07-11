@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { getPlanDisplayName } from '@/lib/tierUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { PastDueBanner } from '@/components/billing/PastDueBanner';
 
 type NotifKey = 'trade_alerts' | 'session_reminders' | 'performance_reports';
 
@@ -89,6 +90,7 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <PastDueBanner returnPath="/settings" />
             <div>
               <p className="text-sm text-foreground font-medium">
                 {isAdmin

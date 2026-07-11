@@ -1185,6 +1185,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          past_due_since: string | null
+          payment_past_due: boolean
           plan_state: string
           referral_source: string | null
           referred_by_guru_id: string | null
@@ -1205,6 +1207,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          past_due_since?: string | null
+          payment_past_due?: boolean
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
@@ -1225,6 +1229,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          past_due_since?: string | null
+          payment_past_due?: boolean
           plan_state?: string
           referral_source?: string | null
           referred_by_guru_id?: string | null
