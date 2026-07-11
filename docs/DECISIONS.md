@@ -168,3 +168,32 @@ available). The engine authenticates with `X-Callback-Secret: <BACKTEST_CALLBACK
 
 **Deploy:** `BACKTEST_CALLBACK_SECRET` must exist in Lovable Cloud secrets AND on Railway
 (same value) before either side is exercised.
+
+---
+
+## Subscription reconciliation cron lives in `cron.job`, not in a migration
+
+**Status:** Accepted.
+
+**Context:** The nightly `reconcile-subscriptions-nightly` job (`0 3 * * *`) is scheduled via
+`cron.schedule(...)` executed through `supabase--insert`, not via a `supabase/migrations/*.sql`
+file. It hits `net.http_post` against the project's own function URL with the project's anon key
+and a shared secret in the headers.
+
+**Decision:** Keep the schedule out of `supabase/migrations/`. Migrations run on every remix and
+restore, and this command embeds project-specific values (URL, anon JWT, `RECONCILE_SHARED_SECRET`)
+that must not leak into other users' projects. This matches Lovable's guidance for pg_cron jobs
+that call project URLs.
+
+**Consequences:**
+- The schedule **will not survive a database rebuild / restore-from-backup**. After any such
+  restore, re-run the same `cron.schedule('reconcile-subscriptions-nightly', ...)` block with the
+  live anon key and the live `RECONCILE_SHARED_SECRET` value. Verify with
+  `SELECT jobname, schedule, active FROM cron.job WHERE jobname = 'reconcile-subscriptions-nightly';`
+- The shared secret is stored **in plaintext inside `cron.job.command`** and is readable by any
+  role with `SELECT` on `cron.job`. If Supabase Vault becomes available on Lovable Cloud, migrate
+  the secret to Vault and have the cron command read it via `vault.secrets` instead of embedding
+  the literal.
+- The edge function itself enforces `x-reconcile-secret` (401 on mismatch), so a leaked URL alone
+  is not enough to invoke it.
+

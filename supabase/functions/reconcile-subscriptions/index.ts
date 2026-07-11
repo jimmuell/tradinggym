@@ -30,6 +30,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const expectedSecret = Deno.env.get("RECONCILE_SHARED_SECRET");
+  const providedSecret = req.headers.get("x-reconcile-secret");
+  if (!expectedSecret || providedSecret !== expectedSecret) {
+    log("unauthorized", { hasHeader: !!providedSecret });
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 401,
+    });
+  }
+
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
