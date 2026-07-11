@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, PlayCircle, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,19 +7,9 @@ import TierLockedState from '@/components/learning/TierLockedState';
 import TierLessonList from '@/components/learning/TierLessonList';
 import GraduationGateCard from '@/components/learning/GraduationGateCard';
 import { useLessonsByModule } from '@/hooks/useLessons';
+import { useCompletedLessonIds } from '@/hooks/useLessonProgress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const COMPLETED_KEY = 'completedLessons';
-
-function getCompleted(): string[] {
-  try {
-    const raw = localStorage.getItem(COMPLETED_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
 
 function useGuidedOrbScenarioId() {
   return useQuery({
@@ -46,14 +35,7 @@ export default function Tier1Learning() {
   const navigate = useNavigate();
   const { data: lessons } = useLessonsByModule('tier1_orb');
   const { data: orbId } = useGuidedOrbScenarioId();
-
-  const [completed, setCompleted] = useState<string[]>([]);
-  useEffect(() => {
-    setCompleted(getCompleted());
-    const onFocus = () => setCompleted(getCompleted());
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  const { data: completedIds, isLoading: progressLoading } = useCompletedLessonIds();
 
   if (!isUnlocked('tier1')) {
     return (
@@ -66,8 +48,11 @@ export default function Tier1Learning() {
   }
 
   const lessonIds = (lessons ?? []).map((l) => l.id);
+  const completed = completedIds ?? [];
   const allComplete =
-    lessonIds.length > 0 && lessonIds.every((id) => completed.includes(id));
+    !progressLoading &&
+    lessonIds.length > 0 &&
+    lessonIds.every((id) => completed.includes(id));
 
   return (
     <div className="space-y-6">
