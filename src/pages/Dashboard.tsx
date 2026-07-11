@@ -34,6 +34,7 @@ import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
 import { FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
 import { GuruTrialBanner } from '@/components/dashboard/GuruTrialBanner';
 import LaunchSessionCard from '@/components/dashboard/LaunchSessionCard';
+import { PastDueBanner } from '@/components/billing/PastDueBanner';
 
 const STAT_TOOLTIPS: Record<string, string> = {
   'Total Trades': 'Number of completed simulated trades.',
@@ -154,6 +155,8 @@ export default function Dashboard() {
   return (
     <TooltipProvider>
       <>
+
+        <PastDueBanner returnPath="/dashboard" />
 
         {/* Subscription Status */}
         <Card>

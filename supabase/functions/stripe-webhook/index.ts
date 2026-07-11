@@ -223,15 +223,55 @@ serve(async (req) => {
           await admin.from("profiles").update({
             subscription_cancel_at_period_end: false,
             subscription_ends_at: null,
+            payment_past_due: false,
+            past_due_since: null,
           }).eq("user_id", deletedUserId);
           log("plan downgraded to starter", { userId: deletedUserId });
         }
         break;
       }
 
-      case "invoice.payment_failed":
-        log("payment failed — ignored for now", { invoice: (event.data.object as Stripe.Invoice).id });
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof (invoice as any).subscription === "string"
+          ? (invoice as any).subscription as string
+          : ((invoice as any).subscription as Stripe.Subscription | null)?.id;
+        if (!subId) { log("payment_failed — no subscription on invoice"); break; }
+        const sub = await stripe.subscriptions.retrieve(subId);
+        const userId = sub.metadata?.supabase_user_id;
+        if (!userId) { log("payment_failed — no supabase_user_id in sub metadata"); break; }
+
+        // Read current past_due_since so we only stamp the FIRST failure.
+        const { data: existingProfile } = await admin
+          .from("profiles")
+          .select("past_due_since")
+          .eq("user_id", userId)
+          .maybeSingle();
+        const nowIso = new Date().toISOString();
+        await admin.from("profiles").update({
+          payment_past_due: true,
+          past_due_since: (existingProfile as any)?.past_due_since ?? nowIso,
+        }).eq("user_id", userId);
+        log("payment_past_due set", { userId });
         break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof (invoice as any).subscription === "string"
+          ? (invoice as any).subscription as string
+          : ((invoice as any).subscription as Stripe.Subscription | null)?.id;
+        if (!subId) { log("payment_succeeded — no subscription on invoice"); break; }
+        const sub = await stripe.subscriptions.retrieve(subId);
+        const userId = sub.metadata?.supabase_user_id;
+        if (!userId) { log("payment_succeeded — no supabase_user_id in sub metadata"); break; }
+        await admin.from("profiles").update({
+          payment_past_due: false,
+          past_due_since: null,
+        }).eq("user_id", userId);
+        log("payment_past_due cleared", { userId });
+        break;
+      }
 
       default:
         log("unhandled event type — ignoring");
