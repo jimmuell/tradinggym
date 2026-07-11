@@ -23,7 +23,7 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
 import { usePracticeAccount } from '@/hooks/usePracticeAccount';
-import { formatMoney } from '@/lib/practiceAccount';
+import { formatMoney, POINT_VALUE_USD } from '@/lib/practiceAccount';
 import { toast } from 'sonner';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -40,7 +40,7 @@ const STAT_TOOLTIPS: Record<string, string> = {
   'Total Trades': 'Number of completed simulated trades.',
   'Win Rate': 'Trades closed at take profit as a percentage of all closed trades.',
   'Avg R:R': 'Average risk-to-reward ratio achieved.',
-  'Max Drawdown': 'Largest single losing trade in dollars.',
+  'Max Drawdown': 'Largest peak-to-trough drop in your account balance.',
   'Sessions': 'Number of days traded in the simulator.',
 };
 
@@ -58,12 +58,14 @@ export default function Dashboard() {
     if (!user?.id) return;
     setResetting(true);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('trades')
         .delete()
         .eq('user_id', user.id)
-        .eq('session_type', 'simulator');
+        .eq('session_type', 'simulator')
+        .select('id');
       if (error) throw error;
+      if (!data) throw new Error('Reset failed — no rows were removed.');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['practice-account'] }),
         queryClient.invalidateQueries({ queryKey: ['trade-stats'] }),
@@ -121,11 +123,25 @@ export default function Dashboard() {
     const winRate = outcomes.length > 0 ? ((wins / outcomes.length) * 100).toFixed(1) + '%' : '—';
     const rrTrades = trades.filter(t => t.stop_loss != null && t.entry_price != null && t.pnl != null);
     const rrValues = rrTrades
-      .map(t => { const risk = Math.abs(t.entry_price! - t.stop_loss!); return risk > 0 ? t.pnl! / risk : null; })
+      .map(t => {
+        const riskPoints = Math.abs(t.entry_price! - t.stop_loss!);
+        const contracts = t.contracts ?? 1;
+        const riskDollars = riskPoints * POINT_VALUE_USD * contracts;
+        return riskDollars > 0 ? t.pnl! / riskDollars : null;
+      })
       .filter((v): v is number => v !== null);
     const avgRR = rrValues.length > 0 ? (rrValues.reduce((a, b) => a + b, 0) / rrValues.length).toFixed(2) : '—';
-    const losses = trades.filter(t => t.pnl != null && t.pnl < 0).map(t => t.pnl!);
-    const maxDrawdown = losses.length > 0 ? '$' + Math.abs(Math.min(...losses)).toFixed(2) : '—';
+    // Real max drawdown: largest peak-to-trough decline in cumulative P&L.
+    let ddCum = 0;
+    let ddPeak = 0;
+    let ddMax = 0;
+    for (const t of trades) {
+      ddCum += t.pnl ?? 0;
+      if (ddCum > ddPeak) ddPeak = ddCum;
+      const drop = ddPeak - ddCum;
+      if (drop > ddMax) ddMax = drop;
+    }
+    const maxDrawdown = '$' + ddMax.toFixed(2);
     const uniqueDates = new Set(trades.filter(t => t.closed_at).map(t => t.closed_at!.slice(0, 10)));
     const sessions = String(uniqueDates.size);
     const recentTrades = [...trades]
