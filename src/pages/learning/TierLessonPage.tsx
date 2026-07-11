@@ -5,22 +5,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { useLesson } from '@/hooks/useLessons';
 import { useTier, type TierState } from '@/contexts/TierContext';
+import { useMarkLessonComplete } from '@/hooks/useLessonProgress';
 import LessonRenderer from '@/components/learning/LessonRenderer';
-
-const STORAGE_KEY = 'completedLessons';
-
-function markComplete(lessonId: string) {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const arr: string[] = raw ? JSON.parse(raw) : [];
-    if (!arr.includes(lessonId)) {
-      arr.push(lessonId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-    }
-  } catch {
-    // ignore
-  }
-}
 
 interface TierLessonPageProps {
   tier: 'tier1' | 'tier2' | 'tier3';
@@ -36,6 +22,7 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
   const tierUnlocked = isUnlocked(tier as TierState);
 
   const { data: lesson, isLoading, isError } = useLesson(lessonId);
+  const markComplete = useMarkLessonComplete();
 
   useEffect(() => {
     if (!tierUnlocked) {
@@ -76,8 +63,9 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
       <LessonRenderer
         lesson={lesson}
         onComplete={() => {
-          markComplete(lesson.id);
-          navigate(backPath);
+          markComplete.mutate(lesson.id, {
+            onSettled: () => navigate(backPath),
+          });
         }}
       />
     </div>
