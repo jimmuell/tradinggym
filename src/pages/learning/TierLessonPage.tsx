@@ -63,8 +63,9 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
       <LessonRenderer
         lesson={lesson}
         onComplete={() => {
-          markComplete(lesson.id);
-          navigate(backPath);
+          markComplete.mutate(lesson.id, {
+            onSettled: () => navigate(backPath),
+          });
         }}
       />
     </div>
