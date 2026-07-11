@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public._reschedule_reconcile_cron(text);
