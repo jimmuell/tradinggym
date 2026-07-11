@@ -1191,6 +1191,8 @@ export type Database = {
           risk_acknowledged_at: string | null
           role: string
           stripe_customer_id: string | null
+          subscription_cancel_at_period_end: boolean
+          subscription_ends_at: string | null
           tier_state: string
           tos_accepted_at: string | null
           updated_at: string
@@ -1209,6 +1211,8 @@ export type Database = {
           risk_acknowledged_at?: string | null
           role?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean
+          subscription_ends_at?: string | null
           tier_state?: string
           tos_accepted_at?: string | null
           updated_at?: string
@@ -1227,6 +1231,8 @@ export type Database = {
           risk_acknowledged_at?: string | null
           role?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean
+          subscription_ends_at?: string | null
           tier_state?: string
           tos_accepted_at?: string | null
           updated_at?: string
