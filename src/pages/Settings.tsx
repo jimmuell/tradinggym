@@ -24,7 +24,7 @@ const NOTIF_ITEMS: { key: NotifKey; label: string; desc: string }[] = [
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt } = useTier();
   const { user } = useAuth();
   const portal = useCustomerPortal();
 
