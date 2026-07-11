@@ -197,3 +197,24 @@ that call project URLs.
 - The edge function itself enforces `x-reconcile-secret` (401 on mismatch), so a leaked URL alone
   is not enough to invoke it.
 
+### Secret rotation runbook
+
+The 2026-07-11 rotation temporarily created `public._reschedule_reconcile_cron(text)` — a
+SECURITY DEFINER function that took the new secret as an argument and called `cron.schedule`
+internally — so the new value would not appear in any tool-call payload. It was **dropped
+immediately after use**.
+
+Rationale for dropping: a SECURITY DEFINER that schedules arbitrary text as pg_cron SQL is a
+privilege-escalation surface (same shape as the Jul-9 SEC-privesc fix). Rotations are rare
+enough that a permanent surface is a bad trade.
+
+**Next rotation:**
+
+1. `generate_secret` a fresh `RECONCILE_SHARED_SECRET`, then `deploy_edge_functions ["reconcile-subscriptions"]`.
+2. Re-create the helper in a migration, grant execute **only to `service_role`** (never to
+   `sandbox_exec`, `authenticated`, or `anon`), call it with the new secret from a shredded
+   file over psql, then `DROP FUNCTION public._reschedule_reconcile_cron(text);` in the same
+   session.
+3. Prove: `POST` without header → 401; with old header → 401; with new header → 200.
+
+
