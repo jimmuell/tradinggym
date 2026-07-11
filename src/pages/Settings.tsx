@@ -91,11 +91,17 @@ export default function Settings() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-foreground font-medium">
-                Current Plan: {isAdmin ? 'Admin' : getPlanDisplayName(planState)}
+                {isAdmin
+                  ? 'Current Plan: Admin'
+                  : cancelAtPeriodEnd && subscriptionEndsAt && planState !== 'starter'
+                  ? `${getPlanDisplayName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                  : `Current Plan: ${getPlanDisplayName(planState)}`}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {isAdmin
                   ? 'Admin account — no subscription required.'
+                  : cancelAtPeriodEnd && planState !== 'starter'
+                  ? `You'll keep ${getPlanDisplayName(planState)} access until then.`
                   : planState === 'starter'
                   ? 'Upgrade to unlock advanced features.'
                   : 'Manage your subscription, payment method, or download invoices.'}
@@ -121,7 +127,7 @@ export default function Settings() {
                   ) : (
                     <>
                       <ExternalLink className="h-4 w-4 mr-2" />
-                      Manage Subscription
+                      {cancelAtPeriodEnd ? 'Resume subscription' : 'Manage Subscription'}
                     </>
                   )}
                 </Button>
