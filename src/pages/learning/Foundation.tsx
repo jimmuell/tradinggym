@@ -18,17 +18,7 @@ import { useQuizByModule, useBestQuizAttempt, type QuizAttempt } from '@/hooks/u
 import { useQuizAttempts } from '@/hooks/useQuizAttempts';
 import { useTier } from '@/contexts/TierContext';
 import QuizResponsesReview from '@/components/learning/QuizResponsesReview';
-
-const STORAGE_KEY = 'completedLessons';
-
-function getCompleted(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
+import { useCompletedLessonIds } from '@/hooks/useLessonProgress';
 
 export default function FoundationLearning() {
   const navigate = useNavigate();
@@ -36,21 +26,14 @@ export default function FoundationLearning() {
   const { data: quiz, isLoading: quizLoading } = useQuizByModule('foundation');
   const { data: bestAttempt, isLoading: attemptLoading } = useBestQuizAttempt(quiz?.id);
   const { data: attempts, isLoading: attemptsLoading } = useQuizAttempts(quiz?.id);
+  const { data: completedIds, isLoading: progressLoading } = useCompletedLessonIds();
   const { isUnlocked } = useTier();
   const tier1Unlocked = isUnlocked('tier1');
-  const [completed, setCompleted] = useState<string[]>([]);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [reviewing, setReviewing] = useState<QuizAttempt | null>(null);
 
-  useEffect(() => {
-    setCompleted(getCompleted());
-    const onFocus = () => setCompleted(getCompleted());
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
-
-  const isLoading = lessonsLoading || quizLoading || attemptLoading;
-  const completedCount = lessons?.filter((l) => completed.includes(l.id)).length ?? 0;
+  const isLoading = lessonsLoading || quizLoading || attemptLoading || progressLoading;
+  const completedCount = lessons?.filter((l) => (completedIds ?? []).includes(l.id)).length ?? 0;
   const totalCount = lessons?.length ?? 0;
   const allModulesComplete = totalCount > 0 && completedCount === totalCount;
 
