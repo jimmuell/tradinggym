@@ -11,8 +11,13 @@ import { authedClient } from "./helpers/supabase";
 // correctness — canvas pixels are out of scope here.
 
 const S_FRESH = { email: "starter@gmail.com", password: process.env.TEST_PASSWORD ?? "" };
-// Disposable QA account, Foundation-graduated (tier1). Provided by the QA prompt.
-const S_GRAD = { email: "jamesloganmueller+sgrad@gmail.com", password: "TgymQA2026!" };
+// A stable Foundation-graduated (tier_state='tier1') seed for the positive path. Was
+// jamesloganmueller+sgrad@gmail.com, but that credential is now rejected — a direct
+// signInWithPassword with its documented password returns "Invalid login credentials" (observed
+// 2026-07-11; cause not confirmed). pro@gmail.com is a stable seed at tier1 (verified: login OK,
+// tier_state='tier1') and the same graduated account lane-b-batch2 uses, so test D no longer
+// depends on a rotated disposable credential.
+const S_GRAD = { email: "pro@gmail.com", password: process.env.TEST_PASSWORD ?? "" };
 
 // The /simulator gate screen for an un-graduated user ("Simulator Locked" + "Complete all N
 // Foundation modules and pass the assessment"). Distinct from the chart.
@@ -21,6 +26,22 @@ const LOCK_RE = /Simulator Locked/i;
 async function tierState(sb: Awaited<ReturnType<typeof authedClient>>["sb"]): Promise<string | null> {
   const { data } = await sb.from("profiles").select("tier_state").maybeSingle();
   return (data as { tier_state?: string } | null)?.tier_state ?? null;
+}
+
+// The live Foundation lesson set — read from the DB (identical query to Foundation.tsx'
+// useFoundationLessons), never hardcoded. Content changes (7 → 5 lessons happened once already)
+// must not turn this guard red; the count comes from truth, so the spec tracks it.
+async function foundationLessonIds(
+  sb: Awaited<ReturnType<typeof authedClient>>["sb"],
+): Promise<string[]> {
+  const { data } = await sb
+    .from("lessons")
+    .select("id")
+    .eq("content_type", "platform")
+    .eq("tier_required", "foundation")
+    .eq("is_published", true)
+    .like("module", "f%");
+  return (data ?? []).map((l: { id: string }) => l.id);
 }
 
 async function simulatorLocked(page: Page) {
@@ -33,17 +54,19 @@ test.describe("Foundation gate — server-authoritative, no client bypass", () =
   test.describe.configure({ timeout: 90_000 });
 
   // A — fresh / un-graduated (S-fresh)
-  test("A: un-graduated shows 0/7, Simulator locked, server tier_state is foundation", async ({
+  test("A: un-graduated shows 0 of N, Simulator locked, server tier_state is foundation", async ({
     page,
   }) => {
     // A3 — server truth
     const { sb } = await authedClient(S_FRESH.email, S_FRESH.password);
     expect(await tierState(sb)).toBe("foundation");
+    const n = (await foundationLessonIds(sb)).length; // N from truth, not a memorised 7
+    expect(n, "expected a non-empty Foundation lesson set").toBeGreaterThan(0);
 
     // A1 — Foundation progress
     await login(page, S_FRESH.email, S_FRESH.password);
     await page.goto("/learning/foundation");
-    await expect(page.getByText(/0 of 7 modules complete/i)).toBeVisible();
+    await expect(page.getByText(new RegExp(`0 of ${n} modules complete`, "i"))).toBeVisible();
     await expect(page.getByText(/Not started/i).first()).toBeVisible();
 
     // A2 — Simulator gate
@@ -53,15 +76,8 @@ test.describe("Foundation gate — server-authoritative, no client bypass", () =
   // B — client cannot drive completion (the localStorage leak)
   test("B: planted completedLessons* does not unlock and is purged on reload", async ({ page }) => {
     const { sb, uid } = await authedClient(S_FRESH.email, S_FRESH.password);
-    const { data: lessons } = await sb
-      .from("lessons")
-      .select("id")
-      .eq("content_type", "platform")
-      .eq("tier_required", "foundation")
-      .eq("is_published", true)
-      .like("module", "f%");
-    const ids = (lessons ?? []).map((l: { id: string }) => l.id);
-    expect(ids.length).toBe(7);
+    const ids = await foundationLessonIds(sb);
+    expect(ids.length, "expected a non-empty Foundation lesson set").toBeGreaterThan(0);
 
     await login(page, S_FRESH.email, S_FRESH.password);
     await page.goto("/learning/foundation");
@@ -76,7 +92,7 @@ test.describe("Foundation gate — server-authoritative, no client bypass", () =
     await page.reload();
 
     // still gated
-    await expect(page.getByText(/0 of 7 modules complete/i)).toBeVisible();
+    await expect(page.getByText(new RegExp(`0 of ${ids.length} modules complete`, "i"))).toBeVisible();
     await simulatorLocked(page);
 
     // B5 — the planted keys are purged (auth-change purge)
