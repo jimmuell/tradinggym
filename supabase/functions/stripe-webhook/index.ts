@@ -220,6 +220,10 @@ serve(async (req) => {
             p_user_id: deletedUserId,
             p_plan_state: "starter",
           });
+          await admin.from("profiles").update({
+            subscription_cancel_at_period_end: false,
+            subscription_ends_at: null,
+          }).eq("user_id", deletedUserId);
           log("plan downgraded to starter", { userId: deletedUserId });
         }
         break;
