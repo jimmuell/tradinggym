@@ -31,7 +31,9 @@ import { authedClient } from "./helpers/supabase";
 // plan_state / lesson_progress are never touched directly — every state change goes through the UI
 // and the server RPCs (submit_quiz_attempt, graduate_foundation, update_own_profile).
 
-const PASSWORD = "TgymQA2026!";
+// Password for the throwaway signup accounts — sourced from the environment (the seed password),
+// never a hardcoded literal. Keeps new accounts consistent with the dev-login seeds.
+const PASSWORD = process.env.TEST_PASSWORD ?? "";
 
 interface QuizQuestion {
   id: string;

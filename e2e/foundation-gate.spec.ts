@@ -11,13 +11,14 @@ import { authedClient } from "./helpers/supabase";
 // correctness — canvas pixels are out of scope here.
 
 const S_FRESH = { email: "starter@gmail.com", password: process.env.TEST_PASSWORD ?? "" };
-// A stable Foundation-graduated (tier_state='tier1') seed for the positive path. Was
-// jamesloganmueller+sgrad@gmail.com, but that credential is now rejected — a direct
-// signInWithPassword with its documented password returns "Invalid login credentials" (observed
-// 2026-07-11; cause not confirmed). pro@gmail.com is a stable seed at tier1 (verified: login OK,
-// tier_state='tier1') and the same graduated account lane-b-batch2 uses, so test D no longer
-// depends on a rotated disposable credential.
-const S_GRAD = { email: "pro@gmail.com", password: process.env.TEST_PASSWORD ?? "" };
+// The positive-path fixture: a Foundation-graduated (tier_state='tier1') account on the FREE plan.
+// That combination is the whole point — it proves the Simulator opens because the user LEARNED, not
+// because they PAID. Password is the seed password from the environment (TEST_PASSWORD), exactly like
+// every account in auth.env.ts and like the dev-login buttons (Auth.tsx handleDevLogin →
+// 'password123'). Do NOT hardcode a literal here: an earlier revision hardcoded a stale documented
+// password (TgymQA2026!) and mis-read the resulting auth failure as a rotated account — the account
+// was always fine; the doc was stale. Read the code, not the doc.
+const S_GRAD = { email: "jamesloganmueller+sgrad@gmail.com", password: process.env.TEST_PASSWORD ?? "" };
 
 // The /simulator gate screen for an un-graduated user ("Simulator Locked" + "Complete all N
 // Foundation modules and pass the assessment"). Distinct from the chart.
@@ -136,10 +137,17 @@ test.describe("Foundation gate — server-authoritative, no client bypass", () =
     await simulatorLocked(page);
   });
 
-  // D — positive path still works (S-grad)
-  test("D: graduated user is tier1 server-side and the Simulator opens", async ({ page }) => {
+  // D — positive path still works (S-grad): a FREE-plan Foundation graduate. The Simulator opens
+  // because the user learned, not because they paid or hold admin.
+  test("D: graduated non-admin user is tier1 server-side and the Simulator opens", async ({ page }) => {
     const { sb } = await authedClient(S_GRAD.email, S_GRAD.password);
     expect(await tierState(sb)).toBe("tier1");
+
+    // Guard against a silent bypass: TierContext.isUnlocked is `isAdmin || tier>=…`, and isAdmin is
+    // plan_state === 'admin'. If the fixture were ever an admin, D would go green without proving
+    // graduation. Assert the account is a genuine non-admin graduate.
+    const { data: prof } = await sb.from("profiles").select("plan_state").maybeSingle();
+    expect((prof as { plan_state?: string } | null)?.plan_state).not.toBe("admin");
 
     await login(page, S_GRAD.email, S_GRAD.password);
     await page.goto("/simulator");
