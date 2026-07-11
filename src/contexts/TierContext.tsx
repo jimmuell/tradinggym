@@ -106,7 +106,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <TierContext.Provider value={{ currentTier, planState, role, isAdmin, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
+    <TierContext.Provider value={{ currentTier, planState, role, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt, isUnlocked, canAccess, setTierState, refreshTier: fetchTier, loading }}>
       {children}
     </TierContext.Provider>
   );
