@@ -1177,6 +1177,42 @@ export type Database = {
           },
         ]
       }
+      plan_reconciliation_log: {
+        Row: {
+          app_plan_state: string
+          checked_at: string
+          drift: boolean
+          id: string
+          note: string | null
+          stripe_customer_id: string | null
+          stripe_plan_state: string
+          stripe_status: string | null
+          user_id: string
+        }
+        Insert: {
+          app_plan_state: string
+          checked_at?: string
+          drift: boolean
+          id?: string
+          note?: string | null
+          stripe_customer_id?: string | null
+          stripe_plan_state: string
+          stripe_status?: string | null
+          user_id: string
+        }
+        Update: {
+          app_plan_state?: string
+          checked_at?: string
+          drift?: boolean
+          id?: string
+          note?: string | null
+          stripe_customer_id?: string | null
+          stripe_plan_state?: string
+          stripe_status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_verified: boolean | null
