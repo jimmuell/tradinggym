@@ -61,7 +61,7 @@ export function TierProvider({ children }: { children: ReactNode }) {
     const { data } = await supabase
       .from('profiles')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .select('tier_state, plan_state, role' as any)
+      .select('tier_state, plan_state, role, subscription_cancel_at_period_end, subscription_ends_at' as any)
       .eq('user_id', user.id)
       .maybeSingle();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,6 +72,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
     setCurrentTier(TIER_ORDER.includes(tier) ? tier : 'foundation');
     setPlanStateLocal(PLAN_VALUES.includes(plan) ? plan : 'starter');
     setRole(userRole);
+    setCancelAtPeriodEnd(!!row?.subscription_cancel_at_period_end);
+    setSubscriptionEndsAt((row?.subscription_ends_at as string) || null);
     setLoading(false);
   }, [user]);
 
