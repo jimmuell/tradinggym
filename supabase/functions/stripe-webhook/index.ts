@@ -84,6 +84,16 @@ serve(async (req) => {
       case "customer.subscription.created": {
         const sub = event.data.object as Stripe.Subscription;
         const meta = sub.metadata ?? {};
+
+        // Write cancel-at-period-end state for trader subs regardless of status
+        if (meta.supabase_user_id) {
+          await admin.from("profiles").update({
+            subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+            subscription_ends_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null,
+          }).eq("user_id", meta.supabase_user_id);
+          log("cancel state synced", { userId: meta.supabase_user_id, cancel_at_period_end: sub.cancel_at_period_end, cancel_at: sub.cancel_at });
+        }
+
         const enrollmentId = meta.enrollment_id;
         if (!enrollmentId) {
           // No enrollment metadata — still try to sync plan_state for trader subs
