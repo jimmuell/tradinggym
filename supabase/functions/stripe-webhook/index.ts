@@ -213,12 +213,40 @@ serve(async (req) => {
             .eq("id", meta.enrollment_id);
           log("enrollment cancelled", { enrollmentId: meta.enrollment_id });
         }
-        // Sync plan_state back to starter when subscription is cancelled
+        // Re-derive plan from Stripe rather than assuming "starter" — the customer
+        // may still have OTHER active/trialing subscriptions.
         const deletedUserId = meta.supabase_user_id;
         if (deletedUserId) {
+          const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id;
+          const proPriceId = Deno.env.get("STRIPE_TEST_PRO_PRICE_ID");
+          const expertPriceId = Deno.env.get("STRIPE_TEST_EXPERT_PRICE_ID");
+          const guruPriceId = Deno.env.get("STRIPE_TEST_GURU_PRICE_ID");
+
+          let resolvedPlan = "starter";
+          let branch = "no_remaining_subs";
+
+          if (customerId) {
+            const all = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
+            const remaining = all.data.filter(
+              (s) => s.id !== sub.id && (s.status === "active" || s.status === "trialing"),
+            );
+            if (remaining.length > 0) {
+              // Prefer the highest-tier remaining subscription (guru > expert > pro).
+              const rank = (pid?: string) =>
+                pid === guruPriceId ? 3 : pid === expertPriceId ? 2 : pid === proPriceId ? 1 : 0;
+              remaining.sort((a, b) => rank(b.items.data[0]?.price?.id) - rank(a.items.data[0]?.price?.id));
+              const priceId = remaining[0].items.data[0]?.price?.id;
+              if (priceId === guruPriceId) resolvedPlan = "guru";
+              else if (priceId === expertPriceId) resolvedPlan = "expert";
+              else if (priceId === proPriceId) resolvedPlan = "pro";
+              else resolvedPlan = "starter";
+              branch = "kept_other_subscription";
+            }
+          }
+
           await admin.rpc("sync_plan_state", {
             p_user_id: deletedUserId,
-            p_plan_state: "starter",
+            p_plan_state: resolvedPlan,
           });
           await admin.from("profiles").update({
             subscription_cancel_at_period_end: false,
@@ -226,7 +254,7 @@ serve(async (req) => {
             payment_past_due: false,
             past_due_since: null,
           }).eq("user_id", deletedUserId);
-          log("plan downgraded to starter", { userId: deletedUserId });
+          log("subscription.deleted resolved", { userId: deletedUserId, branch, resolvedPlan });
         }
         break;
       }
