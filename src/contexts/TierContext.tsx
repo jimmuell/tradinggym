@@ -52,6 +52,8 @@ export function TierProvider({ children }: { children: ReactNode }) {
   const [currentTier, setCurrentTier] = useState<TierState>('foundation');
   const [planState, setPlanStateLocal] = useState<PlanState>('starter');
   const [role, setRole] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [subscriptionEndsAt, setSubscriptionEndsAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTier = useCallback(async () => {
