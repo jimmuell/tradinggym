@@ -80,6 +80,20 @@ serve(async (req) => {
         p_stripe_customer_id: customerId,
       });
       log("created stripe customer", { customerId });
+    } else {
+      // Trust Stripe, not our DB: refuse to create a second subscription when
+      // the customer already has an active/trialing one.
+      const existing = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
+      const activeSub = existing.data.find((s) => s.status === "active" || s.status === "trialing");
+      if (activeSub) {
+        const origin = req.headers.get("origin") ?? "https://keen-chart-clone.lovable.app";
+        const portal = await stripe.billingPortal.sessions.create({
+          customer: customerId,
+          return_url: `${origin}/settings`,
+        });
+        log("refused checkout — already subscribed", { customerId, subId: activeSub.id });
+        return json({ error: "already_subscribed", portal_url: portal.url }, 409);
+      }
     }
 
     const origin = req.headers.get("origin") ?? "https://keen-chart-clone.lovable.app";
