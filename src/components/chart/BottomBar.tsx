@@ -1,6 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Settings, ChevronRight } from 'lucide-react';
 import DateRangeModal from './DateRangeModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { usePracticeAccount, type PracticeTrade } from '@/hooks/usePracticeAccount';
+import { PRACTICE_STARTING_BALANCE, formatMoney } from '@/lib/practiceAccount';
 
 const timeframes = ['1D', '5D', '1M', '3M', '6M', 'YTD', '1Y', '5Y', 'All'];
 
@@ -12,22 +17,11 @@ type TradingSubTab = typeof tradingSubTabs[number];
 
 const orderFilters = ['All', 'Working', 'Inactive', 'Filled', 'Cancelled', 'Rejected'] as const;
 
-const accountStats = [
-  { label: 'Account balance', value: '2,363.75' },
-  { label: 'Equity', value: '2,363.75' },
-  { label: 'Realized P&L', value: '+1,863.75', color: '#26a69a' },
-  { label: 'Unrealized P&L', value: '0.00' },
-  { label: 'Account margin', value: '0.00' },
-  { label: 'Available funds', value: '2,363.75' },
-  { label: 'Orders margin', value: '0.00' },
-  { label: 'Margin buffer', value: '100.00%' },
-];
-
-const positionColumns = ['Symbol', 'Side', 'Qty ↑', 'Avg Fill Price', 'Take Profit', 'Stop Loss', 'Last Price', 'Unrealized P&L', 'Unrealized P&L %', 'Trade Value', 'Market Value', 'Leverage', 'Margin', 'Expiration Date'];
-const orderColumns = ['Symbol', 'Side', 'Type', 'Qty', 'Limit Price', 'Stop Price', 'Fill Price', 'Take Profit', 'Stop Loss', 'Instruction', 'Status', 'Commission', 'Placing Time', 'Order ID ↑', 'Level ID', 'Expiry', 'Leverage', 'Margin'];
-const historyColumns = ['Symbol', 'Side', 'Type', 'Qty', 'Limit Price', 'Stop Price', 'Fill Price', 'Take Profit', 'Stop Loss', 'Instruction', 'Status', 'Commission', 'Placing Time', 'Order ID', 'Level ID'];
+const positionColumns = ['Symbol', 'Side', 'Qty', 'Avg Fill Price', 'Take Profit', 'Stop Loss', 'Last Price', 'Unrealized P&L', 'Unrealized P&L %', 'Trade Value', 'Market Value', 'Leverage', 'Margin', 'Expiration Date'];
+const orderColumns = ['Symbol', 'Side', 'Type', 'Qty', 'Limit Price', 'Stop Price', 'Fill Price', 'Take Profit', 'Stop Loss', 'Instruction', 'Status', 'Commission', 'Placing Time', 'Order ID', 'Level ID', 'Expiry', 'Leverage', 'Margin'];
+const historyColumns = ['Symbol', 'Side', 'Qty', 'Entry Price', 'Exit Price', 'Stop Loss', 'Take Profit', 'Result', 'P&L', 'Opened', 'Closed'];
 const balanceColumns = ['Date', 'Type', 'Amount', 'Balance', 'Description'];
-const journalColumns = ['Date', 'Symbol', 'Side', 'Qty', 'Entry Price', 'Exit Price', 'P&L', 'Duration', 'Notes'];
+const journalColumns = ['Date', 'Symbol', 'Side', 'Qty', 'Entry Price', 'Exit Price', 'P&L', 'Result', 'Notes'];
 
 function getColumnsForSubTab(subTab: TradingSubTab): string[] {
   switch (subTab) {
@@ -85,6 +79,18 @@ const MIN_PANEL_HEIGHT = 0;
 const DEFAULT_PANEL_HEIGHT = 280;
 const MAX_PANEL_RATIO = 0.6;
 
+function formatDateTime(iso: string | null): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function pnlColor(v: number): string | undefined {
+  if (v > 0) return '#26a69a';
+  if (v < 0) return '#ef5350';
+  return undefined;
+}
+
 export default function BottomBar() {
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [activeMainTab, setActiveMainTab] = useState<MainTab>('Paper Trading');
@@ -96,6 +102,67 @@ export default function BottomBar() {
   const dragStartY = useRef(0);
   const dragStartHeight = useRef(0);
   const preMaximizeHeight = useRef(DEFAULT_PANEL_HEIGHT);
+
+  const { user } = useAuth();
+  const practice = usePracticeAccount();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile-display-name', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const accountLabel = useMemo(() => {
+    const name =
+      profile?.display_name?.trim() ||
+      user?.email?.split('@')[0] ||
+      'Trader';
+    return `${name} USD`;
+  }, [profile?.display_name, user?.email]);
+
+  const accountStats = useMemo(() => {
+    const rp = practice.realizedPnl;
+    return [
+      { label: 'Account balance', value: formatMoney(practice.balance) },
+      { label: 'Equity', value: formatMoney(practice.equity) },
+      { label: 'Realized P&L', value: `${rp >= 0 ? '+' : '-'}${formatMoney(Math.abs(rp))}`, color: pnlColor(rp) },
+      { label: 'Unrealized P&L', value: '0.00' },
+      { label: 'Account margin', value: '0.00' },
+      { label: 'Available funds', value: formatMoney(practice.balance) },
+      { label: 'Orders margin', value: '0.00' },
+      { label: 'Margin buffer', value: '100.00%' },
+    ];
+  }, [practice.balance, practice.equity, practice.realizedPnl]);
+
+  const balanceHistory = useMemo(() => {
+    // oldest -> newest
+    const closedAsc = [...practice.closedTrades].sort((a, b) => {
+      const ta = a.closed_at ? new Date(a.closed_at).getTime() : 0;
+      const tb = b.closed_at ? new Date(b.closed_at).getTime() : 0;
+      return ta - tb;
+    });
+    let running = PRACTICE_STARTING_BALANCE;
+    const rows = closedAsc.map((t) => {
+      const amt = Number(t.pnl) || 0;
+      running += amt;
+      return {
+        id: t.id,
+        date: t.closed_at,
+        type: amt >= 0 ? 'Trade P&L' : 'Trade Loss',
+        amount: amt,
+        balance: running,
+        description: `${t.symbol ?? 'MES'} ${t.direction ?? ''} ${t.result ?? ''}`.trim(),
+      };
+    });
+    return rows.reverse(); // newest first for display
+  }, [practice.closedTrades]);
 
   const expanded = panelHeight > 0;
 
@@ -172,6 +239,108 @@ export default function BottomBar() {
 
   const columns = getColumnsForSubTab(activeSubTab);
   const emptyMessage = getEmptyMessage(activeSubTab);
+
+  const renderPositions = () => {
+    if (practice.openPositions.length === 0) return null;
+    return practice.openPositions.map((t: PracticeTrade) => (
+      <div key={t.id} className="flex items-center h-[28px] px-3 text-[11px] text-foreground border-b border-border/50">
+        <span className="min-w-[100px] flex-shrink-0">{t.symbol ?? 'MES'}</span>
+        <span className="min-w-[100px] flex-shrink-0 capitalize">{t.direction ?? '—'}</span>
+        <span className="min-w-[100px] flex-shrink-0">{t.contracts ?? 1}</span>
+        <span className="min-w-[100px] flex-shrink-0">{t.entry_price ?? '—'}</span>
+        <span className="min-w-[100px] flex-shrink-0">{t.take_profit ?? '—'}</span>
+        <span className="min-w-[100px] flex-shrink-0">{t.stop_loss ?? '—'}</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">1x</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+        <span className="min-w-[100px] flex-shrink-0">—</span>
+      </div>
+    ));
+  };
+
+  const renderOrderHistory = () => {
+    if (practice.closedTrades.length === 0) return null;
+    return practice.closedTrades.map((t) => {
+      const pnl = Number(t.pnl) || 0;
+      return (
+        <div key={t.id} className="flex items-center h-[28px] px-3 text-[11px] text-foreground border-b border-border/50">
+          <span className="min-w-[100px] flex-shrink-0">{t.symbol ?? 'MES'}</span>
+          <span className="min-w-[100px] flex-shrink-0 capitalize">{t.direction ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.contracts ?? 1}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.entry_price ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.exit_price ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.stop_loss ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.take_profit ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0 capitalize">{t.result ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0" style={{ color: pnlColor(pnl) }}>
+            {pnl >= 0 ? '+' : '-'}${formatMoney(Math.abs(pnl))}
+          </span>
+          <span className="min-w-[100px] flex-shrink-0">{formatDateTime(t.opened_at)}</span>
+          <span className="min-w-[100px] flex-shrink-0">{formatDateTime(t.closed_at)}</span>
+        </div>
+      );
+    });
+  };
+
+  const renderJournal = () => {
+    if (practice.closedTrades.length === 0) return null;
+    return practice.closedTrades.map((t) => {
+      const pnl = Number(t.pnl) || 0;
+      return (
+        <div key={t.id} className="flex items-center h-[28px] px-3 text-[11px] text-foreground border-b border-border/50">
+          <span className="min-w-[100px] flex-shrink-0">{formatDateTime(t.closed_at)}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.symbol ?? 'MES'}</span>
+          <span className="min-w-[100px] flex-shrink-0 capitalize">{t.direction ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.contracts ?? 1}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.entry_price ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0">{t.exit_price ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0" style={{ color: pnlColor(pnl) }}>
+            {pnl >= 0 ? '+' : '-'}${formatMoney(Math.abs(pnl))}
+          </span>
+          <span className="min-w-[100px] flex-shrink-0 capitalize">{t.result ?? '—'}</span>
+          <span className="min-w-[100px] flex-shrink-0 truncate">{t.notes ?? ''}</span>
+        </div>
+      );
+    });
+  };
+
+  const renderBalanceHistory = () => {
+    if (balanceHistory.length === 0) return null;
+    return balanceHistory.map((row) => (
+      <div key={row.id} className="flex items-center h-[28px] px-3 text-[11px] text-foreground border-b border-border/50">
+        <span className="min-w-[100px] flex-shrink-0">{formatDateTime(row.date)}</span>
+        <span className="min-w-[100px] flex-shrink-0">{row.type}</span>
+        <span className="min-w-[100px] flex-shrink-0" style={{ color: pnlColor(row.amount) }}>
+          {row.amount >= 0 ? '+' : '-'}${formatMoney(Math.abs(row.amount))}
+        </span>
+        <span className="min-w-[100px] flex-shrink-0">${formatMoney(row.balance)}</span>
+        <span className="min-w-[100px] flex-shrink-0 truncate">{row.description}</span>
+      </div>
+    ));
+  };
+
+  const renderTableBody = () => {
+    let rows: React.ReactNode = null;
+    switch (activeSubTab) {
+      case 'Positions': rows = renderPositions(); break;
+      case 'Order History': rows = renderOrderHistory(); break;
+      case 'Trading Journal': rows = renderJournal(); break;
+      case 'Balance History': rows = renderBalanceHistory(); break;
+      case 'Orders': rows = null; break;
+    }
+    if (!rows) {
+      return (
+        <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground">
+          {emptyMessage}
+        </div>
+      );
+    }
+    return <div className="flex-1 overflow-auto">{rows}</div>;
+  };
 
   return (
     <>
@@ -282,7 +451,7 @@ export default function BottomBar() {
                   Paper Trading <ChevronRight size={12} className="rotate-90" />
                 </span>
                 <span className="flex items-center gap-1 text-muted-foreground cursor-pointer hover:text-foreground">
-                  mueller USD <ChevronRight size={12} className="rotate-90" />
+                  {accountLabel} <ChevronRight size={12} className="rotate-90" />
                 </span>
                 <Settings size={14} className="text-muted-foreground hover:text-foreground cursor-pointer" />
               </div>
@@ -343,10 +512,8 @@ export default function BottomBar() {
               <span className="ml-auto text-muted-foreground cursor-pointer">☰</span>
             </div>
 
-            {/* Empty state */}
-            <div className="flex-1 flex items-center justify-center text-[13px] text-muted-foreground">
-              {emptyMessage}
-            </div>
+            {/* Body */}
+            {renderTableBody()}
           </>
         )}
       </div>

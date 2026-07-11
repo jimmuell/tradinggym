@@ -18,10 +18,17 @@ import { useTier } from '@/contexts/TierContext';
 import { getPlanDisplayName, getPlanName } from '@/lib/tierUtils';
 import { useCustomerPortal } from '@/hooks/useCustomerPortal';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart as ReLineChart, Line, ResponsiveContainer, YAxis, Tooltip as ReTooltip } from 'recharts';
+import { usePracticeAccount } from '@/hooks/usePracticeAccount';
+import { formatMoney } from '@/lib/practiceAccount';
+import { toast } from 'sonner';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import LearningProgressCard from '@/components/dashboard/LearningProgressCard';
 import { FoundationTradesEmpty } from '@/components/dashboard/FoundationEmptyState';
@@ -41,6 +48,35 @@ export default function Dashboard() {
   const { currentTier, planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt } = useTier();
   const navigate = useNavigate();
   const portal = useCustomerPortal();
+  const queryClient = useQueryClient();
+  const practice = usePracticeAccount();
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetAccount = async () => {
+    if (!user?.id) return;
+    setResetting(true);
+    try {
+      const { error } = await supabase
+        .from('trades')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('session_type', 'simulator');
+      if (error) throw error;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['practice-account'] }),
+        queryClient.invalidateQueries({ queryKey: ['trade-stats'] }),
+        queryClient.invalidateQueries({ queryKey: ['trades'] }),
+        queryClient.invalidateQueries({ queryKey: ['live-trades-today'] }),
+      ]);
+      toast.success('Practice account reset to $10,000.00');
+      setResetOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to reset practice account');
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const { data: enrollments } = useQuery({
     queryKey: ['student_enrollments_count', user?.id],
@@ -188,12 +224,34 @@ export default function Dashboard() {
               <p className="text-sm text-muted-foreground">Practice Account</p>
               <h3 className="text-3xl font-bold flex items-center gap-2">
                 <DollarSign className="h-7 w-7 text-primary" />
-                10,000.00
+                {practice.isLoading ? (
+                  <Skeleton className="h-8 w-32" />
+                ) : (
+                  formatMoney(practice.balance)
+                )}
               </h3>
+              {!practice.isLoading && (
+                <p
+                  className={`text-xs mt-1 ${
+                    practice.realizedPnl > 0
+                      ? 'text-emerald-500'
+                      : practice.realizedPnl < 0
+                      ? 'text-red-500'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  Realized P&amp;L: {practice.realizedPnl >= 0 ? '+' : '-'}${formatMoney(Math.abs(practice.realizedPnl))}
+                </p>
+              )}
             </div>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setResetOpen(true)}
+                >
                   <RotateCcw className="h-4 w-4" />
                   Reset Account
                 </Button>
@@ -204,6 +262,28 @@ export default function Dashboard() {
             </Tooltip>
           </div>
         </Card>
+
+        <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset practice account?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This permanently deletes all your simulator trades and returns your practice
+                balance to $10,000. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={resetting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => { e.preventDefault(); handleResetAccount(); }}
+                disabled={resetting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {resetting ? 'Resetting…' : 'Reset account'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
