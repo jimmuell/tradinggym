@@ -38,7 +38,7 @@ const STAT_TOOLTIPS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { currentTier, planState, isAdmin } = useTier();
+  const { currentTier, planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt } = useTier();
   const navigate = useNavigate();
   const portal = useCustomerPortal();
 
