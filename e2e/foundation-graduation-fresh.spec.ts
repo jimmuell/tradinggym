@@ -31,7 +31,9 @@ import { authedClient } from "./helpers/supabase";
 // plan_state / lesson_progress are never touched directly — every state change goes through the UI
 // and the server RPCs (submit_quiz_attempt, graduate_foundation, update_own_profile).
 
-const PASSWORD = "TgymQA2026!";
+// Password for the throwaway signup accounts — sourced from the environment (the seed password),
+// never a hardcoded literal. Keeps new accounts consistent with the dev-login seeds.
+const PASSWORD = process.env.TEST_PASSWORD ?? "";
 
 interface QuizQuestion {
   id: string;
@@ -116,7 +118,24 @@ test.describe("Foundation graduation — fresh signup → 5 modules → assessme
       .maybeSingle();
     expect(quizRow, "Foundation assessment quiz must exist").toBeTruthy();
     const questions = (quizRow as { questions: QuizQuestion[] }).questions;
-    expect(questions.length, "assessment must have questions").toBeGreaterThan(0);
+    const expectedQuestionCount = questions.length; // read from truth — never hardcoded (currently 10)
+    expect(expectedQuestionCount, "assessment must have questions").toBeGreaterThan(0);
+
+    // Shadow guard (defence-in-depth behind the DB uniqueness index
+    // `quizzes_one_published_platform_per_module`): there must be EXACTLY ONE published platform
+    // foundation quiz. A May-9→Jul-11 regression served a 1-question stub as the gate because three
+    // published quizzes existed and useQuizByModule() takes created_at DESC LIMIT 1. If a duplicate
+    // is ever published again, this assertion — and the "of N" UI check below — go red.
+    const { data: publishedQuizzes } = await sb
+      .from("quizzes")
+      .select("id")
+      .eq("module", "foundation")
+      .eq("content_type", "platform")
+      .eq("is_published", true);
+    expect(
+      (publishedQuizzes ?? []).length,
+      "exactly one published platform foundation quiz may gate graduation",
+    ).toBe(1);
 
     // Fresh account starts un-graduated with zero progress (server truth).
     const { data: prof0 } = await sb.from("profiles").select("tier_state").maybeSingle();
@@ -178,6 +197,13 @@ test.describe("Foundation graduation — fresh signup → 5 modules → assessme
     // ── 6) Take the assessment and pass it legitimately (server-graded via submit_quiz_attempt) ──
     await page.getByRole("button", { name: /take assessment/i }).click();
     await page.waitForURL(/\/learning\/foundation\/quiz$/, { timeout: 30_000 });
+
+    // The RUNNING app must serve exactly as many questions as the single published quiz row (the
+    // QuizRunner header reads "Question 1 of {total}"). Read from truth, asserted against the UI —
+    // so a 1-question stub leaking through the app (as happened for two months) makes this red.
+    await expect(page.getByText(`Question 1 of ${expectedQuestionCount}`)).toBeVisible({
+      timeout: 30_000,
+    });
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
