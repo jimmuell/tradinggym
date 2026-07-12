@@ -108,15 +108,21 @@ export interface NewBacktestRun {
 
 export function useBacktestRuns() {
   const { user } = useAuth();
+  const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ['backtest_runs', user?.id],
     enabled: !!user?.id,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: 'always',
+    refetchIntervalInBackground: true,
     refetchInterval: (query) => {
       const runs = query.state.data as BacktestRun[] | undefined;
       const hasActive = runs?.some((r) => r.status === 'pending' || r.status === 'running');
-      return hasActive ? 5000 : false;
+      // Poll aggressively while a run is in-flight. Engine typically finishes in
+      // ~3s, so 5s polling meant users watched a stale spinner for a full cycle
+      // even in the happy path. Realtime is the primary path; this is fallback.
+      return hasActive ? 2000 : false;
     },
     queryFn: async (): Promise<BacktestRun[]> => {
       const { data, error } = await supabase
@@ -128,6 +134,28 @@ export function useBacktestRuns() {
       return (data ?? []) as unknown as BacktestRun[];
     },
   });
+
+  // Realtime: the polling fallback above missed completions in production
+  // (users watched spinners for minutes while the row was already `complete`
+  // in the DB). Subscribe to row updates for this user and invalidate on any
+  // change so the UI reflects the terminal state within ms of the engine
+  // callback landing.
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`backtest_runs:${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${user.id}` },
+        () => {
+          qc.invalidateQueries({ queryKey: ['backtest_runs', user.id] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, qc]);
 
   return { runs: data ?? [], isLoading };
 }
