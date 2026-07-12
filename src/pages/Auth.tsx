@@ -143,19 +143,6 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const [showDevSignIn, setShowDevSignIn] = useState(getLocalDevSignIn());
-  useEffect(() => {
-    let cancelled = false;
-    fetchDevSignInEnabled().then((v) => { if (!cancelled) setShowDevSignIn(v); });
-    const sync = () => setShowDevSignIn(getLocalDevSignIn());
-    window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      cancelled = true;
-      window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
 
   const handleDevLogin = async (email: string) => {
     setLoading(true);
