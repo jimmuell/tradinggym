@@ -13,7 +13,7 @@ import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel'
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import BacktestCoachPanel from '@/components/backtesting/BacktestCoachPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useBacktestRuns, useBacktestRunPoll, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
+import { useBacktestRuns, useBacktestRun, useBacktestRunPoll, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
