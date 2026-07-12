@@ -128,16 +128,16 @@ export default function Backtesting() {
           onRun={handleRun}
           isRunning={runBacktest.isPending || hasActive}
           monthlyRunCount={monthlyRunCount}
-          lastRun={latest}
+          lastRun={displayRun}
         />
         <ErrorBoundary fallbackTitle="Results panel crashed — the run finished but rendering failed.">
           <div className="space-y-6">
-            <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
-            <BacktestTeachPanel run={latest} />
+            <BacktestResultsPanel run={displayRun} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
+            <BacktestTeachPanel run={displayRun} />
             <div className="flex flex-wrap items-center gap-2">
               <BacktestComparePanel runs={runs} />
               <BacktestOptimizePanel runs={runs} />
-              <BacktestCoachPanel run={latest} />
+              <BacktestCoachPanel run={displayRun} />
             </div>
             <BacktestRunHistory runs={runs} />
           </div>
