@@ -37,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
-import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import { useBacktestRuntimeEstimate, daysBetweenDates } from '@/hooks/useBacktestRuntimeEstimate';
 import { formatRuntime } from '@/lib/formatRuntime';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
