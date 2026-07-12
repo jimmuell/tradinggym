@@ -27,6 +27,13 @@ export default function Backtesting() {
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
 
   const latest = runs[0] ?? null;
+  // Lazily fetch the FULL row (including results_detail) for the run being
+  // displayed. The list query only carries slim columns, so panels that need
+  // trade-by-trade JSONB (Explain/Teach/Coach) read from `latestFull` instead
+  // of the list. Bounded to a single row.
+  const { run: latestFull } = useBacktestRun(latest?.id ?? null);
+  const displayRun = latestFull ?? latest;
+
   // A run is only "active" if it's pending/running AND was updated recently.
   // Anything older than 10 min is considered stuck (engine never called back)
   // and must not block the Run button — user can still cancel it explicitly.
