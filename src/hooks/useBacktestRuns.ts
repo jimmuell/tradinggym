@@ -213,7 +213,7 @@ function applyRealtimePayload(
   seenTerminal: Set<string>,
 ) {
   const key = ['backtest_runs', userId];
-  const row = (payload.eventType === 'DELETE' ? payload.old : payload.new) as BacktestRun | null;
+  const row = (payload.eventType === 'DELETE' ? payload.old : payload.new) as unknown as BacktestRun | null;
   if (!row?.id) return;
 
   qc.setQueryData<BacktestRun[]>(key, (prev) => {
