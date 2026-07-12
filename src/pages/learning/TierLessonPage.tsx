@@ -48,7 +48,7 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
 
   if (!lessonId) return null;
 
-  if (isLoading || !lesson) {
+  if (tierLoading || isLoading || !lesson) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-4">
         <Skeleton className="h-8 w-1/2" />

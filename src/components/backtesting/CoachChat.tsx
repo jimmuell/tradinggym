@@ -38,8 +38,8 @@ interface ChatMsg {
 const ALLOWED_PLANS = new Set(['pro', 'expert', 'guru', 'admin']);
 
 export default function CoachChat({ run, teaching, sameSignal, cardMessage, mockMode }: Props) {
-  const { planState, isAdmin } = useTier();
-  const canCoach = isAdmin || ALLOWED_PLANS.has(planState);
+  const { planState, isAdmin, loading: tierLoading } = useTier();
+  const canCoach = !tierLoading && (isAdmin || ALLOWED_PLANS.has(planState));
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
@@ -50,6 +50,10 @@ export default function CoachChat({ run, teaching, sameSignal, cardMessage, mock
   useEffect(() => {
     if (canCoach) inputRef.current?.focus();
   }, [canCoach, messages.length]);
+
+  // While plan resolves, render nothing (parent shows the section around us).
+  // Do NOT flash the "Upgrade to Pro" lock to a paying customer.
+  if (tierLoading) return null;
 
   if (!canCoach) {
     return (

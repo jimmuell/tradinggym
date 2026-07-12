@@ -28,7 +28,7 @@ export default function GraduationGateCard({
   buttonLabel,
 }: GraduationGateCardProps) {
   const { tradeCount, winRate, isLoading } = useTradeStats();
-  const { currentTier, isUnlocked } = useTier();
+  const { currentTier, isUnlocked, loading: tierLoading } = useTier();
   const promote = usePromoteTier();
 
   const tierOrder: TierState[] = ['foundation', 'tier1', 'tier2', 'tier3', 'coach'];
@@ -44,7 +44,8 @@ export default function GraduationGateCard({
   const winRateMet = winRate >= requiredWinRate;
   const canPromote = tradesMet && winRateMet && !alreadyAdvanced && targetTier !== null;
 
-  if (isLoading) {
+  // Guard: do not flash "not advanced yet" while plan/tier is still resolving.
+  if (isLoading || tierLoading) {
     return <Skeleton className="h-56 w-full" />;
   }
 

@@ -27,8 +27,8 @@ export default function FoundationLearning() {
   const { data: bestAttempt, isLoading: attemptLoading } = useBestQuizAttempt(quiz?.id);
   const { data: attempts, isLoading: attemptsLoading } = useQuizAttempts(quiz?.id);
   const { data: completedIds, isLoading: progressLoading } = useCompletedLessonIds();
-  const { isUnlocked } = useTier();
-  const tier1Unlocked = isUnlocked('tier1');
+  const { isUnlocked, loading: tierLoading } = useTier();
+  const tier1Unlocked = !tierLoading && isUnlocked('tier1');
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const [reviewing, setReviewing] = useState<QuizAttempt | null>(null);
 

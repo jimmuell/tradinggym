@@ -9,7 +9,10 @@ import { useTier } from '@/contexts/TierContext';
 
 export default function ClassesPage() {
   const { enrollments, isLoading } = useStudentEnrollments();
-  const { planState } = useTier();
+  const { planState, loading: tierLoading } = useTier();
+  // Treat plan as "not starter" until resolved, so we never flash the
+  // "Upgrade to Pro" empty-state copy at a paying customer on cold load.
+  const starter = !tierLoading && planState === 'starter';
 
   return (
     <>

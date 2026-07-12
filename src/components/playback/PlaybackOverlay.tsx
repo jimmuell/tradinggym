@@ -56,8 +56,10 @@ export default function PlaybackOverlay({
 }: Props) {
 
   const navigate = useNavigate();
-  const { planState, isAdmin } = useTier();
-  const isLockedPlan = !allowFullPlayback && !isAdmin && planState === 'starter';
+  const { planState, isAdmin, loading: tierLoading } = useTier();
+  // While plan resolves, treat as unlocked so we do not flash the Starter
+  // paywall to a paying customer during a cold reload of the simulator.
+  const isLockedPlan = !tierLoading && !allowFullPlayback && !isAdmin && planState === 'starter';
   const lockedAfter: PlaybackPhase = 'context'; // Starter sees only Context
 
   const tooltips = (scenario.annotations ?? []).filter(

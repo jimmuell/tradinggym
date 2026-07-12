@@ -79,10 +79,10 @@ interface Props {
 }
 
 export default function BacktestOptimizePanel({ runs }: Props) {
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading: tierLoading } = useTier();
   const runBacktest = useRunBacktest();
 
-  const canOptimize = isAdmin || planState === 'expert' || planState === 'guru';
+  const canOptimize = !tierLoading && (isAdmin || planState === 'expert' || planState === 'guru');
   // Base = most recent completed run that has a strategy_id (so the sweep can regenerate the signal).
   const base = useMemo(
     () => runs.find((r) => r.status === 'complete' && r.strategy_id) ?? null,
@@ -100,7 +100,8 @@ export default function BacktestOptimizePanel({ runs }: Props) {
   const [sweptValues, setSweptValues] = useState<number[]>([]);
   const [resultIds, setResultIds] = useState<string[]>([]);
 
-  if (!canOptimize || !base) return null;
+  // Hide (render nothing) while plan resolves or the user is ineligible.
+  if (tierLoading || !canOptimize || !base) return null;
 
   const runSweep = async () => {
     const values = parseValues(valuesText, param);

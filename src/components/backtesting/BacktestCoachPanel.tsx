@@ -64,8 +64,8 @@ function buildCardMessage(t: TeachingEntry): string {
 }
 
 export default function BacktestCoachPanel({ run }: Props) {
-  const { planState, isAdmin } = useTier();
-  const canCoach = isAdmin || ALLOWED_PLANS.has(planState);
+  const { planState, isAdmin, loading: tierLoading } = useTier();
+  const canCoach = !tierLoading && (isAdmin || ALLOWED_PLANS.has(planState));
   const showCoach = COACH_CHAT_ENABLED || isAdmin;
 
   const [open, setOpen] = useState(false);
