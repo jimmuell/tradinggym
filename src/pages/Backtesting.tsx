@@ -121,6 +121,7 @@ export default function Backtesting() {
           onRun={handleRun}
           isRunning={runBacktest.isPending || hasActive}
           monthlyRunCount={monthlyRunCount}
+          lastRun={latest}
         />
         <ErrorBoundary fallbackTitle="Results panel crashed — the run finished but rendering failed.">
           <div className="space-y-6">
