@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateBacktestRun, type NewBacktestRun } from './useBacktestRuns';
@@ -7,7 +7,6 @@ export type RunBacktestInput = NewBacktestRun;
 
 export function useRunBacktest() {
   const { user } = useAuth();
-  const qc = useQueryClient();
   const createRun = useCreateBacktestRun();
 
   return useMutation({
