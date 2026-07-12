@@ -244,8 +244,12 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount,
 
   // ---- State (kept in one place so values persist across tier-driven re-renders) ----
   const [strategyId, setStrategyId] = useState<string>('');
-  const [startDate, setStartDate] = useState('2020-01-01');
-  const [endDate, setEndDate] = useState('2025-12-31');
+  // Default to a ~1-year range: fast enough on the current engine (~3.5s on the
+  // last comparable 450-day run) AND large enough to give a statistically meaningful
+  // sample. A 1-week default would run in ~3s but produce ~16 trades that our own
+  // coaching cards flag as noise. The 1-week Quick Test button stays for that need.
+  const [startDate, setStartDate] = useState('2025-04-01');
+  const [endDate, setEndDate] = useState('2026-04-01');
   const [initialBalance, setInitialBalance] = useState(10000);
   const [commissionPerRt, setCommissionPerRt] = useState(1.24); // ADR-030: flat $/round-trip
   const [direction, setDirection] = useState<'long_short' | 'long_only'>('long_short');
@@ -279,8 +283,8 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount,
       setStartDate(lastRun.start_date);
       setEndDate(lastRun.end_date);
     } else {
-      setStartDate('2020-01-01');
-      setEndDate('2025-12-31');
+      setStartDate('2025-04-01');
+      setEndDate('2026-04-01');
     }
 
     if (isVisible('direction')) {

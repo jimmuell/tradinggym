@@ -85,6 +85,12 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Heartbeat: every accepted callback stamps last_progress_at so the pg_cron
+  // watchdog (public.fail_stale_backtests) does NOT fail a run that is still
+  // checking in. Set server-side and deliberately NOT in ALLOWED so a leaked
+  // callback secret still cannot backdate the heartbeat to hide a stuck run.
+  (update as Record<string, unknown>).last_progress_at = new Date().toISOString();
+
   const { error } = await supabase.from("backtest_runs").update(update).eq("id", run_id);
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
