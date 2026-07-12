@@ -108,6 +108,16 @@ export interface NewBacktestRun {
 
 const LIST_LIMIT = 25;
 const TERMINAL_STATUSES = new Set(['complete', 'failed']);
+const REALTIME_FAILURE_STATUSES = new Set(['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED']);
+
+type BacktestRealtimeSubscription = {
+  channel: ReturnType<typeof supabase.channel>;
+  refs: number;
+  topic: string;
+  warnedStatuses: Set<string>;
+};
+
+const activeBacktestRealtimeByUser = new Map<string, BacktestRealtimeSubscription>();
 
 function createRealtimeNonce() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -126,7 +136,7 @@ function createRealtimeNonce() {
  * `useBacktestRunPoll` and only runs while a specific run is in flight.
  */
 export function useBacktestRuns() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const qc = useQueryClient();
   // Track which runs we've already seen in a terminal state so we log the
   // delivery mechanism exactly once per run.
@@ -157,14 +167,23 @@ export function useBacktestRuns() {
 
   useEffect(() => {
     if (!user?.id) return;
-    // Realtime is the primary path. If setup throws (duplicate topic, transport
-    // failure), the single-run poll in useBacktestRunPoll carries the feature.
-    // Unique channel topic per mount avoids the "cannot add postgres_changes
-    // callbacks after subscribe()" error on React StrictMode double-invoke.
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    // Realtime is the primary path. Keep exactly ONE channel per signed-in user,
+    // even if this hook is accidentally mounted twice by a parent/component path.
+    let entry = activeBacktestRealtimeByUser.get(user.id);
+    if (entry) {
+      entry.refs += 1;
+      return () => releaseBacktestRealtime(user.id, entry);
+    }
+
     try {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
       const topic = `backtest_runs:client:${createRealtimeNonce()}`;
       const ch = supabase.channel(topic);
+      entry = { channel: ch, refs: 1, topic, warnedStatuses: new Set() };
+      activeBacktestRealtimeByUser.set(user.id, entry);
+
       ch.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${user.id}` },
@@ -172,28 +191,70 @@ export function useBacktestRuns() {
           applyRealtimePayload(qc, user.id, payload, seenTerminalRef.current);
         },
       );
-      ch.subscribe((status) => {
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+      ch.subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') {
           // eslint-disable-next-line no-console
-          console.warn('[realtime] backtest_runs subscription FAILED — falling back to poll', { status });
+          console.debug('[realtime] backtest_runs subscription SUCCEEDED', { status, topic });
+          return;
+        }
+        if (REALTIME_FAILURE_STATUSES.has(status) && entry && !entry.warnedStatuses.has(status)) {
+          entry.warnedStatuses.add(status);
+          // eslint-disable-next-line no-console
+          console.warn(`[realtime] backtest_runs subscription FAILED (${status}) — falling back to poll`, {
+            status,
+            topic,
+            error: describeRealtimeError(error),
+            rawError: error,
+          });
         }
       });
-      channel = ch;
     } catch (err) {
+      if (entry) activeBacktestRealtimeByUser.delete(user.id);
       // eslint-disable-next-line no-console
-      console.warn('[realtime] backtest_runs subscription FAILED — falling back to poll', err);
+      console.warn('[realtime] backtest_runs subscription FAILED (SETUP_THROW) — falling back to poll', {
+        status: 'SETUP_THROW',
+        error: describeRealtimeError(err),
+        rawError: err,
+      });
     }
-    return () => {
-      if (!channel) return;
-      try {
-        supabase.removeChannel(channel);
-      } catch {
-        /* noop */
-      }
-    };
-  }, [user?.id, qc]);
+    return () => releaseBacktestRealtime(user.id, entry ?? null);
+  }, [user?.id, session?.access_token, qc]);
 
   return { runs: data ?? [], isLoading };
+}
+
+function releaseBacktestRealtime(userId: string, entry: BacktestRealtimeSubscription | null) {
+  if (!entry) return;
+  const current = activeBacktestRealtimeByUser.get(userId);
+  if (current !== entry) return;
+  entry.refs -= 1;
+  if (entry.refs > 0) return;
+  activeBacktestRealtimeByUser.delete(userId);
+  try {
+    supabase.removeChannel(entry.channel);
+  } catch {
+    /* noop */
+  }
+}
+
+function describeRealtimeError(error: unknown) {
+  if (!error) return null;
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+  if (typeof error === 'string') return { message: error };
+  if (typeof error === 'object') {
+    try {
+      return JSON.parse(JSON.stringify(error));
+    } catch {
+      return String(error);
+    }
+  }
+  return error;
 }
 
 type RealtimePayload = {
