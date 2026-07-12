@@ -142,18 +142,49 @@ export function useBacktestRuns() {
   // callback landing.
   useEffect(() => {
     if (!user?.id) return;
-    const channel = supabase
-      .channel(`backtest_runs:${user.id}`)
-      .on(
+    // Realtime is a *nice-to-have* on top of the 2s poll. If anything in this
+    // setup throws — duplicate channel topic, transport failure, supabase-js
+    // lifecycle quirk — it MUST NOT take the Backtesting page down. Wrap the
+    // whole thing and let the polling fallback carry the feature.
+    //
+    // Unique channel topic per mount (Date.now + random) so React StrictMode's
+    // double-invoke, or any remount, never lands on an already-subscribed
+    // channel and triggers the "cannot add postgres_changes callbacks after
+    // subscribe()" error.
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      const topic = `backtest_runs:${user.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+      const ch = supabase.channel(topic);
+      // ALL .on() handlers must be registered BEFORE .subscribe(). Do not
+      // chain .subscribe() into the same expression as .on() if a later
+      // effect could ever touch this channel again — we create fresh
+      // channels per mount instead.
+      ch.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${user.id}` },
         () => {
           qc.invalidateQueries({ queryKey: ['backtest_runs', user.id] });
         },
-      )
-      .subscribe();
+      );
+      ch.subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          // Fallback poll (refetchInterval above) keeps the UI live.
+          // eslint-disable-next-line no-console
+          console.warn('[backtest_runs realtime] status=', status, '— relying on 2s poll');
+        }
+      });
+      channel = ch;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[backtest_runs realtime] subscribe failed, falling back to poll:', err);
+    }
     return () => {
-      supabase.removeChannel(channel);
+      if (!channel) return;
+      try {
+        supabase.removeChannel(channel);
+      } catch {
+        /* noop */
+      }
     };
   }, [user?.id, qc]);
 
