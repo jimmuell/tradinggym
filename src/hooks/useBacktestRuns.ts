@@ -193,13 +193,11 @@ export function useBacktestRuns() {
       );
       ch.subscribe((status, error) => {
         if (status === 'SUBSCRIBED') {
-          // eslint-disable-next-line no-console
           console.debug('[realtime] backtest_runs subscription SUCCEEDED', { status, topic });
           return;
         }
         if (REALTIME_FAILURE_STATUSES.has(status) && entry && !entry.warnedStatuses.has(status)) {
           entry.warnedStatuses.add(status);
-          // eslint-disable-next-line no-console
           console.warn(`[realtime] backtest_runs subscription FAILED (${status}) — falling back to poll`, {
             status,
             topic,
@@ -210,7 +208,6 @@ export function useBacktestRuns() {
       });
     } catch (err) {
       if (entry) activeBacktestRealtimeByUser.delete(user.id);
-      // eslint-disable-next-line no-console
       console.warn('[realtime] backtest_runs subscription FAILED (SETUP_THROW) — falling back to poll', {
         status: 'SETUP_THROW',
         error: describeRealtimeError(err),
@@ -296,7 +293,6 @@ function applyRealtimePayload(
 
   if (TERMINAL_STATUSES.has(row.status) && !seenTerminal.has(row.id)) {
     seenTerminal.add(row.id);
-    // eslint-disable-next-line no-console
     console.debug('[backtest] result delivered via realtime', row.id);
   }
 }
@@ -340,7 +336,6 @@ export function useBacktestRunPoll(runId: string | null | undefined) {
           const cached = cache.find((r) => r.id === runId);
           const alreadyTerminalInCache = cached && TERMINAL_STATUSES.has(cached.status);
           if (!alreadyTerminalInCache) {
-            // eslint-disable-next-line no-console
             console.debug('[backtest] result delivered via poll fallback', runId);
             // Realtime didn't beat us — pull the full row so consumers get
             // results_detail/equity_curve/etc.
