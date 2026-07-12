@@ -19,7 +19,7 @@ const ALLOWED_AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gi
 
 export default function Profile() {
   const { user } = useAuth();
-  const { currentTier, planState } = useTier();
+  const { currentTier, planState, loading: tierLoading } = useTier();
   const queryClient = useQueryClient();
   const [displayName, setDisplayName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -144,14 +144,28 @@ export default function Profile() {
               <div className="flex-1">
                 <p className="text-foreground font-medium">{user?.email ?? 'trader@example.com'}</p>
                 <p className="text-sm text-muted-foreground">
-                  Plan: {getPlanDisplayName(planState)}
-                  {(planState === 'starter' || planState === 'pro') && (
-                    <Link to="/pricing" className="ml-2 text-blue-400 underline hover:text-blue-300">
-                      Upgrade
-                    </Link>
+                  Plan:{' '}
+                  {tierLoading ? (
+                    <Skeleton className="inline-block h-3 w-16 align-middle" />
+                  ) : (
+                    <>
+                      {getPlanDisplayName(planState)}
+                      {(planState === 'starter' || planState === 'pro') && (
+                        <Link to="/pricing" className="ml-2 text-blue-400 underline hover:text-blue-300">
+                          Upgrade
+                        </Link>
+                      )}
+                    </>
                   )}
                 </p>
-                <p className="text-sm text-muted-foreground">Learning Tier: {getTierDisplayName(currentTier)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Learning Tier:{' '}
+                  {tierLoading ? (
+                    <Skeleton className="inline-block h-3 w-20 align-middle" />
+                  ) : (
+                    getTierDisplayName(currentTier)
+                  )}
+                </p>
                 <div className="mt-2">
                   <input
                     ref={fileInputRef}

@@ -317,12 +317,13 @@ export default function StrategyDetailPage() {
   const isNew = id === 'new';
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading: tierLoading } = useTier();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const isStarter = !isAdmin && planState === 'starter';
-  const userIsFree = !isAdmin && isFreePlan(planState);
+  // Never treat a user as "starter" (locking Pro-only fields) until plan resolves.
+  const isStarter = !tierLoading && !isAdmin && planState === 'starter';
+  const userIsFree = !tierLoading && !isAdmin && isFreePlan(planState);
 
   // Preempt: Free users at their 1-strategy cap can't reach the blank form.
   const { data: freeCapReached } = useQuery({

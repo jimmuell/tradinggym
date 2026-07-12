@@ -18,9 +18,10 @@ import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
   const navigate = useNavigate();
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading: tierLoading } = useTier();
   const effectiveTier = isAdmin ? 'admin' : planState;
-  const isCockpit = effectiveTier === 'guru' || effectiveTier === 'admin';
+  // Suppress cockpit layout branch until we actually know the plan.
+  const isCockpit = !tierLoading && (effectiveTier === 'guru' || effectiveTier === 'admin');
   const { runs } = useBacktestRuns();
   const runBacktest = useRunBacktest();
   const cancelRun = useCancelBacktestRun();

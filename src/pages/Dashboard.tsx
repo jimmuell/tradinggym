@@ -46,7 +46,7 @@ const STAT_TOOLTIPS: Record<string, string> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { currentTier, planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt } = useTier();
+  const { currentTier, planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt, loading: tierLoading } = useTier();
   const navigate = useNavigate();
   const portal = useCustomerPortal();
   const queryClient = useQueryClient();
@@ -181,24 +181,33 @@ export default function Dashboard() {
               <CreditCard className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                {isAdmin
-                  ? 'Admin'
-                  : cancelAtPeriodEnd && subscriptionEndsAt && ['pro', 'expert', 'guru'].includes(planState)
-                  ? `${getPlanName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                  : getPlanName(planState)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {isAdmin
-                  ? "Admin account — no subscription required."
-                  : cancelAtPeriodEnd && ['pro', 'expert', 'guru'].includes(planState)
-                  ? `You'll keep ${getPlanName(planState)} access until then.`
-                  : !['pro', 'expert', 'guru'].includes(planState)
-                  ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
-                  : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
-              </p>
+              {tierLoading ? (
+                <>
+                  <Skeleton className="h-4 w-40 mb-2" />
+                  <Skeleton className="h-3 w-64" />
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold text-foreground">
+                    {isAdmin
+                      ? 'Admin'
+                      : cancelAtPeriodEnd && subscriptionEndsAt && ['pro', 'expert', 'guru'].includes(planState)
+                      ? `${getPlanName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : getPlanName(planState)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {isAdmin
+                      ? "Admin account — no subscription required."
+                      : cancelAtPeriodEnd && ['pro', 'expert', 'guru'].includes(planState)
+                      ? `You'll keep ${getPlanName(planState)} access until then.`
+                      : !['pro', 'expert', 'guru'].includes(planState)
+                      ? "You're on the free plan. Upgrade to unlock all strategy tiers, AI strategy extraction, and more."
+                      : `You're on the ${getPlanName(planState)} plan. Manage your subscription anytime.`}
+                  </p>
+                </>
+              )}
             </div>
-            {isAdmin ? null : !['pro', 'expert', 'guru'].includes(planState) ? (
+            {tierLoading ? null : isAdmin ? null : !['pro', 'expert', 'guru'].includes(planState) ? (
               <Link to="/pricing" className="shrink-0">
                 <Button size="sm" className="gap-2">
                   <Sparkles className="h-4 w-4" />

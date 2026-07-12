@@ -28,11 +28,14 @@ export default function Auth() {
   const [legalModal, setLegalModal] = useState<'terms' | 'privacy' | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { session } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const intendedPlan = searchParams.get('plan');
 
   useEffect(() => {
+    // Don't decide anything until the auth check has actually completed —
+    // otherwise an already-signed-in user briefly sees the /auth form.
+    if (authLoading) return;
     if (session) {
       if (intendedPlan && ['pro', 'expert', 'guru'].includes(intendedPlan)) {
         navigate(`/pricing?highlight=${intendedPlan}`, { replace: true });
@@ -40,7 +43,17 @@ export default function Auth() {
         navigate('/dashboard', { replace: true });
       }
     }
-  }, [session, navigate, intendedPlan]);
+  }, [authLoading, session, navigate, intendedPlan]);
+
+  // Guard against rendering the sign-in form while auth is still resolving,
+  // or after we know a session exists (before the redirect effect fires).
+  if (authLoading || session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#0b0e13]">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+      </div>
+    );
+  }
 
   const handleLogin = async () => {
     setLoading(true);
