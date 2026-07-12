@@ -62,7 +62,7 @@ export default function InvestorLayout({ children }: { children: React.ReactNode
           <span className="text-sm text-muted-foreground hidden sm:inline">
             {profile?.display_name || user?.email}
           </span>
-          <Button variant="ghost" size="sm" onClick={signOut}>
+          <Button variant="ghost" size="sm" onClick={() => { signOut().catch(() => { /* toast shown in signOut */ }); }}>
             <LogOut className="h-4 w-4 mr-1" /> Sign out
           </Button>
         </div>
