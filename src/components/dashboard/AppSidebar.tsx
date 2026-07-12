@@ -527,7 +527,7 @@ export function AppSidebar() {
             </div>
           )}
           <button
-            onClick={signOut}
+            onClick={() => { signOut().catch(() => { /* toast shown in signOut */ }); }}
             className="flex items-center gap-2 text-muted-foreground hover:text-sidebar-foreground text-sm px-1 py-1.5 w-full transition-colors"
           >
             <LogOut className="h-4 w-4 shrink-0" />
