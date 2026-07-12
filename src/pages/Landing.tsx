@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import PageSeo from "@/components/seo/PageSeo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -187,6 +188,12 @@ const pricing: Array<{
 ];
 
 export default function Landing() {
+  const { session, loading } = useAuth();
+  // Authenticated users must never see the logged-out marketing page.
+  // This also catches the Google OAuth flow, which redirects back to "/".
+  if (!loading && session) {
+    return <Navigate to="/dashboard" replace />;
+  }
   return (
     <div className="min-h-screen bg-[#0b0e13] text-gray-100 overflow-x-hidden">
       <PageSeo
