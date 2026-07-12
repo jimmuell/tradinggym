@@ -62,6 +62,7 @@ export type Database = {
           execution_time_ms: number | null
           id: string
           initial_balance: number
+          last_progress_at: string | null
           losses: number | null
           max_drawdown: number | null
           max_trades_per_day: number
@@ -110,6 +111,7 @@ export type Database = {
           execution_time_ms?: number | null
           id?: string
           initial_balance?: number
+          last_progress_at?: string | null
           losses?: number | null
           max_drawdown?: number | null
           max_trades_per_day?: number
@@ -158,6 +160,7 @@ export type Database = {
           execution_time_ms?: number | null
           id?: string
           initial_balance?: number
+          last_progress_at?: string | null
           losses?: number | null
           max_drawdown?: number | null
           max_trades_per_day?: number
