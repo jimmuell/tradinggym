@@ -38,13 +38,13 @@ export default function ClassesPage() {
             <GraduationCap className="h-10 w-10 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold">No classes yet</h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              {planState === 'starter'
+              {starter
                 ? 'Upgrade to Pro or Expert to enroll with a Guru and access their classes.'
                 : "You haven't joined any classes. Browse the Guru directory to find a coach."}
             </p>
             <Button asChild className="mt-4">
-              <Link to={planState === 'starter' ? '/pricing' : '/gurus'}>
-                {planState === 'starter' ? 'View Plans' : 'Find a Guru'}
+              <Link to={starter ? '/pricing' : '/gurus'}>
+                {starter ? 'View Plans' : 'Find a Guru'}
               </Link>
             </Button>
           </CardContent>
