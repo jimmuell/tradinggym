@@ -285,8 +285,9 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount,
       setStartDate(lastRun.start_date);
       setEndDate(lastRun.end_date);
     } else {
-      setStartDate('2026-03-01');
+      setStartDate('2026-01-01');
       setEndDate('2026-04-01');
+
 
     }
 
