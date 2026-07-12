@@ -167,6 +167,9 @@ export function useBacktestRuns() {
 
   useEffect(() => {
     if (!user?.id) return;
+    if (session?.access_token) {
+      supabase.realtime.setAuth(session.access_token);
+    }
     // Realtime is the primary path. Keep exactly ONE channel per signed-in user,
     // even if this hook is accidentally mounted twice by a parent/component path.
     let entry = activeBacktestRealtimeByUser.get(user.id);
@@ -176,9 +179,6 @@ export function useBacktestRuns() {
     }
 
     try {
-      if (session?.access_token) {
-        supabase.realtime.setAuth(session.access_token);
-      }
       const topic = `backtest_runs:client:${createRealtimeNonce()}`;
       const ch = supabase.channel(topic);
       entry = { channel: ch, refs: 1, topic, warnedStatuses: new Set() };
