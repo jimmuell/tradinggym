@@ -32,6 +32,20 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const intendedPlan = searchParams.get('plan');
 
+  const [showDevSignIn, setShowDevSignIn] = useState(getLocalDevSignIn());
+  useEffect(() => {
+    let cancelled = false;
+    fetchDevSignInEnabled().then((v) => { if (!cancelled) setShowDevSignIn(v); });
+    const sync = () => setShowDevSignIn(getLocalDevSignIn());
+    window.addEventListener(ADMIN_SETTINGS_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(ADMIN_SETTINGS_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
   useEffect(() => {
     // Don't decide anything until the auth check has actually completed —
     // otherwise an already-signed-in user briefly sees the /auth form.
