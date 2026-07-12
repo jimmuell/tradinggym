@@ -29,8 +29,8 @@ export function useRunBacktest() {
       if (error) throw error;
       return { run_id: run.id, ...(data || {}) };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['backtest_runs', user?.id] });
-    },
+    // No invalidateQueries here — realtime INSERT/UPDATE events merge payload.new
+    // directly into the list cache. Invalidating would trigger a redundant list
+    // refetch per run (previously the extra list request measured in prod).
   });
 }
