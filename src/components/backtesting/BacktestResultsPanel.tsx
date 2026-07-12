@@ -52,7 +52,9 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
   }
 
   if (run.status === 'pending' || run.status === 'running') {
-    return <InProgressCard run={run} onCancel={onCancel} isCanceling={isCanceling} />;
+    // key on run.id so a fresh run remounts the timer/interval — otherwise the
+    // elapsed counter kept accumulating from the previous stuck-looking run.
+    return <InProgressCard key={run.id} run={run} onCancel={onCancel} isCanceling={isCanceling} />;
   }
 
 
