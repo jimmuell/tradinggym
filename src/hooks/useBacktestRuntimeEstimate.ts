@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // Fallback constants — used ONLY until enough real runs exist to calibrate.
-const FALLBACK_INTERCEPT_MS = 12_000;
-const FALLBACK_MS_PER_DAY = 9;
-const MIN_ESTIMATE_MS = 3_000;
-const MIN_SAMPLES_TO_CALIBRATE = 4;
+const FALLBACK_MS_PER_DAY = 400;
+const FALLBACK_OVERHEAD_MS = 1500;
+const MIN_ESTIMATE_MS = 1_500;
+const MIN_SAMPLES_TO_CALIBRATE = 3;
 
 export interface RuntimeModel {
   estimateMs: (days: number) => number;
@@ -21,19 +21,28 @@ function daysBetween(startISO: string, endISO: string): number {
   return Math.max(1, Math.round((end - start) / 86_400_000));
 }
 
-function fitLinear(points: Point[]): { intercept: number; slope: number } | null {
-  const n = points.length;
-  if (n < MIN_SAMPLES_TO_CALIBRATE) return null;
-  const sx = points.reduce((a, p) => a + p.days, 0);
-  const sy = points.reduce((a, p) => a + p.ms, 0);
-  const sxx = points.reduce((a, p) => a + p.days * p.days, 0);
-  const sxy = points.reduce((a, p) => a + p.days * p.ms, 0);
-  const denom = n * sxx - sx * sx;
-  if (denom === 0) return null;
-  const slope = (n * sxy - sx * sy) / denom;
-  const intercept = (sy - slope * sx) / n;
-  if (slope <= 0 || intercept < 0) return null;
-  return { intercept, slope };
+function median(values: number[]): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * Robust estimator: median(ms/day) across recent runs, times requested days.
+ * A naive linear regression breaks when the sample is dominated by same-length
+ * runs (denom collapses → slope rejected → the constant fallback kicks in and
+ * over-estimates a 3s run at 12s+). Median-per-day is scale-invariant and
+ * insensitive to a single long-range outlier.
+ */
+function estimateFromPoints(points: Point[], days: number): number | null {
+  if (points.length < MIN_SAMPLES_TO_CALIBRATE) return null;
+  const perDay = points
+    .filter((p) => p.days > 0 && p.ms > 0)
+    .map((p) => p.ms / p.days);
+  const m = median(perDay);
+  if (m == null || !isFinite(m) || m <= 0) return null;
+  return Math.max(MIN_ESTIMATE_MS, Math.round(m * Math.max(1, days)));
 }
 
 export function useBacktestRuntimeEstimate(): RuntimeModel {
@@ -59,17 +68,16 @@ export function useBacktestRuntimeEstimate(): RuntimeModel {
   });
 
   const points = data ?? [];
-  const fit = fitLinear(points);
+  const calibrated = points.length >= MIN_SAMPLES_TO_CALIBRATE;
 
   const estimateMs = (days: number): number => {
     const d = Math.max(1, days);
-    const ms = fit
-      ? fit.intercept + fit.slope * d
-      : FALLBACK_INTERCEPT_MS + FALLBACK_MS_PER_DAY * d;
-    return Math.max(MIN_ESTIMATE_MS, Math.round(ms));
+    const fromData = estimateFromPoints(points, d);
+    if (fromData != null) return fromData;
+    return Math.max(MIN_ESTIMATE_MS, Math.round(FALLBACK_OVERHEAD_MS + FALLBACK_MS_PER_DAY * d));
   };
 
-  return { estimateMs, isCalibrated: !!fit, sampleSize: points.length };
+  return { estimateMs, isCalibrated: calibrated, sampleSize: points.length };
 }
 
 export function daysBetweenDates(startISO: string, endISO: string): number {
