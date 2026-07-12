@@ -31,12 +31,16 @@ function useGuidedOrbScenarioId() {
 }
 
 export default function Tier1Learning() {
-  const { isUnlocked } = useTier();
+  const { isUnlocked, loading: tierLoading } = useTier();
   const navigate = useNavigate();
   const { data: lessons } = useLessonsByModule('tier1_orb');
   const { data: orbId } = useGuidedOrbScenarioId();
   const { data: completedIds, isLoading: progressLoading } = useCompletedLessonIds();
 
+  // Guard: never render locked state until plan resolves.
+  if (tierLoading) {
+    return <div className="min-h-[40vh]" aria-busy="true" />;
+  }
   if (!isUnlocked('tier1')) {
     return (
       <TierLockedState
