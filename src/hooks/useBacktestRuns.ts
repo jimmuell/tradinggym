@@ -198,7 +198,16 @@ function stripLarge(row: BacktestRun): BacktestRun {
 export function useBacktestRuns() {
   const { user, session } = useAuth();
   const qc = useQueryClient();
-  const seenTerminalRef = useRef<Set<string>>(new Set());
+
+  // Keep realtime auth fresh WITHOUT tearing down the channel. Previously this
+  // effect depended on `session?.access_token`, so every silent token refresh
+  // ran teardown → resubscribe, which is what was spamming "subscription
+  // SUCCEEDED" and re-running the terminal-log path over the cache.
+  useEffect(() => {
+    if (session?.access_token) {
+      supabase.realtime.setAuth(session.access_token);
+    }
+  }, [session?.access_token]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['backtest_runs', user?.id],
@@ -216,8 +225,9 @@ export function useBacktestRuns() {
         .limit(LIST_LIMIT);
       if (error) throw error;
       const runs = (data ?? []) as unknown as BacktestRun[];
+      const seen = getSeenTerminal(user!.id);
       for (const r of runs) {
-        if (TERMINAL_STATUSES.has(r.status)) seenTerminalRef.current.add(r.id);
+        if (TERMINAL_STATUSES.has(r.status)) seen.add(r.id);
       }
       return runs;
     },
@@ -225,26 +235,25 @@ export function useBacktestRuns() {
 
   useEffect(() => {
     if (!user?.id) return;
-    if (session?.access_token) {
-      supabase.realtime.setAuth(session.access_token);
-    }
-    let entry = activeBacktestRealtimeByUser.get(user.id);
+    const userId = user.id;
+    let entry = activeBacktestRealtimeByUser.get(userId);
     if (entry) {
       entry.refs += 1;
-      return () => releaseBacktestRealtime(user.id, entry);
+      const held = entry;
+      return () => releaseBacktestRealtime(userId, held);
     }
 
     try {
       const topic = `backtest_runs:client:${createRealtimeNonce()}`;
       const ch = supabase.channel(topic);
       entry = { channel: ch, refs: 1, topic, warnedStatuses: new Set() };
-      activeBacktestRealtimeByUser.set(user.id, entry);
+      activeBacktestRealtimeByUser.set(userId, entry);
 
       ch.on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${user.id}` },
+        { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${userId}` },
         (payload) => {
-          applyRealtimePayload(qc, user.id, payload, seenTerminalRef.current);
+          applyRealtimePayload(qc, userId, payload, getSeenTerminal(userId));
         },
       );
       ch.subscribe((status, error) => {
@@ -263,18 +272,33 @@ export function useBacktestRuns() {
         }
       });
     } catch (err) {
-      if (entry) activeBacktestRealtimeByUser.delete(user.id);
+      if (entry) activeBacktestRealtimeByUser.delete(userId);
       console.warn('[realtime] backtest_runs subscription FAILED (SETUP_THROW) — falling back to poll', {
         status: 'SETUP_THROW',
         error: describeRealtimeError(err),
         rawError: err,
       });
     }
-    return () => releaseBacktestRealtime(user.id, entry ?? null);
-  }, [user?.id, session?.access_token, qc]);
+    const held = entry ?? null;
+    return () => releaseBacktestRealtime(userId, held);
+  }, [user?.id, qc]);
 
   return { runs: data ?? [], isLoading };
 }
+
+// Per-user "already-logged terminal" set at module scope, so remounts of the
+// hook do NOT re-log "delivered via realtime" for runs that were already known
+// terminal on a previous mount.
+const seenTerminalByUser = new Map<string, Set<string>>();
+function getSeenTerminal(userId: string): Set<string> {
+  let s = seenTerminalByUser.get(userId);
+  if (!s) {
+    s = new Set();
+    seenTerminalByUser.set(userId, s);
+  }
+  return s;
+}
+
 
 function releaseBacktestRealtime(userId: string, entry: BacktestRealtimeSubscription | null) {
   if (!entry) return;
