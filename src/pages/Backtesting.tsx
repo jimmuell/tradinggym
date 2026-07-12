@@ -13,7 +13,7 @@ import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel'
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import BacktestCoachPanel from '@/components/backtesting/BacktestCoachPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useBacktestRuns, useBacktestRunPoll, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
+import { useBacktestRuns, useBacktestRun, useBacktestRunPoll, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
@@ -27,6 +27,13 @@ export default function Backtesting() {
   const [lastConfig, setLastConfig] = useState<BacktestConfig | null>(null);
 
   const latest = runs[0] ?? null;
+  // Lazily fetch the FULL row (including results_detail) for the run being
+  // displayed. The list query only carries slim columns, so panels that need
+  // trade-by-trade JSONB (Explain/Teach/Coach) read from `latestFull` instead
+  // of the list. Bounded to a single row.
+  const { run: latestFull } = useBacktestRun(latest?.id ?? null);
+  const displayRun = latestFull ?? latest;
+
   // A run is only "active" if it's pending/running AND was updated recently.
   // Anything older than 10 min is considered stuck (engine never called back)
   // and must not block the Run button — user can still cancel it explicitly.
@@ -121,16 +128,16 @@ export default function Backtesting() {
           onRun={handleRun}
           isRunning={runBacktest.isPending || hasActive}
           monthlyRunCount={monthlyRunCount}
-          lastRun={latest}
+          lastRun={displayRun}
         />
         <ErrorBoundary fallbackTitle="Results panel crashed — the run finished but rendering failed.">
           <div className="space-y-6">
-            <BacktestResultsPanel run={latest} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
-            <BacktestTeachPanel run={latest} />
+            <BacktestResultsPanel run={displayRun} onRetry={handleRetry} onCancel={handleCancel} isCanceling={cancelRun.isPending} />
+            <BacktestTeachPanel run={displayRun} />
             <div className="flex flex-wrap items-center gap-2">
               <BacktestComparePanel runs={runs} />
               <BacktestOptimizePanel runs={runs} />
-              <BacktestCoachPanel run={latest} />
+              <BacktestCoachPanel run={displayRun} />
             </div>
             <BacktestRunHistory runs={runs} />
           </div>
