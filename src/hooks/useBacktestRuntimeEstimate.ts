@@ -29,21 +29,54 @@ function median(values: number[]): number | null {
 }
 
 /**
- * Robust estimator: median(ms/day) across recent runs, times requested days.
- * A naive linear regression breaks when the sample is dominated by same-length
- * runs (denom collapses → slope rejected → the constant fallback kicks in and
- * over-estimates a 3s run at 12s+). Median-per-day is scale-invariant and
- * insensitive to a single long-range outlier.
+ * Robust intercept + slope model.
+ *
+ * Real shape has BOTH a fixed engine overhead and a per-day cost:
+ *   5d ≈ 2.8s, 30d ≈ 4.2s, 365d ≈ 69.6s → ~2s fixed + ~0.19s/day.
+ *
+ * A pure median(ms/day) model overshoots long runs 3x+ because it assumes
+ * zero fixed cost. A naive linear regression breaks when every sample is the
+ * same length (denominator collapses).
+ *
+ * Strategy:
+ *   1. If sample spans ≥2 clearly-different range-lengths (max/min ≥ 1.5) and
+ *      has ≥3 points → least-squares fit (intercept + slope). Clamp intercept
+ *      to [0, 10s] and slope to [0.02, 2.0] s/day so a bad fit can't produce
+ *      absurd numbers.
+ *   2. Else → fall back to sane constants (FALLBACK_OVERHEAD_MS + FALLBACK_MS_PER_DAY).
+ *      Do NOT use median(ms/day) alone — it's what caused the 4m 15s overshoot.
  */
-function estimateFromPoints(points: Point[], days: number): number | null {
-  if (points.length < MIN_SAMPLES_TO_CALIBRATE) return null;
-  const perDay = points
-    .filter((p) => p.days > 0 && p.ms > 0)
-    .map((p) => p.ms / p.days);
-  const m = median(perDay);
-  if (m == null || !isFinite(m) || m <= 0) return null;
-  return Math.max(MIN_ESTIMATE_MS, Math.round(m * Math.max(1, days)));
+function fitLinear(points: Point[]): { intercept: number; slope: number } | null {
+  const valid = points.filter((p) => p.days > 0 && p.ms > 0);
+  if (valid.length < MIN_SAMPLES_TO_CALIBRATE) return null;
+  const days = valid.map((p) => p.days);
+  const minD = Math.min(...days);
+  const maxD = Math.max(...days);
+  if (maxD / minD < 1.5) return null; // degenerate — all same length
+
+  const n = valid.length;
+  const sumX = valid.reduce((s, p) => s + p.days, 0);
+  const sumY = valid.reduce((s, p) => s + p.ms, 0);
+  const sumXY = valid.reduce((s, p) => s + p.days * p.ms, 0);
+  const sumXX = valid.reduce((s, p) => s + p.days * p.days, 0);
+  const denom = n * sumXX - sumX * sumX;
+  if (denom <= 0) return null;
+
+  let slope = (n * sumXY - sumX * sumY) / denom;
+  let intercept = (sumY - slope * sumX) / n;
+
+  // Clamp to sanity range so a single outlier can't produce absurd fits.
+  slope = Math.max(20, Math.min(2000, slope)); // 0.02s/day .. 2s/day
+  intercept = Math.max(0, Math.min(10_000, intercept));
+  return { intercept, slope };
 }
+
+function estimateFromPoints(points: Point[], days: number): number | null {
+  const fit = fitLinear(points);
+  if (!fit) return null;
+  return Math.max(MIN_ESTIMATE_MS, Math.round(fit.intercept + fit.slope * Math.max(1, days)));
+}
+
 
 export function useBacktestRuntimeEstimate(): RuntimeModel {
   const { data } = useQuery({
