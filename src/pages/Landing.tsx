@@ -189,11 +189,31 @@ const pricing: Array<{
 
 export default function Landing() {
   const { session, loading } = useAuth();
-  // Authenticated users must never see the logged-out marketing page.
-  // This also catches the Google OAuth flow, which redirects back to "/".
-  if (!loading && session) {
+
+  // Never render the logged-out marketing page while auth state is still
+  // resolving. This prevents the landing-page flash during Google OAuth
+  // redirects and cold loads with a restored session.
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0b0e13] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <img
+            src="/favicon.png"
+            alt="TradingGYM"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-lg"
+          />
+          <span className="text-sm text-gray-500 tracking-wide">Loading…</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (session) {
     return <Navigate to="/dashboard" replace />;
   }
+
   return (
     <div className="min-h-screen bg-[#0b0e13] text-gray-100 overflow-x-hidden">
       <PageSeo
