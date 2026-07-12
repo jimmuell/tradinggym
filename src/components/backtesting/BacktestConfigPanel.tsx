@@ -244,13 +244,13 @@ export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount,
 
   // ---- State (kept in one place so values persist across tier-driven re-renders) ----
   const [strategyId, setStrategyId] = useState<string>('');
-  // Default to ~1 month. Measured runtimes on engine 25.18.1:
-  //   - 30d ≈ 4.2s (median of recent 30-day runs)
-  //   - 365d ≈ 69.6s (measured 2026-07-12 — too slow for a first-use default)
-  // 30 days still yields ~100 trades — defensible sample without the 70s wait.
-  // Widening the default to 3/6 months is deferred until those ranges are timed.
-  const [startDate, setStartDate] = useState('2026-03-01');
+  // Default to ~3 months. Measured on engine 25.19.0 (2026-07-12):
+  //   - 30d ≈ 2s / 95 trades (thin sample — coaching cards flag as noise)
+  //   - 90d ≈ 3s / 274 trades (same wait, ~3x sample, defensible first result)
+  //   - 365d ≈ 24s (too slow for a first-use default)
+  const [startDate, setStartDate] = useState('2026-01-01');
   const [endDate, setEndDate] = useState('2026-04-01');
+
 
   const [initialBalance, setInitialBalance] = useState(10000);
   const [commissionPerRt, setCommissionPerRt] = useState(1.24); // ADR-030: flat $/round-trip
