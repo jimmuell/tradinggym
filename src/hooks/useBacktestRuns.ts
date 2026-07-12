@@ -106,6 +106,14 @@ export interface NewBacktestRun {
   estimated_runtime_ms?: number;
 }
 
+function createRealtimeNonce() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function useBacktestRuns() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -147,13 +155,15 @@ export function useBacktestRuns() {
     // lifecycle quirk — it MUST NOT take the Backtesting page down. Wrap the
     // whole thing and let the polling fallback carry the feature.
     //
-    // Unique channel topic per mount (Date.now + random) so React StrictMode's
-    // double-invoke, or any remount, never lands on an already-subscribed
-    // channel and triggers the "cannot add postgres_changes callbacks after
-    // subscribe()" error.
+    // Unique channel topic per mount so React StrictMode's double-invoke, or
+    // any remount, never lands on an already-subscribed channel and triggers
+    // the "cannot add postgres_changes callbacks after subscribe()" error.
+    // Keep the auth user id OUT of the topic: seeing a stable UUID in the
+    // thrown topic masked this failure before, and the row filter below is the
+    // only place the user id belongs.
     let channel: ReturnType<typeof supabase.channel> | null = null;
     try {
-      const topic = `backtest_runs:${user.id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+      const topic = `backtest_runs:client:${createRealtimeNonce()}`;
       const ch = supabase.channel(topic);
       // ALL .on() handlers must be registered BEFORE .subscribe(). Do not
       // chain .subscribe() into the same expression as .on() if a later
@@ -168,15 +178,16 @@ export function useBacktestRuns() {
       );
       ch.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          // Fallback poll (refetchInterval above) keeps the UI live.
+          // Fallback poll (refetchInterval above) keeps the UI live, but make
+          // the degraded path explicit so Realtime cannot silently regress.
           // eslint-disable-next-line no-console
-          console.warn('[backtest_runs realtime] status=', status, '— relying on 2s poll');
+          console.warn('[realtime] backtest_runs subscription FAILED — falling back to poll', { status });
         }
       });
       channel = ch;
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.warn('[backtest_runs realtime] subscribe failed, falling back to poll:', err);
+      console.warn('[realtime] backtest_runs subscription FAILED — falling back to poll', err);
     }
     return () => {
       if (!channel) return;
