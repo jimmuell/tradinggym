@@ -9,8 +9,10 @@ import { GuruCard } from '@/components/coaches/GuruCard';
 import { GuruCardSkeleton } from '@/components/coaches/GuruCardSkeleton';
 
 export default function GurusDirectoryPage() {
-  const { planState } = useTier();
+  const { planState, loading: tierLoading } = useTier();
   const { data: gurus, isLoading } = usePublicGurus();
+  // Only show the "Upgrade to enroll" banner once we know the plan.
+  const showStarterBanner = !tierLoading && planState === 'starter';
 
   return (
     <>
@@ -26,7 +28,7 @@ export default function GurusDirectoryPage() {
         </p>
       </div>
 
-      {planState === 'starter' && (
+      {showStarterBanner && (
         <Card className="mb-6 border-primary/50 bg-primary/5">
           <CardContent className="p-4 flex items-center gap-3">
             <Sparkles className="h-5 w-5 text-primary shrink-0" />

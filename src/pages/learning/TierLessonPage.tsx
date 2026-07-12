@@ -18,13 +18,16 @@ interface TierLessonPageProps {
 export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel }: TierLessonPageProps) {
   const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
-  const { isUnlocked } = useTier();
+  const { isUnlocked, loading: tierLoading } = useTier();
   const tierUnlocked = isUnlocked(tier as TierState);
 
   const { data: lesson, isLoading, isError } = useLesson(lessonId);
   const markComplete = useMarkLessonComplete();
 
   useEffect(() => {
+    // CRITICAL: do not decide access until the plan has finished resolving.
+    // Otherwise a paid user is kicked back to /learning on cold nav.
+    if (tierLoading) return;
     if (!tierUnlocked) {
       navigate('/learning', { replace: true });
       return;
@@ -41,11 +44,11 @@ export default function TierLessonPage({ tier, modulePrefix, backPath, backLabel
     ) {
       navigate(backPath, { replace: true });
     }
-  }, [lesson, isLoading, isError, navigate, tierUnlocked, tier, modulePrefix, backPath]);
+  }, [lesson, isLoading, isError, navigate, tierLoading, tierUnlocked, tier, modulePrefix, backPath]);
 
   if (!lessonId) return null;
 
-  if (isLoading || !lesson) {
+  if (tierLoading || isLoading || !lesson) {
     return (
       <div className="p-6 max-w-3xl mx-auto space-y-4">
         <Skeleton className="h-8 w-1/2" />

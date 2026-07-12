@@ -46,13 +46,24 @@ const TIERS = [
 
 export default function Learning() {
   const navigate = useNavigate();
-  const { currentTier, isUnlocked } = useTier();
+  const { currentTier, isUnlocked, loading: tierLoading } = useTier();
   const { data: foundationLessons, isLoading: lessonsLoading } = useFoundationLessons();
 
   const currentIdx = TIER_ORDER.indexOf(currentTier);
   const foundationModuleCount = foundationLessons
     ? new Set(foundationLessons.map((l) => l.module)).size
     : null;
+
+  // Don't render any tier as locked/unlocked until we know the plan.
+  if (tierLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-32 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

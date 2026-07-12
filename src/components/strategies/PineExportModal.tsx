@@ -22,13 +22,15 @@ interface Props {
 const PRO_MONTHLY_LIMIT = 10;
 
 export function PineExportModal({ strategy, open, onOpenChange, exportsUsed = 0 }: Props) {
-  const { planState, isAdmin } = useTier();
+  const { planState, isAdmin, loading: tierLoading } = useTier();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [howOpen, setHowOpen] = useState(false);
 
-  const isLocked = !isAdmin && planState === 'starter';
-  const isPro = !isAdmin && planState === 'pro';
+  // Never show the Starter upgrade lock while the plan is still resolving —
+  // that would flash "Upgrade to Pro" to a paying customer on cold open.
+  const isLocked = !tierLoading && !isAdmin && planState === 'starter';
+  const isPro = !tierLoading && !isAdmin && planState === 'pro';
   const remaining = Math.max(PRO_MONTHLY_LIMIT - exportsUsed, 0);
   const reachedLimit = isPro && remaining <= 0;
 
