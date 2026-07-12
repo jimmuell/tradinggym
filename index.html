@@ -45,7 +45,40 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Branded splash screen: shown before React mounts on cold loads (e.g. OAuth redirect). -->
+      <div
+        id="tg-splash"
+        style="
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #0b0e13;
+          z-index: 9999;
+        "
+      >
+        <img
+          src="/favicon.png"
+          alt="TradingGYM"
+          width="64"
+          height="64"
+          style="
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            animation: tg-splash-pulse 1.6s ease-in-out infinite;
+          "
+        />
+      </div>
+      <style>
+        @keyframes tg-splash-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.65; transform: scale(0.96); }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
