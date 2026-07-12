@@ -7,9 +7,12 @@ import TierLessonList from '@/components/learning/TierLessonList';
 import GraduationGateCard from '@/components/learning/GraduationGateCard';
 
 export default function Tier2Learning() {
-  const { isUnlocked } = useTier();
+  const { isUnlocked, loading: tierLoading } = useTier();
   const navigate = useNavigate();
 
+  if (tierLoading) {
+    return <div className="min-h-[40vh]" aria-busy="true" />;
+  }
   if (!isUnlocked('tier2')) {
     return (
       <TierLockedState
