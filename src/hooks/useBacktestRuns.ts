@@ -204,7 +204,9 @@ export function useBacktestRuns() {
     queryKey: ['backtest_runs', user?.id],
     enabled: !!user?.id,
     refetchOnWindowFocus: false,
-    refetchOnMount: 'always',
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<BacktestRun[]> => {
       const { data, error } = await supabase
         .from('backtest_runs')
