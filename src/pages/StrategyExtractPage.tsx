@@ -117,9 +117,9 @@ function ConfidenceBanner({ confidence }: { confidence: ExtractedStrategy['confi
 export default function StrategyExtractPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { planState } = useTier();
+  const { planState, loading: tierLoading } = useTier();
   const qc = useQueryClient();
-  const isStarter = planState === 'starter';
+  const isStarter = !tierLoading && planState === 'starter';
 
   const [sourceType, setSourceType] = useState<SourceType>('youtube_transcript');
   const [text, setText] = useState('');
@@ -132,8 +132,8 @@ export default function StrategyExtractPage() {
 
   const extract = useExtractStrategy();
   const deleteExtraction = useDeleteExtraction();
-  const isPro = planState === 'pro';
-  const isUnlimited = planState === 'expert' || planState === 'guru';
+  const isPro = !tierLoading && planState === 'pro';
+  const isUnlimited = !tierLoading && (planState === 'expert' || planState === 'guru');
   const historyLimit = isPro ? 5 : undefined;
   const { data: history, isLoading: historyLoading } = useExtractionHistory(historyLimit);
   const { data: usageCount } = useExtractionUsage();

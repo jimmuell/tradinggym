@@ -25,7 +25,7 @@ const NOTIF_ITEMS: { key: NotifKey; label: string; desc: string }[] = [
 
 export default function Settings() {
   const { theme, setTheme } = useSettings();
-  const { planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt } = useTier();
+  const { planState, isAdmin, cancelAtPeriodEnd, subscriptionEndsAt, loading: tierLoading } = useTier();
   const { user } = useAuth();
   const portal = useCustomerPortal();
 
@@ -91,50 +91,60 @@ export default function Settings() {
           </CardHeader>
           <CardContent className="space-y-4">
             <PastDueBanner returnPath="/settings" />
-            <div>
-              <p className="text-sm text-foreground font-medium">
-                {isAdmin
-                  ? 'Current Plan: Admin'
-                  : cancelAtPeriodEnd && subscriptionEndsAt && planState !== 'starter'
-                  ? `${getPlanDisplayName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                  : `Current Plan: ${getPlanDisplayName(planState)}`}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {isAdmin
-                  ? 'Admin account — no subscription required.'
-                  : cancelAtPeriodEnd && planState !== 'starter'
-                  ? `You'll keep ${getPlanDisplayName(planState)} access until then.`
-                  : planState === 'starter'
-                  ? 'Upgrade to unlock advanced features.'
-                  : 'Manage your subscription, payment method, or download invoices.'}
-              </p>
-            </div>
-            <div>
-              {isAdmin ? null : planState === 'starter' ? (
-                <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
-                  <Link to="/pricing">View Plans</Link>
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => portal.mutate(`${window.location.origin}/settings`)}
-                  disabled={portal.isPending}
-                  className="border-border text-foreground hover:bg-accent"
-                >
-                  {portal.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Opening…
-                    </>
+            {tierLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-3 w-64" />
+                <Skeleton className="h-9 w-40 mt-3" />
+              </div>
+            ) : (
+              <>
+                <div>
+                  <p className="text-sm text-foreground font-medium">
+                    {isAdmin
+                      ? 'Current Plan: Admin'
+                      : cancelAtPeriodEnd && subscriptionEndsAt && planState !== 'starter'
+                      ? `${getPlanDisplayName(planState)} · Cancels ${new Date(subscriptionEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+                      : `Current Plan: ${getPlanDisplayName(planState)}`}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isAdmin
+                      ? 'Admin account — no subscription required.'
+                      : cancelAtPeriodEnd && planState !== 'starter'
+                      ? `You'll keep ${getPlanDisplayName(planState)} access until then.`
+                      : planState === 'starter'
+                      ? 'Upgrade to unlock advanced features.'
+                      : 'Manage your subscription, payment method, or download invoices.'}
+                  </p>
+                </div>
+                <div>
+                  {isAdmin ? null : planState === 'starter' ? (
+                    <Button asChild variant="outline" className="border-border text-foreground hover:bg-accent">
+                      <Link to="/pricing">View Plans</Link>
+                    </Button>
                   ) : (
-                    <>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      {cancelAtPeriodEnd ? 'Resume subscription' : 'Manage Subscription'}
-                    </>
+                    <Button
+                      variant="outline"
+                      onClick={() => portal.mutate(`${window.location.origin}/settings`)}
+                      disabled={portal.isPending}
+                      className="border-border text-foreground hover:bg-accent"
+                    >
+                      {portal.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Opening…
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          {cancelAtPeriodEnd ? 'Resume subscription' : 'Manage Subscription'}
+                        </>
+                      )}
+                    </Button>
                   )}
-                </Button>
-              )}
-            </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -145,13 +155,17 @@ export default function Settings() {
               <PanelRightOpen className="h-5 w-5" /> TradingGYM Live
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              {planState === 'starter'
+              {tierLoading
+                ? 'Launch the TradingGYM Live desktop app to use alongside your trading platform.'
+                : planState === 'starter'
                 ? 'Upgrade to Pro to use TradingGYM Live alongside your trading platform.'
                 : 'Launch the TradingGYM Live desktop app to use alongside your trading platform.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {planState === 'starter' ? (
+            {tierLoading ? (
+              <Skeleton className="h-9 w-48" />
+            ) : planState === 'starter' ? (
               <Button asChild className="gap-2">
                 <Link to="/pricing">
                   <Sparkles className="h-4 w-4" />

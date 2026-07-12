@@ -19,12 +19,13 @@ export default function GuruPublicProfilePage() {
   const referralCode = searchParams.get('ref') ?? undefined;
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentTier, planState } = useTier();
+  const { currentTier, planState, loading: tierLoading } = useTier();
   const { data: guru, isLoading } = usePublicGuru(guruId);
   const enroll = useEnrollWithGuru();
 
-  const isFoundation = currentTier === 'foundation';
-  const isStarter = planState === 'starter';
+  // Don't flash Foundation/Starter CTAs to paying users while tier resolves.
+  const isFoundation = !tierLoading && currentTier === 'foundation';
+  const isStarter = !tierLoading && planState === 'starter';
   const isAuthed = !!user;
 
   const handleJoin = () => {
