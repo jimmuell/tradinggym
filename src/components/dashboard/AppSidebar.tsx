@@ -282,9 +282,6 @@ export function AppSidebar() {
                       >
                         <FlaskConical className="h-4 w-4 shrink-0" />
                         <span>Backtesting</span>
-                        <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                          Coming Soon
-                        </span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
