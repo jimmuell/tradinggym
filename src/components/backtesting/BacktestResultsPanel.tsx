@@ -138,6 +138,23 @@ export default function BacktestResultsPanel({ run, onRetry, onCancel, isCanceli
   );
 }
 
+function describeRange(startIso: string, endIso: string): string {
+  const start = new Date(startIso).getTime();
+  const end = new Date(endIso).getTime();
+  const days = Math.max(1, Math.round((end - start) / 86_400_000) + 1);
+  if (days <= 10) return `${days} day${days === 1 ? '' : 's'}`;
+  if (days <= 60) {
+    const weeks = Math.round(days / 7);
+    return `${weeks} week${weeks === 1 ? '' : 's'}`;
+  }
+  if (days < 365) {
+    const months = Math.round(days / 30);
+    return `${months} month${months === 1 ? '' : 's'}`;
+  }
+  const years = Math.round((days / 365) * 10) / 10;
+  return `${years} year${years === 1 ? '' : 's'}`;
+}
+
 function InProgressCard({
   run,
   onCancel,
@@ -148,6 +165,7 @@ function InProgressCard({
   isCanceling?: boolean;
 }) {
   const elapsed = useElapsedSeconds(run.created_at);
+  const rangeLabel = describeRange(run.start_date, run.end_date);
   return (
     <Card>
       <CardHeader>
@@ -158,7 +176,7 @@ function InProgressCard({
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Backtesting 18 years of data — this may take up to 2 minutes…
+          Backtesting {rangeLabel} of data — results will appear as soon as the engine finishes.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
