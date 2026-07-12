@@ -173,11 +173,16 @@ function createRealtimeNonce() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-/** Drop the large trade-by-trade JSONB before caching a row in the LIST. */
+/**
+ * Drop the large array/JSONB columns before caching a row in the LIST cache.
+ * The list only needs summary/KPI columns — trade-by-trade `results_detail`
+ * and the full `equity_curve` array are loaded lazily via `useBacktestRun(id)`
+ * for the run currently being viewed.
+ */
 function stripLarge(row: BacktestRun): BacktestRun {
   if (!row) return row;
-  if (row.results_detail == null) return row;
-  return { ...row, results_detail: null };
+  if (row.results_detail == null && row.equity_curve == null) return row;
+  return { ...row, results_detail: null, equity_curve: null };
 }
 
 /**
