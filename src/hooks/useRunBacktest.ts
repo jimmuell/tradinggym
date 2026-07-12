@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateBacktestRun, type NewBacktestRun } from './useBacktestRuns';
@@ -7,7 +7,6 @@ export type RunBacktestInput = NewBacktestRun;
 
 export function useRunBacktest() {
   const { user } = useAuth();
-  const qc = useQueryClient();
   const createRun = useCreateBacktestRun();
 
   return useMutation({
@@ -30,8 +29,8 @@ export function useRunBacktest() {
       if (error) throw error;
       return { run_id: run.id, ...(data || {}) };
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['backtest_runs', user?.id] });
-    },
+    // No invalidateQueries here — realtime INSERT/UPDATE events merge payload.new
+    // directly into the list cache. Invalidating would trigger a redundant list
+    // refetch per run (previously the extra list request measured in prod).
   });
 }
