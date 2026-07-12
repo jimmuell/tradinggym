@@ -137,7 +137,6 @@ const LIST_COLUMNS = [
   'status',
   'created_at',
   'strategy_config',
-  'equity_curve',
   'ai_signal_code',
   'signal_hash',
   'error_message',
