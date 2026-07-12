@@ -83,22 +83,34 @@ export function useBacktestRuntimeEstimate(): RuntimeModel {
     queryKey: ['backtest-runtime-calibration'],
     staleTime: 60_000,
     queryFn: async (): Promise<Point[]> => {
+      // Fetch a small pool of recent completed runs, then keep ONLY those whose
+      // engine_version matches the newest completed run's engine_version.
+      // Mixing samples across engine versions (e.g. 25.18.1 vs 25.19.0) poisons
+      // the fit whenever engine speed changes — a 3s run gets a 9s estimate
+      // because slow-engine points dominate. Filtering to the current version
+      // makes an engine speedup automatically reset the model.
       const { data, error } = await supabase
         .from('backtest_runs')
-        .select('execution_time_ms, start_date, end_date, status')
+        .select('execution_time_ms, start_date, end_date, status, engine_version, created_at')
         .eq('status', 'complete')
         .not('execution_time_ms', 'is', null)
+        .not('engine_version', 'is', null)
         .order('created_at', { ascending: false })
-        .limit(25);
+        .limit(50);
       if (error) throw error;
-      return (data ?? [])
-        .filter((r) => r.execution_time_ms && r.start_date && r.end_date)
+      const rows = data ?? [];
+      const currentVersion = rows[0]?.engine_version as string | undefined;
+      if (!currentVersion) return [];
+      return rows
+        .filter((r) => r.engine_version === currentVersion && r.execution_time_ms && r.start_date && r.end_date)
+        .slice(0, 25)
         .map((r) => ({
           days: daysBetween(r.start_date as string, r.end_date as string),
           ms: r.execution_time_ms as number,
         }));
     },
   });
+
 
   const points = data ?? [];
   const calibrated = points.length >= MIN_SAMPLES_TO_CALIBRATE;
