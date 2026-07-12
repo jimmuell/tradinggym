@@ -32,11 +32,16 @@ export default function Backtesting() {
   // and must not block the Run button — user can still cancel it explicitly.
   const STALE_MS = 10 * 60 * 1000;
   const now_ = Date.now();
-  const hasActive = runs.some((r) => {
+  const activeRun = runs.find((r) => {
     if (r.status !== 'pending' && r.status !== 'running') return false;
     const ts = new Date((r as unknown as { updated_at?: string }).updated_at ?? r.created_at).getTime();
     return now_ - ts < STALE_MS;
-  });
+  }) ?? null;
+  const hasActive = !!activeRun;
+
+  // Narrow fallback poll: only while a run is in flight, only that run's
+  // id+status, with 2s/4s/8s backoff. Realtime is the primary path.
+  useBacktestRunPoll(activeRun?.id ?? null);
 
   // Count runs created in current calendar month
   const now = new Date();
