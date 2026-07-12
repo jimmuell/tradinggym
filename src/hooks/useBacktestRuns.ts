@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,80 +106,74 @@ export interface NewBacktestRun {
   estimated_runtime_ms?: number;
 }
 
+const LIST_LIMIT = 25;
+const TERMINAL_STATUSES = new Set(['complete', 'failed']);
+
 function createRealtimeNonce() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID();
   }
-
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/**
+ * Reads the user's most recent backtest runs. Realtime is the primary delivery
+ * path — on any UPDATE we apply payload.new directly to the react-query cache
+ * (REPLICA IDENTITY FULL means the payload already contains the full row) so we
+ * do NOT refetch after a realtime event.
+ *
+ * There is NO list-level polling here. The narrow single-run poll lives in
+ * `useBacktestRunPoll` and only runs while a specific run is in flight.
+ */
 export function useBacktestRuns() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  // Track which runs we've already seen in a terminal state so we log the
+  // delivery mechanism exactly once per run.
+  const seenTerminalRef = useRef<Set<string>>(new Set());
 
   const { data, isLoading } = useQuery({
     queryKey: ['backtest_runs', user?.id],
     enabled: !!user?.id,
     refetchOnWindowFocus: true,
     refetchOnMount: 'always',
-    refetchIntervalInBackground: true,
-    refetchInterval: (query) => {
-      const runs = query.state.data as BacktestRun[] | undefined;
-      const hasActive = runs?.some((r) => r.status === 'pending' || r.status === 'running');
-      // Poll aggressively while a run is in-flight. Engine typically finishes in
-      // ~3s, so 5s polling meant users watched a stale spinner for a full cycle
-      // even in the happy path. Realtime is the primary path; this is fallback.
-      return hasActive ? 2000 : false;
-    },
     queryFn: async (): Promise<BacktestRun[]> => {
       const { data, error } = await supabase
         .from('backtest_runs')
         .select('*')
         .eq('user_id', user!.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(LIST_LIMIT);
       if (error) throw error;
-      return (data ?? []) as unknown as BacktestRun[];
+      const runs = (data ?? []) as unknown as BacktestRun[];
+      // Seed the terminal tracker so an initial page-load of already-complete
+      // runs doesn't log spurious delivery messages.
+      for (const r of runs) {
+        if (TERMINAL_STATUSES.has(r.status)) seenTerminalRef.current.add(r.id);
+      }
+      return runs;
     },
   });
 
-  // Realtime: the polling fallback above missed completions in production
-  // (users watched spinners for minutes while the row was already `complete`
-  // in the DB). Subscribe to row updates for this user and invalidate on any
-  // change so the UI reflects the terminal state within ms of the engine
-  // callback landing.
   useEffect(() => {
     if (!user?.id) return;
-    // Realtime is a *nice-to-have* on top of the 2s poll. If anything in this
-    // setup throws — duplicate channel topic, transport failure, supabase-js
-    // lifecycle quirk — it MUST NOT take the Backtesting page down. Wrap the
-    // whole thing and let the polling fallback carry the feature.
-    //
-    // Unique channel topic per mount so React StrictMode's double-invoke, or
-    // any remount, never lands on an already-subscribed channel and triggers
-    // the "cannot add postgres_changes callbacks after subscribe()" error.
-    // Keep the auth user id OUT of the topic: seeing a stable UUID in the
-    // thrown topic masked this failure before, and the row filter below is the
-    // only place the user id belongs.
+    // Realtime is the primary path. If setup throws (duplicate topic, transport
+    // failure), the single-run poll in useBacktestRunPoll carries the feature.
+    // Unique channel topic per mount avoids the "cannot add postgres_changes
+    // callbacks after subscribe()" error on React StrictMode double-invoke.
     let channel: ReturnType<typeof supabase.channel> | null = null;
     try {
       const topic = `backtest_runs:client:${createRealtimeNonce()}`;
       const ch = supabase.channel(topic);
-      // ALL .on() handlers must be registered BEFORE .subscribe(). Do not
-      // chain .subscribe() into the same expression as .on() if a later
-      // effect could ever touch this channel again — we create fresh
-      // channels per mount instead.
       ch.on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'backtest_runs', filter: `user_id=eq.${user.id}` },
-        () => {
-          qc.invalidateQueries({ queryKey: ['backtest_runs', user.id] });
+        (payload) => {
+          applyRealtimePayload(qc, user.id, payload, seenTerminalRef.current);
         },
       );
       ch.subscribe((status) => {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          // Fallback poll (refetchInterval above) keeps the UI live, but make
-          // the degraded path explicit so Realtime cannot silently regress.
           // eslint-disable-next-line no-console
           console.warn('[realtime] backtest_runs subscription FAILED — falling back to poll', { status });
         }
@@ -200,6 +194,114 @@ export function useBacktestRuns() {
   }, [user?.id, qc]);
 
   return { runs: data ?? [], isLoading };
+}
+
+type RealtimePayload = {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown> | null;
+  old: Record<string, unknown> | null;
+};
+
+/**
+ * Merge a realtime row into the react-query cache without a refetch.
+ * Logs the delivery mechanism the first time a run reaches a terminal state.
+ */
+function applyRealtimePayload(
+  qc: ReturnType<typeof useQueryClient>,
+  userId: string,
+  payload: RealtimePayload,
+  seenTerminal: Set<string>,
+) {
+  const key = ['backtest_runs', userId];
+  const row = (payload.eventType === 'DELETE' ? payload.old : payload.new) as unknown as BacktestRun | null;
+  if (!row?.id) return;
+
+  qc.setQueryData<BacktestRun[]>(key, (prev) => {
+    const list = prev ?? [];
+    if (payload.eventType === 'DELETE') {
+      return list.filter((r) => r.id !== row.id);
+    }
+    const idx = list.findIndex((r) => r.id === row.id);
+    if (idx === -1) {
+      // INSERT for a run we haven't seen. Prepend and keep list length bounded.
+      return [row, ...list].slice(0, LIST_LIMIT);
+    }
+    // UPDATE: replace in place. payload.new is the FULL row (REPLICA IDENTITY
+    // FULL) so we do not need to merge with existing fields.
+    const next = list.slice();
+    next[idx] = { ...list[idx], ...row };
+    return next;
+  });
+
+  if (TERMINAL_STATUSES.has(row.status) && !seenTerminal.has(row.id)) {
+    seenTerminal.add(row.id);
+    // eslint-disable-next-line no-console
+    console.debug('[backtest] result delivered via realtime', row.id);
+  }
+}
+
+/**
+ * Narrow poll for a SINGLE active run. Selects only `id,status` (not the whole
+ * list, not select=*). Backoff 2s → 4s → 8s. Stops the moment the run reaches a
+ * terminal state. If realtime delivered first, this will observe the terminal
+ * state on its next tick and stop; it will NOT log delivery because the
+ * realtime handler already marked it seen.
+ */
+export function useBacktestRunPoll(runId: string | null | undefined) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user?.id || !runId) return;
+
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let attempt = 0;
+    const BACKOFF_MS = [2000, 4000, 8000];
+
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const { data, error } = await supabase
+          .from('backtest_runs')
+          .select('id,status')
+          .eq('id', runId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (cancelled) return;
+        const status = (data as { status?: string } | null)?.status;
+        if (status && TERMINAL_STATUSES.has(status)) {
+          // Realtime handler marks runs as seen when it delivers. If this poll
+          // reached the terminal state FIRST, log the fallback path so a silent
+          // realtime failure is visible in the console.
+          const cache = qc.getQueryData<BacktestRun[]>(['backtest_runs', user.id]) ?? [];
+          const cached = cache.find((r) => r.id === runId);
+          const alreadyTerminalInCache = cached && TERMINAL_STATUSES.has(cached.status);
+          if (!alreadyTerminalInCache) {
+            // eslint-disable-next-line no-console
+            console.debug('[backtest] result delivered via poll fallback', runId);
+            // Realtime didn't beat us — pull the full row so consumers get
+            // results_detail/equity_curve/etc.
+            qc.invalidateQueries({ queryKey: ['backtest_runs', user.id] });
+          }
+          return; // stop polling
+        }
+      } catch {
+        // Swallow — next tick will retry, or the effect cleanup ends it.
+      }
+      const delay = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+      attempt += 1;
+      timeout = setTimeout(tick, delay);
+    };
+
+    timeout = setTimeout(tick, BACKOFF_MS[0]);
+
+    return () => {
+      cancelled = true;
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [runId, user?.id, qc]);
 }
 
 export function useCreateBacktestRun() {

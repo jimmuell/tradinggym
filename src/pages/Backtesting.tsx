@@ -13,7 +13,7 @@ import BacktestComparePanel from '@/components/backtesting/BacktestComparePanel'
 import BacktestOptimizePanel from '@/components/backtesting/BacktestOptimizePanel';
 import BacktestCoachPanel from '@/components/backtesting/BacktestCoachPanel';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { useBacktestRuns, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
+import { useBacktestRuns, useBacktestRunPoll, useCancelBacktestRun } from '@/hooks/useBacktestRuns';
 import { useRunBacktest } from '@/hooks/useRunBacktest';
 
 export default function Backtesting() {
@@ -32,11 +32,16 @@ export default function Backtesting() {
   // and must not block the Run button — user can still cancel it explicitly.
   const STALE_MS = 10 * 60 * 1000;
   const now_ = Date.now();
-  const hasActive = runs.some((r) => {
+  const activeRun = runs.find((r) => {
     if (r.status !== 'pending' && r.status !== 'running') return false;
     const ts = new Date((r as unknown as { updated_at?: string }).updated_at ?? r.created_at).getTime();
     return now_ - ts < STALE_MS;
-  });
+  }) ?? null;
+  const hasActive = !!activeRun;
+
+  // Narrow fallback poll: only while a run is in flight, only that run's
+  // id+status, with 2s/4s/8s backoff. Realtime is the primary path.
+  useBacktestRunPoll(activeRun?.id ?? null);
 
   // Count runs created in current calendar month
   const now = new Date();
@@ -116,6 +121,7 @@ export default function Backtesting() {
           onRun={handleRun}
           isRunning={runBacktest.isPending || hasActive}
           monthlyRunCount={monthlyRunCount}
+          lastRun={latest}
         />
         <ErrorBoundary fallbackTitle="Results panel crashed — the run finished but rendering failed.">
           <div className="space-y-6">

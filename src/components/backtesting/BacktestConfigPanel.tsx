@@ -37,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useStrategies, type Strategy } from '@/hooks/useStrategies';
 import { useTier, type PlanState } from '@/contexts/TierContext';
-import { useBacktestRuns } from '@/hooks/useBacktestRuns';
+import type { BacktestRun } from '@/hooks/useBacktestRuns';
 import { useBacktestRuntimeEstimate, daysBetweenDates } from '@/hooks/useBacktestRuntimeEstimate';
 import { formatRuntime } from '@/lib/formatRuntime';
 import { pointsToDollars, ticksToDollars, formatUSD, MES_POINT_VALUE } from '@/lib/mesContract';
@@ -218,15 +218,19 @@ interface Props {
   onRun: (config: BacktestConfig) => void;
   isRunning: boolean;
   monthlyRunCount: number;
+  /**
+   * Most recent run, passed in from the parent. This panel MUST NOT call
+   * useBacktestRuns() itself — that would mount a second copy of the query
+   * (and a second realtime channel + poll loop) and double every request.
+   */
+  lastRun: BacktestRun | null;
 }
 
-export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount }: Props) {
+export default function BacktestConfigPanel({ onRun, isRunning, monthlyRunCount, lastRun }: Props) {
   const navigate = useNavigate();
   const { planState, isAdmin, loading } = useTier();
   const { strategies, isLoading } = useStrategies();
-  const { runs } = useBacktestRuns();
   const runtimeModel = useBacktestRuntimeEstimate();
-  const lastRun = runs[0] ?? null;
 
   // Admin role overrides plan for visibility purposes.
   const effectiveTier: PlanState = isAdmin ? 'admin' : planState;
