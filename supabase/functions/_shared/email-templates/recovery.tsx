@@ -29,13 +29,13 @@ export const RecoveryEmail = ({
       <meta name="supported-color-schemes" content="light only" />
       <style>{`
         :root { color-scheme: light only; supported-color-schemes: light only; }
-        /* Force-restore button colors in clients that still invert */
+        /* Use a light button + dark label because AOL/Yahoo dark mode can invert colored buttons */
         @media (prefers-color-scheme: dark) {
-          .btn-reset { background-color: #2563eb !important; color: #ffffff !important; }
-          .btn-reset-label, .btn-reset-label *, .btn-reset a { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+          .btn-reset { background-color: #f8fafc !important; color: #0f172a !important; border-color: #93c5fd !important; }
+          .btn-reset-label, .btn-reset-label *, .btn-reset a { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
         }
-        [data-ogsc] .btn-reset { background-color: #2563eb !important; color: #ffffff !important; }
-        [data-ogsc] .btn-reset-label, [data-ogsc] .btn-reset-label * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+        [data-ogsc] .btn-reset { background-color: #f8fafc !important; color: #0f172a !important; border-color: #93c5fd !important; }
+        [data-ogsc] .btn-reset-label, [data-ogsc] .btn-reset-label * { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
       `}</style>
     </Head>
     <Preview>Reset your password for {siteName}</Preview>
@@ -48,7 +48,7 @@ export const RecoveryEmail = ({
         </Text>
         <Button style={button} href={confirmationUrl} className="btn-reset">
           <span style={buttonLabel} className="btn-reset-label">
-            <font color="#ffffff" style={buttonLabelFont}>Reset Password</font>
+            <font color="#0f172a" style={buttonLabelFont}>Reset Password</font>
           </span>
         </Button>
         <Text style={footer}>
@@ -77,25 +77,27 @@ const text = {
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#2563eb',
-  color: '#ffffff',
+  backgroundColor: '#f8fafc',
+  background: '#f8fafc',
+  color: '#0f172a',
   fontSize: '14px',
   fontWeight: 'bold' as const,
   borderRadius: '8px',
+  border: '1px solid #93c5fd',
   padding: '12px 20px',
   textDecoration: 'none',
 }
-// Wrapping label keeps text white when dark-mode email clients
-// (Gmail/Outlook) try to invert button text colors.
+// Use dark text on a light button so aggressive email dark-mode inversion
+// (AOL/Yahoo) flips the pair into a readable light-on-dark treatment.
 const buttonLabel = {
-  color: '#ffffff',
-  WebkitTextFillColor: '#ffffff',
-  textShadow: '0 0 0 #ffffff',
+  color: '#0f172a',
+  WebkitTextFillColor: '#0f172a',
+  textShadow: '0 0 0 #0f172a',
   textDecoration: 'none',
 }
 const buttonLabelFont = {
-  color: '#ffffff',
-  WebkitTextFillColor: '#ffffff',
+  color: '#0f172a',
+  WebkitTextFillColor: '#0f172a',
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
