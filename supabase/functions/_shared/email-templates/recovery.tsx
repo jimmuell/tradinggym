@@ -31,11 +31,11 @@ export const RecoveryEmail = ({
         :root { color-scheme: light only; supported-color-schemes: light only; }
         /* Force-restore button colors in clients that still invert */
         @media (prefers-color-scheme: dark) {
-          .btn-reset { background-color: #2563eb !important; }
-          .btn-reset-label, .btn-reset a { color: #ffffff !important; }
+          .btn-reset { background-color: #2563eb !important; color: #ffffff !important; }
+          .btn-reset-label, .btn-reset-label *, .btn-reset a { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
         }
-        [data-ogsc] .btn-reset { background-color: #2563eb !important; }
-        [data-ogsc] .btn-reset-label { color: #ffffff !important; }
+        [data-ogsc] .btn-reset { background-color: #2563eb !important; color: #ffffff !important; }
+        [data-ogsc] .btn-reset-label, [data-ogsc] .btn-reset-label * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
       `}</style>
     </Head>
     <Preview>Reset your password for {siteName}</Preview>
@@ -47,7 +47,9 @@ export const RecoveryEmail = ({
           the button below to choose a new password.
         </Text>
         <Button style={button} href={confirmationUrl} className="btn-reset">
-          <span style={buttonLabel} className="btn-reset-label">Reset Password</span>
+          <span style={buttonLabel} className="btn-reset-label">
+            <font color="#ffffff" style={buttonLabelFont}>Reset Password</font>
+          </span>
         </Button>
         <Text style={footer}>
           If you didn't request a password reset, you can safely ignore this
@@ -75,7 +77,7 @@ const text = {
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: 'hsl(217, 91%, 60%)',
+  backgroundColor: '#2563eb',
   color: '#ffffff',
   fontSize: '14px',
   fontWeight: 'bold' as const,
@@ -87,6 +89,13 @@ const button = {
 // (Gmail/Outlook) try to invert button text colors.
 const buttonLabel = {
   color: '#ffffff',
+  WebkitTextFillColor: '#ffffff',
+  textShadow: '0 0 0 #ffffff',
+  textDecoration: 'none',
+}
+const buttonLabelFont = {
+  color: '#ffffff',
+  WebkitTextFillColor: '#ffffff',
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
