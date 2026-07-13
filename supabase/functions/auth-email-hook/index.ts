@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "keen-chart-clone"
+const SITE_NAME = "TradingGym"
 const SENDER_DOMAIN = "notify.tradinggym.app"
 const ROOT_DOMAIN = "tradinggym.app"
 const FROM_DOMAIN = "tradinggym.app" // Domain shown in From address (may be root or sender subdomain)
