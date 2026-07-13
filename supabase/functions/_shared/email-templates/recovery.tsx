@@ -23,7 +23,21 @@ export const RecoveryEmail = ({
   confirmationUrl,
 }: RecoveryEmailProps) => (
   <Html lang="en" dir="ltr">
-    <Head />
+    <Head>
+      {/* Opt out of client-side dark-mode color inversion (Apple Mail, Outlook) */}
+      <meta name="color-scheme" content="light only" />
+      <meta name="supported-color-schemes" content="light only" />
+      <style>{`
+        :root { color-scheme: light only; supported-color-schemes: light only; }
+        /* Force-restore button colors in clients that still invert */
+        @media (prefers-color-scheme: dark) {
+          .btn-reset { background-color: #2563eb !important; }
+          .btn-reset-label, .btn-reset a { color: #ffffff !important; }
+        }
+        [data-ogsc] .btn-reset { background-color: #2563eb !important; }
+        [data-ogsc] .btn-reset-label { color: #ffffff !important; }
+      `}</style>
+    </Head>
     <Preview>Reset your password for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
