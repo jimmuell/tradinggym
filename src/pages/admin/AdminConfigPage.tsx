@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Lock, KeyRound, Eye, EyeOff, Copy, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Lock, KeyRound, Eye, EyeOff, Copy, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -276,9 +276,34 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
   const [revealed, setRevealed] = useState(false);
   const [value, setValue] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isSet, setIsSet] = useState<boolean | null>(null);
+  const [checking, setChecking] = useState(true);
+
+  // Check presence on mount (doesn't reveal the value in the UI)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-admin-secret', {
+          body: { name },
+        });
+        if (error) throw error;
+        if (cancelled) return;
+        setIsSet(!!data?.isSet);
+        setValue(data?.value ?? '');
+      } catch {
+        if (!cancelled) setIsSet(false);
+      } finally {
+        if (!cancelled) setChecking(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [name]);
 
   const fetchValue = async () => {
-    if (value !== null) {
+    if (value !== null && value !== '') {
       setRevealed(true);
       return;
     }
@@ -289,6 +314,7 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
       });
       if (error) throw error;
       setValue(data?.value ?? '');
+      setIsSet(!!data?.isSet);
       setRevealed(true);
     } catch (e) {
       toast({
@@ -302,9 +328,7 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
   };
 
   const copy = async () => {
-    if (value === null) {
-      await fetchValue();
-    }
+    if (!value) await fetchValue();
     const v = value ?? '';
     try {
       await navigator.clipboard.writeText(v);
@@ -328,7 +352,20 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
           )}
         </div>
       </div>
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
+        {checking ? (
+          <Badge variant="secondary" className="gap-1">
+            <Loader2 className="h-3 w-3 animate-spin" /> Checking
+          </Badge>
+        ) : isSet ? (
+          <Badge className="gap-1 bg-emerald-600 hover:bg-emerald-600 text-white">
+            <CheckCircle2 className="h-3 w-3" /> Connected
+          </Badge>
+        ) : (
+          <Badge variant="destructive" className="gap-1">
+            <XCircle className="h-3 w-3" /> Not set
+          </Badge>
+        )}
         <Button
           size="icon"
           variant="ghost"
@@ -341,7 +378,6 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
         <Button size="icon" variant="ghost" onClick={copy} disabled={loading} title="Copy">
           <Copy />
         </Button>
-        <Badge variant="secondary">Managed</Badge>
       </div>
     </div>
   );
