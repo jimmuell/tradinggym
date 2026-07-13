@@ -368,6 +368,15 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
         <Button
           size="icon"
           variant="ghost"
+          onClick={checkStatus}
+          disabled={checking}
+          title="Refresh status"
+        >
+          <RefreshCw className={checking ? 'animate-spin' : ''} />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => (revealed ? setRevealed(false) : fetchValue())}
           disabled={loading}
           title={revealed ? 'Hide' : 'Show'}
