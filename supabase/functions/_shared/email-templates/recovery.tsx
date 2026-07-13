@@ -46,8 +46,8 @@ export const RecoveryEmail = ({
           We received a request to reset your password for {siteName}. Click
           the button below to choose a new password.
         </Text>
-        <Button style={button} href={confirmationUrl}>
-          <span style={buttonLabel}>Reset Password</span>
+        <Button style={button} href={confirmationUrl} className="btn-reset">
+          <span style={buttonLabel} className="btn-reset-label">Reset Password</span>
         </Button>
         <Text style={footer}>
           If you didn't request a password reset, you can safely ignore this
