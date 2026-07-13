@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Lock, KeyRound, Eye, EyeOff, Copy, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Lock, KeyRound, Eye, EyeOff, Copy, Loader2, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -279,27 +279,26 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
   const [isSet, setIsSet] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
 
+  const checkStatus = async () => {
+    setChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-admin-secret', {
+        body: { name },
+      });
+      if (error) throw error;
+      setIsSet(!!data?.isSet);
+      setValue(data?.value ?? '');
+    } catch {
+      setIsSet(false);
+    } finally {
+      setChecking(false);
+    }
+  };
+
   // Check presence on mount (doesn't reveal the value in the UI)
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-admin-secret', {
-          body: { name },
-        });
-        if (error) throw error;
-        if (cancelled) return;
-        setIsSet(!!data?.isSet);
-        setValue(data?.value ?? '');
-      } catch {
-        if (!cancelled) setIsSet(false);
-      } finally {
-        if (!cancelled) setChecking(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    checkStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name]);
 
   const fetchValue = async () => {
@@ -366,6 +365,15 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
             <XCircle className="h-3 w-3" /> Not set
           </Badge>
         )}
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={checkStatus}
+          disabled={checking}
+          title="Refresh status"
+        >
+          <RefreshCw className={checking ? 'animate-spin' : ''} />
+        </Button>
         <Button
           size="icon"
           variant="ghost"
