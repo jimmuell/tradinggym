@@ -33,7 +33,7 @@ export const RecoveryEmail = ({
           the button below to choose a new password.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Reset Password
+          <span style={buttonLabel}>Reset Password</span>
         </Button>
         <Text style={footer}>
           If you didn't request a password reset, you can safely ignore this
@@ -51,21 +51,28 @@ const container = { padding: '20px 25px' }
 const h1 = {
   fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: 'hsl(222.2, 47.4%, 11.2%)',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: 'hsl(215.4, 16.3%, 46.9%)',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
 const button = {
-  backgroundColor: '#000000',
+  backgroundColor: 'hsl(217, 91%, 60%)',
   color: '#ffffff',
   fontSize: '14px',
+  fontWeight: 'bold' as const,
   borderRadius: '8px',
   padding: '12px 20px',
+  textDecoration: 'none',
+}
+// Wrapping label keeps text white when dark-mode email clients
+// (Gmail/Outlook) try to invert button text colors.
+const buttonLabel = {
+  color: '#ffffff',
   textDecoration: 'none',
 }
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
