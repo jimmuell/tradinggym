@@ -279,27 +279,26 @@ function SecretRow({ name, purpose }: { name: string; purpose: string }) {
   const [isSet, setIsSet] = useState<boolean | null>(null);
   const [checking, setChecking] = useState(true);
 
+  const checkStatus = async () => {
+    setChecking(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-admin-secret', {
+        body: { name },
+      });
+      if (error) throw error;
+      setIsSet(!!data?.isSet);
+      setValue(data?.value ?? '');
+    } catch {
+      setIsSet(false);
+    } finally {
+      setChecking(false);
+    }
+  };
+
   // Check presence on mount (doesn't reveal the value in the UI)
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-admin-secret', {
-          body: { name },
-        });
-        if (error) throw error;
-        if (cancelled) return;
-        setIsSet(!!data?.isSet);
-        setValue(data?.value ?? '');
-      } catch {
-        if (!cancelled) setIsSet(false);
-      } finally {
-        if (!cancelled) setChecking(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    checkStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name]);
 
   const fetchValue = async () => {
