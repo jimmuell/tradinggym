@@ -49,7 +49,28 @@ serve(async (req) => {
     if (!guru.stripe_account_id) return json({ status: "not_started" });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const account = await stripe.accounts.retrieve(guru.stripe_account_id);
+
+    let account;
+    try {
+      account = await stripe.accounts.retrieve(guru.stripe_account_id);
+    } catch (retrieveErr) {
+      const msg = retrieveErr instanceof Error ? retrieveErr.message : String(retrieveErr);
+      // Stale/invalid account id — clear it so the next click starts fresh.
+      console.warn(
+        "[CHECK-CONNECT-STATUS] stale account id, clearing:",
+        guru.stripe_account_id,
+        msg,
+      );
+      await admin
+        .from("guru_profiles")
+        .update({
+          stripe_account_id: null,
+          stripe_connect_status: "not_started",
+          stripe_onboarding_complete: false,
+        })
+        .eq("id", guru.id);
+      return json({ status: "not_started" });
+    }
 
     let status: string;
     if (account.charges_enabled && account.payouts_enabled) {
@@ -81,6 +102,6 @@ serve(async (req) => {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[CHECK-CONNECT-STATUS] ERROR:", msg);
-    return json({ error: "internal" }, 500);
+    return json({ error: "internal", message: msg }, 500);
   }
 });

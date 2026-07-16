@@ -56,7 +56,26 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    let accountId = guru.stripe_account_id;
+    let accountId: string | null = guru.stripe_account_id ?? null;
+
+    // Validate any saved account id — if Stripe doesn't recognize it, clear it and start over.
+    if (accountId) {
+      try {
+        await stripe.accounts.retrieve(accountId);
+      } catch (retrieveErr) {
+        const msg = retrieveErr instanceof Error ? retrieveErr.message : String(retrieveErr);
+        console.warn("[CREATE-CONNECT-ACCOUNT] stale account id, clearing:", accountId, msg);
+        await admin
+          .from("guru_profiles")
+          .update({
+            stripe_account_id: null,
+            stripe_connect_status: "not_started",
+            stripe_onboarding_complete: false,
+          })
+          .eq("id", guru.id);
+        accountId = null;
+      }
+    }
 
     if (!accountId) {
       const account = await stripe.accounts.create({
@@ -70,13 +89,17 @@ serve(async (req) => {
       });
       accountId = account.id;
 
-      await admin
+      const { error: updateErr } = await admin
         .from("guru_profiles")
         .update({
           stripe_account_id: accountId,
           stripe_connect_status: "pending",
         })
         .eq("id", guru.id);
+      if (updateErr) {
+        console.error("[CREATE-CONNECT-ACCOUNT] failed to persist account id:", updateErr.message);
+        return json({ error: "persist_error", message: "Could not save Stripe account" }, 500);
+      }
     }
 
     const accountLink = await stripe.accountLinks.create({
