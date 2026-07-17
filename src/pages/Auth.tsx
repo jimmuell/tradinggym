@@ -135,7 +135,11 @@ export default function Auth() {
     const { error } = await supabase.auth.signUp({
       email: signupEmail,
       password: signupPassword,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: safeNext
+          ? `${window.location.origin}${safeNext}`
+          : window.location.origin,
+      },
     });
     setLoading(false);
     if (error) {
@@ -151,6 +155,11 @@ export default function Auth() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    // The redirect_uri MUST be a same-origin public URL; stash the intended
+    // return target so the post-auth effect above can consume it.
+    if (safeNext) {
+      try { sessionStorage.setItem('auth_next', safeNext); } catch { /* ignore */ }
+    }
     const result = await lovable.auth.signInWithOAuth('google', {
       redirect_uri: window.location.origin,
     });
