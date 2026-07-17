@@ -392,6 +392,15 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/connect" end className={itemClass(isActive('/connect'))} activeClassName="">
+                    <Plug className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Connect AI</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
