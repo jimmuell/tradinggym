@@ -32,6 +32,7 @@ export default function Connect() {
       <PageSeo
         title="Connect TradingGYM to your AI assistant"
         description="Connect ChatGPT or Claude to TradingGYM so it can read your strategies and backtest results."
+        path="/connect"
       />
 
       <div className="flex items-center gap-3">
