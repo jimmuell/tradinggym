@@ -31,6 +31,12 @@ export default function Auth() {
   const { session, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const intendedPlan = searchParams.get('plan');
+  const rawNext = searchParams.get('next');
+  // Only trust a same-origin relative path (starts with "/", not "//" or "/\").
+  const safeNext =
+    rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.startsWith('/\\')
+      ? rawNext
+      : null;
 
   const [showDevSignIn, setShowDevSignIn] = useState(getLocalDevSignIn());
   useEffect(() => {
@@ -51,13 +57,27 @@ export default function Auth() {
     // otherwise an already-signed-in user briefly sees the /auth form.
     if (authLoading) return;
     if (session) {
-      if (intendedPlan && ['pro', 'expert', 'guru'].includes(intendedPlan)) {
+      // Prefer an explicit ?next= (e.g. OAuth consent return) or a stashed
+      // post-Google redirect target over the default dashboard destination.
+      const stashed = (() => {
+        try {
+          const v = sessionStorage.getItem('auth_next');
+          if (v) sessionStorage.removeItem('auth_next');
+          return v && v.startsWith('/') && !v.startsWith('//') ? v : null;
+        } catch {
+          return null;
+        }
+      })();
+      const target = safeNext ?? stashed;
+      if (target) {
+        navigate(target, { replace: true });
+      } else if (intendedPlan && ['pro', 'expert', 'guru'].includes(intendedPlan)) {
         navigate(`/pricing?highlight=${intendedPlan}`, { replace: true });
       } else {
         navigate('/dashboard', { replace: true });
       }
     }
-  }, [authLoading, session, navigate, intendedPlan]);
+  }, [authLoading, session, navigate, intendedPlan, safeNext]);
 
   // Guard against rendering the sign-in form while auth is still resolving,
   // or after we know a session exists (before the redirect effect fires).
