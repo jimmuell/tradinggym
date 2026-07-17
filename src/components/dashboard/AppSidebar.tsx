@@ -18,6 +18,7 @@ import {
   User,
   ChevronDown,
   ChevronRight,
+  Plug,
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -388,6 +389,15 @@ export function AppSidebar() {
                   <NavLink to="/resources" end className={itemClass(isActive('/resources'))} activeClassName="">
                     <BookOpen className="h-4 w-4 shrink-0" />
                     {!collapsed && <span>Resources</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/connect" end className={itemClass(isActive('/connect'))} activeClassName="">
+                    <Plug className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span>Connect AI</span>}
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

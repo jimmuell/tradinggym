@@ -57,6 +57,7 @@ import Tier1Learning from "./pages/learning/Tier1";
 import Tier2Learning from "./pages/learning/Tier2";
 import Tier3Learning from "./pages/learning/Tier3";
 import TierLessonPage from "./pages/learning/TierLessonPage";
+import Connect from "./pages/Connect";
 import NotFound from "./pages/NotFound";
 import { ChecklistFab } from "@/components/checklist/ChecklistFab";
 import AdminOverviewPage from "./pages/admin/AdminOverviewPage";
@@ -135,6 +136,7 @@ const App = () => (
               <Route path="/profile" element={<LayoutRoute><Profile /></LayoutRoute>} />
               <Route path="/settings" element={<LayoutRoute><Settings /></LayoutRoute>} />
               <Route path="/pricing" element={<LayoutRoute><PricingPage /></LayoutRoute>} />
+              <Route path="/connect" element={<LayoutRoute><Connect /></LayoutRoute>} />
               <Route path="/guru/apply" element={<ProtectedRoute><GuruApplyPage /></ProtectedRoute>} />
               <Route path="/guru" element={<ProtectedRoute><GuruDashboardPage /></ProtectedRoute>} />
               <Route path="/guru/profile" element={<ProtectedRoute><GuruPublicProfilePage /></ProtectedRoute>} />
