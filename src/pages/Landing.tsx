@@ -211,7 +211,17 @@ export default function Landing() {
   }
 
   if (session) {
-    return <Navigate to="/dashboard" replace />;
+    // Honor a stashed OAuth-consent return target so a Google round-trip that
+    // lands on "/" resumes the /.lovable/oauth/consent flow instead of the dashboard.
+    let stashed: string | null = null;
+    try {
+      const v = sessionStorage.getItem('auth_next');
+      if (v && v.startsWith('/') && !v.startsWith('//')) {
+        sessionStorage.removeItem('auth_next');
+        stashed = v;
+      }
+    } catch { /* ignore */ }
+    return <Navigate to={stashed ?? '/dashboard'} replace />;
   }
 
   return (
