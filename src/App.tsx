@@ -11,6 +11,7 @@ import DevTierSwitcher from "@/components/dev/DevTierSwitcher";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import AuthConfirm from "./pages/AuthConfirm";
 import OAuthConsent from "./pages/OAuthConsent";
 import Landing from "./pages/Landing";
 import TermsPage from "./pages/TermsPage";
@@ -103,6 +104,7 @@ const App = () => (
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/auth/confirm" element={<AuthConfirm />} />
               <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
