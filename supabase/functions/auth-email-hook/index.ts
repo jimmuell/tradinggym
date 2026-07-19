@@ -204,10 +204,45 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // The email action type is in payload.data.action_type (e.g., "signup", "recovery")
-  // payload.type is the hook event type ("auth")
-  const emailType = payload.data.action_type
-  console.log('Received auth event', { emailType, email: payload.data.email, run_id })
+  // Log the STRUCTURE of the payload (keys only, no values — payload carries a live token).
+  const describeKeys = (o: unknown): unknown => {
+    if (o === null || typeof o !== 'object') return typeof o
+    if (Array.isArray(o)) return `array[${o.length}]`
+    const out: Record<string, unknown> = {}
+    for (const k of Object.keys(o as Record<string, unknown>)) {
+      const v = (o as Record<string, unknown>)[k]
+      out[k] = (v !== null && typeof v === 'object') ? describeKeys(v) : typeof v
+    }
+    return out
+  }
+  console.log('[auth-email-hook] payload structure', {
+    topLevelKeys: Object.keys(payload || {}),
+    dataShape: describeKeys(payload?.data),
+    run_id,
+  })
+
+  // Supabase's Send Email hook nests fields under email_data; Lovable's parsed
+  // payload may put them at data.* or data.email_data.*. Read from wherever
+  // they actually live so the token_hash rewrite is not a silent no-op.
+  const d: Record<string, any> = payload.data ?? {}
+  const ed: Record<string, any> = d.email_data ?? {}
+  const emailType: string = d.action_type ?? ed.email_action_type ?? ed.action_type
+  const tokenHash: string | undefined = d.token_hash ?? ed.token_hash
+  const token: string | undefined = d.token ?? ed.token
+  const redirectTo: string | undefined = d.redirect_to ?? ed.redirect_to
+  const siteUrl: string | undefined = d.site_url ?? ed.site_url
+  const legacyUrl: string | undefined = d.url ?? ed.url
+  const recipientEmail: string = d.email ?? ed.email ?? payload.email
+  const oldEmail: string | undefined = d.old_email ?? ed.old_email
+  const newEmail: string | undefined = d.new_email ?? ed.new_email
+
+  console.log('[auth-email-hook] resolved fields', {
+    emailType,
+    has_token_hash: !!tokenHash,
+    has_redirect_to: !!redirectTo,
+    has_legacy_url: !!legacyUrl,
+    run_id,
+  })
 
   const EmailTemplate = EMAIL_TEMPLATES[emailType]
   if (!EmailTemplate) {
@@ -218,28 +253,65 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
-  // For recovery, bypass Supabase's /auth/v1/verify auto-redirect (which
-  // strips the token hash and hands us a live session). Instead point the
-  // link directly at the SPA so the frontend calls verifyOtp on the actual
-  // user click — this also defeats link-prefetching mail scanners.
-  let confirmationUrl: string = payload.data.url
-  if (emailType === 'recovery' && payload.data.token_hash) {
-    const base = (payload.data.redirect_to as string | undefined) ||
-      `${payload.data.site_url || `https://${ROOT_DOMAIN}`}/reset-password`
+  // Build a token_hash-based SPA URL for any flow that provides one. This
+  // bypasses Supabase's /auth/v1/verify auto-redirect (which strips the token
+  // hash and hands us a live session on prefetch) for recovery, signup,
+  // magiclink, invite, and email_change alike.
+  const buildTokenHashUrl = (): string | null => {
+    if (!tokenHash) return null
+    const defaultPathByType: Record<string, string> = {
+      recovery: '/reset-password',
+      signup: '/auth/confirm',
+      magiclink: '/auth/confirm',
+      invite: '/auth/confirm',
+      email_change: '/auth/confirm',
+    }
+    const path = defaultPathByType[emailType]
+    if (!path) return null
+    const base = redirectTo || `${siteUrl || `https://${ROOT_DOMAIN}`}${path}`
     const sep = base.includes('?') ? '&' : '?'
-    confirmationUrl = `${base}${sep}token_hash=${encodeURIComponent(payload.data.token_hash)}&type=recovery`
+    return `${base}${sep}token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(emailType)}`
   }
 
-  // Build template props from payload.data (HookData structure)
+  let confirmationUrl: string | undefined = buildTokenHashUrl() ?? legacyUrl
+
+  // Loud fallback: recovery MUST use token_hash form. If token_hash is missing
+  // from every known location, do not silently ship the legacy /auth/v1/verify
+  // link — record it so we notice.
+  if (emailType === 'recovery' && !tokenHash) {
+    console.error('[auth-email-hook] SILENT_FALLBACK_AVERTED recovery has no token_hash', {
+      dataShape: describeKeys(payload?.data),
+      run_id,
+    })
+    try {
+      const sb = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+      await sb.from('email_send_log').insert({
+        message_id: crypto.randomUUID(),
+        template_name: 'recovery',
+        recipient_email: recipientEmail,
+        status: 'failed',
+        error_message: 'recovery payload missing token_hash — refused legacy /auth/v1/verify fallback',
+      })
+    } catch (_) { /* logged above */ }
+    return new Response(
+      JSON.stringify({ error: 'recovery payload missing token_hash' }),
+      { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Build template props
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
-    recipient: payload.data.email,
+    recipient: recipientEmail,
     confirmationUrl,
-    token: payload.data.token,
-    email: payload.data.email,
-    oldEmail: payload.data.old_email,
-    newEmail: payload.data.new_email,
+    token,
+    email: recipientEmail,
+    oldEmail,
+    newEmail,
   }
 
   // Render React Email to HTML and plain text
