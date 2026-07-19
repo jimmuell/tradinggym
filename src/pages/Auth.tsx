@@ -102,21 +102,38 @@ export default function Auth() {
   };
 
   const handleForgotPassword = async () => {
-    if (!loginEmail) {
+    const email = loginEmail.trim();
+    if (!email) {
       toast.error('Please enter your email above first');
       return;
     }
+    // Minimal shape check — avoids sending obvious garbage upstream.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (loading) return; // guard double-click
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success('Password reset email sent. Check your inbox.');
+      const raw = (error.message || '').toLowerCase();
+      // Rate-limit is the one server condition worth surfacing verbatim (paraphrased).
+      if (raw.includes('rate limit') || raw.includes('too many') || (error as { status?: number }).status === 429) {
+        toast.error('Too many attempts, please wait a minute and try again.');
+      } else {
+        // Never leak whether the account exists.
+        // eslint-disable-next-line no-console
+        console.warn('[forgot-password] server error:', error.message);
+        toast.success("If an account exists for that email, we've sent a reset link.");
+      }
+      return;
     }
+    toast.success("If an account exists for that email, we've sent a reset link.");
   };
+
 
   const handleSignup = async () => {
     if (!tosAccepted) {
