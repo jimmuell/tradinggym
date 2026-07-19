@@ -132,16 +132,11 @@ export default function Auth() {
       if (isRateLimit) {
         toast.error('Too many attempts, please wait a minute and try again.');
       } else {
-        // Never leak whether the account exists — but make the failure queryable
-        // server-side so a human can find it in email_send_log.
+        // Never leak whether the account exists. Do NOT trust the browser to
+        // self-report failures — server-side writers (auth-email-hook and
+        // process-email-queue) are the source of truth in email_send_log.
         // eslint-disable-next-line no-console
         console.warn('[forgot-password] server error:', status, error.message);
-        try {
-          await supabase.rpc('log_failed_recovery_attempt', {
-            p_email: email,
-            p_error: `[${status ?? 'n/a'}] ${error.message ?? ''}`,
-          });
-        } catch (_e) { /* logging must never surface to the user */ }
         toast.success("If an account exists for that email, we've sent a reset link.");
       }
       return;
