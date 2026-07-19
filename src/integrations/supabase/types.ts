@@ -2207,6 +2207,10 @@ export type Database = {
       graduate_foundation: { Args: never; Returns: Json }
       guru_has_student: { Args: { _student_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      log_failed_recovery_attempt: {
+        Args: { p_email: string; p_error: string }
+        Returns: undefined
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
