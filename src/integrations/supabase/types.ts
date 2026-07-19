@@ -2225,6 +2225,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      run_reconcile_subscriptions: { Args: never; Returns: undefined }
       seed_default_checklists: {
         Args: { target_user_id: string }
         Returns: undefined
