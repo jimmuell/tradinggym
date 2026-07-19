@@ -218,12 +218,24 @@ async function handleWebhook(req: Request): Promise<Response> {
     )
   }
 
+  // For recovery, bypass Supabase's /auth/v1/verify auto-redirect (which
+  // strips the token hash and hands us a live session). Instead point the
+  // link directly at the SPA so the frontend calls verifyOtp on the actual
+  // user click — this also defeats link-prefetching mail scanners.
+  let confirmationUrl: string = payload.data.url
+  if (emailType === 'recovery' && payload.data.token_hash) {
+    const base = (payload.data.redirect_to as string | undefined) ||
+      `${payload.data.site_url || `https://${ROOT_DOMAIN}`}/reset-password`
+    const sep = base.includes('?') ? '&' : '?'
+    confirmationUrl = `${base}${sep}token_hash=${encodeURIComponent(payload.data.token_hash)}&type=recovery`
+  }
+
   // Build template props from payload.data (HookData structure)
   const templateProps = {
     siteName: SITE_NAME,
     siteUrl: `https://${ROOT_DOMAIN}`,
     recipient: payload.data.email,
-    confirmationUrl: payload.data.url,
+    confirmationUrl,
     token: payload.data.token,
     email: payload.data.email,
     oldEmail: payload.data.old_email,
