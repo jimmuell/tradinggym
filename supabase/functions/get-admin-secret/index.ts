@@ -18,7 +18,6 @@ const ALLOWED = new Set([
   "STRIPE_TEST_GURU_PRICE_ID",
   "ANTHROPIC_API_KEY",
   "LOVABLE_API_KEY",
-  "RESEND_API_KEY",
 ]);
 
 Deno.serve(async (req) => {
