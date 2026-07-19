@@ -119,14 +119,29 @@ export default function Auth() {
     });
     setLoading(false);
     if (error) {
+      const status = (error as { status?: number }).status;
       const raw = (error.message || '').toLowerCase();
-      // Rate-limit is the one server condition worth surfacing verbatim (paraphrased).
-      if (raw.includes('rate limit') || raw.includes('too many') || (error as { status?: number }).status === 429) {
+      // Detect 429 by status first, then by any of Supabase's known rate-limit strings.
+      const isRateLimit =
+        status === 429 ||
+        raw.includes('rate limit') ||
+        raw.includes('too many') ||
+        raw.includes('for security purposes') ||
+        raw.includes('only request this after') ||
+        raw.includes('email rate limit exceeded');
+      if (isRateLimit) {
         toast.error('Too many attempts, please wait a minute and try again.');
       } else {
-        // Never leak whether the account exists.
+        // Never leak whether the account exists — but make the failure queryable
+        // server-side so a human can find it in email_send_log.
         // eslint-disable-next-line no-console
-        console.warn('[forgot-password] server error:', error.message);
+        console.warn('[forgot-password] server error:', status, error.message);
+        try {
+          await supabase.rpc('log_failed_recovery_attempt', {
+            p_email: email,
+            p_error: `[${status ?? 'n/a'}] ${error.message ?? ''}`,
+          });
+        } catch (_e) { /* logging must never surface to the user */ }
         toast.success("If an account exists for that email, we've sent a reset link.");
       }
       return;
