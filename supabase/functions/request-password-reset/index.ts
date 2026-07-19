@@ -11,7 +11,9 @@
 // All limits are enforced by counting rows in public.email_send_log where
 // template_name = 'recovery' inside the relevant window. On throttle we
 // return the SAME neutral response as success, and write a `throttled` row
-// to email_send_log so the outcome is visible server-side.
+// to email_send_log so the outcome is visible server-side. The send log has
+// multiple rows per email (pending → sent), so rate limits must count unique
+// message_id values, not raw rows.
 
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
@@ -81,40 +83,45 @@ Deno.serve(async (req) => {
 
   const recordThrottle = async (reason: string) => {
     try {
-      await supabase.from('email_send_log').insert({
+      const { error } = await supabase.from('email_send_log').insert({
         message_id: crypto.randomUUID(),
         template_name: 'recovery',
         recipient_email: email,
-        status: 'throttled',
+        status: 'failed',
         error_message: `throttled: ${reason}`,
       })
-    } catch (_) { /* swallow */ }
+      if (error) console.error('[request-password-reset] throttle log failed', error)
+    } catch (err) {
+      console.error('[request-password-reset] throttle log crashed', err)
+    }
   }
 
-  // Rate limit checks — count only non-throttled prior sends for the caps.
-  const [{ count: perAddrRecent }, { count: perAddrHour }, { count: globalHour }] =
-    await Promise.all([
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .eq('recipient_email', email)
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneMinAgo),
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .eq('recipient_email', email)
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneHourAgo),
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneHourAgo),
-    ])
+  const countUniqueAttempts = async (scope: 'address' | 'global', since: string) => {
+    let query = supabase
+      .from('email_send_log')
+      .select('message_id')
+      .eq('template_name', 'recovery')
+      .in('status', ['pending', 'sent'])
+      .gte('created_at', since)
+
+    if (scope === 'address') query = query.eq('recipient_email', email)
+
+    const { data, error } = await query.limit(500)
+    if (error) {
+      console.error('[request-password-reset] rate-limit query failed', { scope, error })
+      // Fail closed but visible: do not send while the limiter is blind.
+      await recordThrottle(`rate-limit query failed for ${scope}`)
+      return Number.POSITIVE_INFINITY
+    }
+
+    return new Set((data ?? []).map((row) => row.message_id).filter(Boolean)).size
+  }
+
+  const [perAddrRecent, perAddrHour, globalHour] = await Promise.all([
+    countUniqueAttempts('address', oneMinAgo),
+    countUniqueAttempts('address', oneHourAgo),
+    countUniqueAttempts('global', oneHourAgo),
+  ])
 
   if ((perAddrRecent ?? 0) >= 1) {
     await recordThrottle(`per-address cooldown ${PER_ADDRESS_COOLDOWN_SEC}s`)
