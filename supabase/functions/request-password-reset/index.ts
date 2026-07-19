@@ -1,5 +1,5 @@
 // request-password-reset — generates a recovery link via admin.generateLink
-// and enqueues it through the existing pgmq auth_emails pipeline. Bypasses
+// and enqueues it through the existing pgmq email pipeline. Bypasses
 // Supabase's send path (which does not expose token_hash to our email hook
 // on this platform) while reusing the verified render+queue+dispatch stack.
 //
@@ -209,10 +209,13 @@ Deno.serve(async (req) => {
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-    queue_name: 'auth_emails',
+    // This is initiated by the app, not by the platform auth-email hook, so
+    // there is no valid email API run_id. Use the app-email queue contract:
+    // purpose + idempotency_key and no fabricated run_id.
+    queue_name: 'transactional_emails',
     payload: {
-      run_id: crypto.randomUUID(),
       message_id: messageId,
+      idempotency_key: `password-reset-${messageId}`,
       to: email,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
