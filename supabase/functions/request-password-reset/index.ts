@@ -99,14 +99,14 @@ Deno.serve(async (req) => {
   const countUniqueAttempts = async (scope: 'address' | 'global', since: string) => {
     let query = supabase
       .from('email_send_log')
-      .select('message_id')
+      .select('message_id,status,created_at')
       .eq('template_name', 'recovery')
-      .in('status', ['pending', 'sent'])
       .gte('created_at', since)
+      .order('created_at', { ascending: false })
 
     if (scope === 'address') query = query.eq('recipient_email', email)
 
-    const { data, error } = await query.limit(500)
+    const { data, error } = await query.limit(1000)
     if (error) {
       console.error('[request-password-reset] rate-limit query failed', { scope, error })
       // Fail closed but visible: do not send while the limiter is blind.
@@ -114,7 +114,18 @@ Deno.serve(async (req) => {
       return Number.POSITIVE_INFINITY
     }
 
-    return new Set((data ?? []).map((row) => row.message_id).filter(Boolean)).size
+    const latestStatusByMessageId = new Map<string, string>()
+    for (const row of data ?? []) {
+      const messageId = row?.message_id
+      if (typeof messageId !== 'string' || !messageId) continue
+      if (!latestStatusByMessageId.has(messageId)) {
+        latestStatusByMessageId.set(messageId, String(row.status ?? ''))
+      }
+    }
+
+    return Array.from(latestStatusByMessageId.values())
+      .filter((status) => status === 'pending' || status === 'sent')
+      .length
   }
 
   const [perAddrRecent, perAddrHour, globalHour] = await Promise.all([
