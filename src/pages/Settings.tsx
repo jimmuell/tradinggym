@@ -250,8 +250,8 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button variant="outline" className="border-border text-muted-foreground hover:text-foreground hover:bg-accent">
-              Change Password
+            <Button asChild variant="outline" className="border-border text-muted-foreground hover:text-foreground hover:bg-accent">
+              <Link to="/reset-password">Change Password</Link>
             </Button>
           </CardContent>
         </Card>
