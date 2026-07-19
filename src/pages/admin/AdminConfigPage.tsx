@@ -51,7 +51,6 @@ const MANAGED_SECRETS: { name: string; purpose: string }[] = [
   { name: 'STRIPE_TEST_GURU_PRICE_ID', purpose: 'Guru plan price' },
   { name: 'ANTHROPIC_API_KEY', purpose: 'Anthropic AI' },
   { name: 'LOVABLE_API_KEY', purpose: 'Lovable AI Gateway' },
-  { name: 'RESEND_API_KEY', purpose: 'Resend email (auth + transactional)' },
 ];
 
 export default function AdminConfigPage() {
