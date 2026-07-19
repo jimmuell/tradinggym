@@ -275,11 +275,12 @@ async function handleWebhook(req: Request): Promise<Response> {
 
   let confirmationUrl: string | undefined = buildTokenHashUrl() ?? legacyUrl
 
-  // Loud fallback: recovery MUST use token_hash form. If token_hash is missing
-  // from every known location, do not silently ship the legacy /auth/v1/verify
-  // link — record it so we notice.
+  // Degraded fallback for recovery: this project's managed hook payload does
+  // not include token_hash — only `token` + a pre-built /auth/v1/verify URL.
+  // Refusing (422) blocks every reset email. Ship the legacy URL and record
+  // a `degraded` row so we can see the shape in email_send_log.
   if (emailType === 'recovery' && !tokenHash) {
-    console.error('[auth-email-hook] SILENT_FALLBACK_AVERTED recovery has no token_hash', {
+    console.warn('[auth-email-hook] recovery degraded: no token_hash, using legacy verify URL', {
       dataShape: describeKeys(payload?.data),
       run_id,
     })
@@ -292,12 +293,16 @@ async function handleWebhook(req: Request): Promise<Response> {
         message_id: crypto.randomUUID(),
         template_name: 'recovery',
         recipient_email: recipientEmail,
-        status: 'failed',
-        error_message: 'recovery payload missing token_hash — refused legacy /auth/v1/verify fallback',
+        status: 'pending',
+        error_message: 'degraded: recovery payload missing token_hash — sent legacy /auth/v1/verify link',
       })
     } catch (_) { /* logged above */ }
+  }
+
+  if (!confirmationUrl) {
+    console.error('[auth-email-hook] no confirmation URL available', { emailType, run_id })
     return new Response(
-      JSON.stringify({ error: 'recovery payload missing token_hash' }),
+      JSON.stringify({ error: 'no confirmation URL' }),
       { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
