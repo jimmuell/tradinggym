@@ -114,33 +114,17 @@ export default function Auth() {
     }
     if (loading) return; // guard double-click
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setLoading(false);
-    if (error) {
-      const status = (error as { status?: number }).status;
-      const raw = (error.message || '').toLowerCase();
-      // Detect 429 by status first, then by any of Supabase's known rate-limit strings.
-      const isRateLimit =
-        status === 429 ||
-        raw.includes('rate limit') ||
-        raw.includes('too many') ||
-        raw.includes('for security purposes') ||
-        raw.includes('only request this after') ||
-        raw.includes('email rate limit exceeded');
-      if (isRateLimit) {
-        toast.error('Too many attempts, please wait a minute and try again.');
-      } else {
-        // Never leak whether the account exists. Do NOT trust the browser to
-        // self-report failures — server-side writers (auth-email-hook and
-        // process-email-queue) are the source of truth in email_send_log.
-        // eslint-disable-next-line no-console
-        console.warn('[forgot-password] server error:', status, error.message);
-        toast.success("If an account exists for that email, we've sent a reset link.");
-      }
-      return;
+    // Route through our own edge function so we can build a token_hash link
+    // (Supabase's Send Email hook payload on this platform does NOT expose
+    // token_hash). The function returns a neutral response in all cases and
+    // enforces its own rate limits — never trust the browser to self-report.
+    try {
+      await supabase.functions.invoke('request-password-reset', { body: { email } });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[forgot-password] transport error:', err);
     }
+    setLoading(false);
     toast.success("If an account exists for that email, we've sent a reset link.");
   };
 
