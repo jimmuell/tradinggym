@@ -55,6 +55,20 @@ export default function ResetPassword() {
     if (bootedRef.current) return;
     bootedRef.current = true;
 
+    // (b) Safety net: PASSWORD_RECOVERY is the definitive signal that the
+    // current session was established by a recovery link (Supabase's
+    // /auth/v1/verify flow). A recovery-established session must NEVER fall
+    // through to the in-session 'change' branch — that would demand a
+    // current password the user by definition does not know.
+    let recoverySeen = false;
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        recoverySeen = true;
+        setAccountEmail(session?.user.email ?? '');
+        setMode('recovery');
+      }
+    });
+
     (async () => {
       const params = readAuthParams();
 
@@ -72,6 +86,7 @@ export default function ResetPassword() {
       const type = params.type;
 
       if (tokenHash && type === 'recovery') {
+        // (a) primary path — email links now land here directly.
         // Capture BOTH tokens so a restore is functionally complete.
         const prev = await supabase.auth.getSession();
         const prevPair = prev.data.session
@@ -87,8 +102,6 @@ export default function ResetPassword() {
         });
 
         if (error || !data.session) {
-          // Bad / consumed / expired token. Restore the previous session if
-          // verifyOtp mutated it.
           if (prevPair) {
             const restore = await supabase.auth.setSession(prevPair);
             if (restore.error) {
@@ -104,35 +117,40 @@ export default function ResetPassword() {
           return;
         }
 
-        // Token valid — verifyOtp has swapped local session to the recovery user.
-        // Correction 1 ships the "no extra signOut" branch by default; the
-        // cross-browser probe (report item 17) decides whether to add
-        // `signOut({ scope: 'local' })` explicitly. Never global here.
         setAccountEmail(data.session.user.email ?? '');
         setMode('recovery');
         return;
       }
 
-      // 2. No token — fall through to in-session change.
+      // 2. No token_hash in URL. Give the PASSWORD_RECOVERY listener a beat
+      //    to fire in case Supabase already consumed a recovery hash server-
+      //    side (/auth/v1/verify redirect flow — belt-and-braces for legacy
+      //    emails still in the wild).
+      await new Promise((r) => setTimeout(r, 250));
+      if (recoverySeen) return;
+
+      // 3. No token, no recovery event — fall through to in-session change.
       const cur = await supabase.auth.getSession();
       if (cur.data.session) {
         setAccountEmail(cur.data.session.user.email ?? '');
-        // Load persisted attempt cap.
         try {
           const raw = sessionStorage.getItem(REAUTH_KEY(cur.data.session.user.id));
           if (raw) setAttempts(Math.min(REAUTH_CAP, parseInt(raw, 10) || 0));
         } catch { /* ignore */ }
-        setMode('change');
+        // One more guard — the listener could have fired during getSession.
+        if (!recoverySeen) setMode('change');
         return;
       }
 
-      // 3. No token, no session.
+      // 4. No token, no session.
       setErrorMessage('This password reset link is missing or invalid.');
       setMode('error');
     })().catch((e) => {
       setErrorMessage(e instanceof Error ? e.message : 'Something went wrong loading this page.');
       setMode('error');
     });
+
+    return () => { sub.subscription.unsubscribe(); };
   }, []);
 
   const canSubmitNew = useMemo(
