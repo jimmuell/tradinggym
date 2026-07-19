@@ -1,5 +1,5 @@
 // request-password-reset — generates a recovery link via admin.generateLink
-// and enqueues it through the existing pgmq auth_emails pipeline. Bypasses
+// and enqueues it through the existing pgmq email pipeline. Bypasses
 // Supabase's send path (which does not expose token_hash to our email hook
 // on this platform) while reusing the verified render+queue+dispatch stack.
 //
@@ -11,7 +11,9 @@
 // All limits are enforced by counting rows in public.email_send_log where
 // template_name = 'recovery' inside the relevant window. On throttle we
 // return the SAME neutral response as success, and write a `throttled` row
-// to email_send_log so the outcome is visible server-side.
+// to email_send_log so the outcome is visible server-side. The send log has
+// multiple rows per email (pending → sent), so rate limits must count unique
+// message_id values, not raw rows.
 
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
@@ -81,40 +83,56 @@ Deno.serve(async (req) => {
 
   const recordThrottle = async (reason: string) => {
     try {
-      await supabase.from('email_send_log').insert({
+      const { error } = await supabase.from('email_send_log').insert({
         message_id: crypto.randomUUID(),
         template_name: 'recovery',
         recipient_email: email,
-        status: 'throttled',
+        status: 'failed',
         error_message: `throttled: ${reason}`,
       })
-    } catch (_) { /* swallow */ }
+      if (error) console.error('[request-password-reset] throttle log failed', error)
+    } catch (err) {
+      console.error('[request-password-reset] throttle log crashed', err)
+    }
   }
 
-  // Rate limit checks — count only non-throttled prior sends for the caps.
-  const [{ count: perAddrRecent }, { count: perAddrHour }, { count: globalHour }] =
-    await Promise.all([
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .eq('recipient_email', email)
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneMinAgo),
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .eq('recipient_email', email)
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneHourAgo),
-      supabase
-        .from('email_send_log')
-        .select('*', { count: 'exact', head: true })
-        .eq('template_name', 'recovery')
-        .in('status', ['pending', 'sent', 'degraded'])
-        .gte('created_at', oneHourAgo),
-    ])
+  const countUniqueAttempts = async (scope: 'address' | 'global', since: string) => {
+    let query = supabase
+      .from('email_send_log')
+      .select('message_id,status,created_at')
+      .eq('template_name', 'recovery')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false })
+
+    if (scope === 'address') query = query.eq('recipient_email', email)
+
+    const { data, error } = await query.limit(1000)
+    if (error) {
+      console.error('[request-password-reset] rate-limit query failed', { scope, error })
+      // Fail closed but visible: do not send while the limiter is blind.
+      await recordThrottle(`rate-limit query failed for ${scope}`)
+      return Number.POSITIVE_INFINITY
+    }
+
+    const latestStatusByMessageId = new Map<string, string>()
+    for (const row of data ?? []) {
+      const messageId = row?.message_id
+      if (typeof messageId !== 'string' || !messageId) continue
+      if (!latestStatusByMessageId.has(messageId)) {
+        latestStatusByMessageId.set(messageId, String(row.status ?? ''))
+      }
+    }
+
+    return Array.from(latestStatusByMessageId.values())
+      .filter((status) => status === 'pending' || status === 'sent')
+      .length
+  }
+
+  const [perAddrRecent, perAddrHour, globalHour] = await Promise.all([
+    countUniqueAttempts('address', oneMinAgo),
+    countUniqueAttempts('address', oneHourAgo),
+    countUniqueAttempts('global', oneHourAgo),
+  ])
 
   if ((perAddrRecent ?? 0) >= 1) {
     await recordThrottle(`per-address cooldown ${PER_ADDRESS_COOLDOWN_SEC}s`)
@@ -192,6 +210,35 @@ Deno.serve(async (req) => {
   )
 
   const messageId = crypto.randomUUID()
+  let unsubscribeToken = crypto.randomUUID()
+
+  const { data: existingToken } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', email)
+    .is('used_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (existingToken?.token) {
+    unsubscribeToken = existingToken.token
+  } else {
+    const { error: tokenError } = await supabase
+      .from('email_unsubscribe_tokens')
+      .insert({ token: unsubscribeToken, email })
+    if (tokenError) {
+      console.error('[request-password-reset] unsubscribe token insert failed', tokenError)
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: 'recovery',
+        recipient_email: email,
+        status: 'failed',
+        error_message: `unsubscribe token failed: ${String(tokenError.message).slice(0, 400)}`,
+      })
+      return neutralResponse()
+    }
+  }
 
   // Log pending BEFORE enqueue so the row exists even if enqueue crashes.
   await supabase.from('email_send_log').insert({
@@ -202,10 +249,13 @@ Deno.serve(async (req) => {
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-    queue_name: 'auth_emails',
+    // This is initiated by the app, not by the platform auth-email hook, so
+    // there is no valid email API run_id. Use the app-email queue contract:
+    // purpose + idempotency_key and no fabricated run_id.
+    queue_name: 'transactional_emails',
     payload: {
-      run_id: crypto.randomUUID(),
       message_id: messageId,
+      idempotency_key: `password-reset-${messageId}`,
       to: email,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
@@ -214,6 +264,7 @@ Deno.serve(async (req) => {
       text,
       purpose: 'transactional',
       label: 'recovery',
+      unsubscribe_token: unsubscribeToken,
       queued_at: new Date().toISOString(),
     },
   })
