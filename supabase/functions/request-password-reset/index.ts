@@ -199,6 +199,35 @@ Deno.serve(async (req) => {
   )
 
   const messageId = crypto.randomUUID()
+  let unsubscribeToken = crypto.randomUUID()
+
+  const { data: existingToken } = await supabase
+    .from('email_unsubscribe_tokens')
+    .select('token')
+    .eq('email', email)
+    .is('used_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (existingToken?.token) {
+    unsubscribeToken = existingToken.token
+  } else {
+    const { error: tokenError } = await supabase
+      .from('email_unsubscribe_tokens')
+      .insert({ token: unsubscribeToken, email })
+    if (tokenError) {
+      console.error('[request-password-reset] unsubscribe token insert failed', tokenError)
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: 'recovery',
+        recipient_email: email,
+        status: 'failed',
+        error_message: `unsubscribe token failed: ${String(tokenError.message).slice(0, 400)}`,
+      })
+      return neutralResponse()
+    }
+  }
 
   // Log pending BEFORE enqueue so the row exists even if enqueue crashes.
   await supabase.from('email_send_log').insert({
@@ -224,6 +253,7 @@ Deno.serve(async (req) => {
       text,
       purpose: 'transactional',
       label: 'recovery',
+      unsubscribe_token: unsubscribeToken,
       queued_at: new Date().toISOString(),
     },
   })
