@@ -2102,6 +2102,7 @@ export type Database = {
           created_at: string
           display_name: string
           email: string
+          last_sign_in_at: string
           plan_state: string
           role: string
           strategy_count: number
