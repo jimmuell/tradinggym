@@ -35,6 +35,7 @@ type AdminUser = {
   created_at: string;
   strategy_count: number;
   trade_count: number;
+  last_sign_in_at: string | null;
 };
 
 const PAGE_SIZE = 20;
