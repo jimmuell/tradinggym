@@ -222,6 +222,7 @@ export default function AdminUsersPage() {
                   <TableHead className="text-right">Strategies</TableHead>
                   <TableHead className="text-right">Trades</TableHead>
                   <TableHead>Joined</TableHead>
+                  <TableHead>Last signed in</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -236,6 +237,9 @@ export default function AdminUsersPage() {
                     <TableCell className="text-right tabular-nums">{u.trade_count}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(u.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : '—'}
                     </TableCell>
                   </TableRow>
                 ))}
