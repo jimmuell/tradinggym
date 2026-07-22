@@ -265,11 +265,16 @@ export default function Settings() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Permanently delete your account and all associated data. This action cannot be undone.
+              Deleting your account removes your profile, trades, strategies and backtest
+              history. We're still building this so it can be undone within 30 days if you
+              change your mind, so it isn't available to switch on yourself just yet.
             </p>
-            <Button variant="destructive">
+            <Button variant="destructive" disabled>
               Delete Account
             </Button>
+            <p className="text-xs text-muted-foreground mt-3">
+              Need your account deleted before then? Get in touch and we'll do it for you.
+            </p>
           </CardContent>
         </Card>
       </div>
